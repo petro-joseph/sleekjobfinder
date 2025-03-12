@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Search, SliderIcon } from 'lucide-react';
+import { Search, SlidersHorizontal } from 'lucide-react';
 
 interface JobFilterProps {
   onFilterChange: (filters: any) => void;
@@ -73,7 +73,7 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
   };
 
   return (
-    <div className="bg-white border rounded-xl p-6 shadow-sm sticky top-24">
+    <div className="bg-card border rounded-xl p-6 shadow-sm sticky top-24">
       <div className="mb-6">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
@@ -88,7 +88,7 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
 
       <div className="space-y-6">
         <div>
-          <h3 className="font-medium mb-3">Job Type</h3>
+          <h3 className="font-medium mb-3 text-foreground">Job Type</h3>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <Checkbox 
@@ -127,7 +127,7 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
 
         <div>
           <div className="flex justify-between mb-3">
-            <h3 className="font-medium">Salary Range</h3>
+            <h3 className="font-medium text-foreground">Salary Range</h3>
             <p className="text-sm text-muted-foreground">
               ${salaryRange[0]}k - ${salaryRange[1]}k
             </p>
@@ -144,7 +144,7 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
         </div>
 
         <div>
-          <h3 className="font-medium mb-3">Experience Level</h3>
+          <h3 className="font-medium mb-3 text-foreground">Experience Level</h3>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <Checkbox id="entry" />
