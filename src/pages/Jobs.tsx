@@ -5,12 +5,19 @@ import { SectionHeading } from '@/components/ui/section-heading';
 import JobFilter from '@/components/JobFilter';
 import JobCard from '@/components/JobCard';
 import { jobs, Job } from '@/data/jobs';
-import { Briefcase, AlertCircle } from 'lucide-react';
+import { Briefcase, AlertCircle, Tag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 const Jobs = () => {
   const [filteredJobs, setFilteredJobs] = useState<Job[]>(jobs);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeFilters, setActiveFilters] = useState({
+    jobTypes: {} as Record<string, boolean>,
+    salaryRange: [50, 150] as [number, number],
+    searchTerm: '',
+    industry: '' // New filter for industry
+  });
 
   useEffect(() => {
     // Simulate API call
@@ -24,6 +31,14 @@ const Jobs = () => {
 
   const handleFilterChange = (filters: any) => {
     setIsLoading(true);
+    
+    // Save active filters
+    setActiveFilters({
+      ...activeFilters,
+      jobTypes: filters.jobTypes,
+      salaryRange: filters.salaryRange,
+      searchTerm: filters.searchTerm,
+    });
     
     // Simulate API call with delay
     setTimeout(() => {
@@ -64,9 +79,46 @@ const Jobs = () => {
         return avgSalary >= filters.salaryRange[0] * 1000 && avgSalary <= filters.salaryRange[1] * 1000;
       });
       
+      // Filter by industry if set
+      if (activeFilters.industry) {
+        filtered = filtered.filter(job => job.industry === activeFilters.industry);
+      }
+      
       setFilteredJobs(filtered);
       setIsLoading(false);
     }, 500);
+  };
+
+  const handleIndustryClick = (industry: string) => {
+    const newActiveFilters = {
+      ...activeFilters,
+      industry: activeFilters.industry === industry ? '' : industry // Toggle industry filter
+    };
+    
+    setActiveFilters(newActiveFilters);
+    
+    // Apply the filters with the new industry
+    handleFilterChange({
+      jobTypes: newActiveFilters.jobTypes,
+      salaryRange: newActiveFilters.salaryRange,
+      searchTerm: newActiveFilters.searchTerm,
+    });
+  };
+
+  const clearIndustryFilter = () => {
+    const newActiveFilters = {
+      ...activeFilters,
+      industry: ''
+    };
+    
+    setActiveFilters(newActiveFilters);
+    
+    // Apply the filters without the industry
+    handleFilterChange({
+      jobTypes: newActiveFilters.jobTypes,
+      salaryRange: newActiveFilters.salaryRange,
+      searchTerm: newActiveFilters.searchTerm,
+    });
   };
 
   return (
@@ -98,20 +150,40 @@ const Jobs = () => {
                 </div>
               ) : filteredJobs.length > 0 ? (
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="text-muted-foreground">Showing {filteredJobs.length} jobs</p>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="outline" size="sm">
-                        Newest
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        Relevant
-                      </Button>
+                  <div className="flex flex-col gap-4 mb-4">
+                    <div className="flex justify-between items-center">
+                      <p className="text-muted-foreground">Showing {filteredJobs.length} jobs</p>
+                      <div className="flex items-center space-x-2">
+                        <Button variant="outline" size="sm">
+                          Newest
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          Relevant
+                        </Button>
+                      </div>
                     </div>
+                    
+                    {activeFilters.industry && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Active filters:</span>
+                        <Badge className="flex items-center gap-1">
+                          <Tag className="h-3 w-3" />
+                          {activeFilters.industry}
+                          <X 
+                            className="h-3 w-3 ml-1 cursor-pointer" 
+                            onClick={clearIndustryFilter}
+                          />
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                   
                   {filteredJobs.map(job => (
-                    <JobCard key={job.id} job={job} />
+                    <JobCard 
+                      key={job.id} 
+                      job={job} 
+                      onIndustryClick={handleIndustryClick}
+                    />
                   ))}
                 </div>
               ) : (
@@ -121,12 +193,20 @@ const Jobs = () => {
                   <p className="text-muted-foreground mb-4">
                     Try adjusting your filters or search terms to find more jobs.
                   </p>
-                  <Button onClick={() => handleFilterChange({
-                    jobTypes: {},
-                    salaryRange: [50, 150],
-                    searchTerm: '',
-                  })}>
-                    Clear Filters
+                  <Button onClick={() => {
+                    setActiveFilters({
+                      jobTypes: {},
+                      salaryRange: [50, 150],
+                      searchTerm: '',
+                      industry: ''
+                    });
+                    handleFilterChange({
+                      jobTypes: {},
+                      salaryRange: [50, 150],
+                      searchTerm: '',
+                    });
+                  }}>
+                    Clear All Filters
                   </Button>
                 </div>
               )}

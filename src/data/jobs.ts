@@ -11,6 +11,7 @@ export interface Job {
   postedAt: string;
   logo?: string;
   featured?: boolean;
+  industry: string; // Added industry field
 }
 
 export const jobs: Job[] = [
@@ -30,6 +31,7 @@ export const jobs: Job[] = [
     ],
     postedAt: '2 days ago',
     featured: true,
+    industry: 'Technology',
   },
   {
     id: '2',
@@ -47,6 +49,7 @@ export const jobs: Job[] = [
     ],
     postedAt: '1 day ago',
     featured: true,
+    industry: 'Technology',
   },
   {
     id: '3',
@@ -63,6 +66,7 @@ export const jobs: Job[] = [
       'Understanding of infrastructure as code',
     ],
     postedAt: '3 days ago',
+    industry: 'Cloud Computing',
   },
   {
     id: '4',
@@ -79,6 +83,7 @@ export const jobs: Job[] = [
       'Ability to translate user needs into design solutions',
     ],
     postedAt: '1 week ago',
+    industry: 'Design',
   },
   {
     id: '5',
@@ -95,6 +100,7 @@ export const jobs: Job[] = [
       'Ability to communicate technical concepts to non-technical stakeholders',
     ],
     postedAt: '5 days ago',
+    industry: 'Data Science',
   },
   {
     id: '6',
@@ -111,6 +117,7 @@ export const jobs: Job[] = [
       'Experience with microservices architecture a plus',
     ],
     postedAt: '3 days ago',
+    industry: 'Software Development',
   },
   {
     id: '7',
@@ -127,6 +134,7 @@ export const jobs: Job[] = [
       'Experience with content analytics',
     ],
     postedAt: '1 week ago',
+    industry: 'Marketing',
   },
   {
     id: '8',
@@ -143,5 +151,6 @@ export const jobs: Job[] = [
       'Experience with CRM software',
     ],
     postedAt: '2 weeks ago',
+    industry: 'Customer Service',
   },
 ];

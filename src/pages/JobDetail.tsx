@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   CheckCircle,
   Share2,
-  Bookmark
+  Bookmark,
+  Tag
 } from 'lucide-react';
 import { jobs, Job } from '@/data/jobs';
 import { SectionHeading } from '@/components/ui/section-heading';
@@ -48,6 +49,15 @@ const JobDetail = () => {
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     toast.success("Link copied to clipboard!");
+  };
+
+  const navigateToIndustryJobs = () => {
+    if (job) {
+      // Store the industry in localStorage to be picked up by the Jobs page
+      localStorage.setItem('selectedIndustry', job.industry);
+      // Navigate back to jobs
+      window.location.href = '/jobs';
+    }
   };
 
   if (isLoading) {
@@ -133,7 +143,7 @@ const JobDetail = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 border-t pt-6">
             <div className="flex items-center">
               <MapPin className="h-5 w-5 text-primary mr-3" />
               <div>
@@ -153,6 +163,19 @@ const JobDetail = () => {
               <div>
                 <p className="text-sm text-muted-foreground">Salary</p>
                 <p className="font-medium">{job.salary}</p>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <Tag className="h-5 w-5 text-primary mr-3" />
+              <div>
+                <p className="text-sm text-muted-foreground">Industry</p>
+                <Badge 
+                  variant="secondary" 
+                  className="cursor-pointer hover:bg-primary/20 mt-1"
+                  onClick={navigateToIndustryJobs}
+                >
+                  {job.industry}
+                </Badge>
               </div>
             </div>
           </div>
@@ -223,6 +246,14 @@ const JobDetail = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Salary Range</p>
                     <p>{job.salary}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <Tag className="h-5 w-5 text-muted-foreground mr-3" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Industry</p>
+                    <p>{job.industry}</p>
                   </div>
                 </div>
               </div>

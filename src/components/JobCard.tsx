@@ -1,16 +1,18 @@
 
-import { Briefcase, MapPin, Clock } from 'lucide-react';
+import { Briefcase, MapPin, Clock, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Job } from '@/data/jobs';
+import { Badge } from '@/components/ui/badge';
 
 interface JobCardProps {
   job: Job;
   className?: string;
+  onIndustryClick?: (industry: string) => void;
 }
 
-const JobCard = ({ job, className }: JobCardProps) => {
+const JobCard = ({ job, className, onIndustryClick }: JobCardProps) => {
   return (
     <div className={cn(
       "p-6 border rounded-xl bg-card shadow-sm hover:shadow-md transition-all duration-300",
@@ -56,6 +58,15 @@ const JobCard = ({ job, className }: JobCardProps) => {
       <p className="mb-4 text-foreground/80 line-clamp-2">{job.description}</p>
       
       <div className="flex flex-wrap gap-2 mb-4">
+        <Badge 
+          variant="secondary" 
+          className="flex items-center cursor-pointer hover:bg-primary/20 transition-colors"
+          onClick={() => onIndustryClick && onIndustryClick(job.industry)}
+        >
+          <Tag className="h-3 w-3 mr-1" />
+          {job.industry}
+        </Badge>
+        
         {job.requirements.slice(0, 2).map((req, index) => (
           <span key={index} className="px-2 py-1 text-xs bg-secondary text-foreground/70 rounded-full">
             {req.split(' ').slice(0, 3).join(' ')}...
