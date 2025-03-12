@@ -13,7 +13,7 @@ interface JobCardProps {
 const JobCard = ({ job, className }: JobCardProps) => {
   return (
     <div className={cn(
-      "p-6 border rounded-xl bg-white shadow-sm hover:shadow-md transition-all duration-300",
+      "p-6 border rounded-xl bg-card shadow-sm hover:shadow-md transition-all duration-300",
       job.featured && "border-primary/30 bg-primary/[0.02]",
       className
     )}>

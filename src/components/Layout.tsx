@@ -3,6 +3,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import DarkModeToggle from './DarkModeToggle';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,9 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <div className="fixed bottom-6 right-6 z-50">
+        <DarkModeToggle />
+      </div>
       <Navbar />
       <main className="flex-grow pt-[76px]">{children}</main>
       <Footer />
