@@ -61,7 +61,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
           <SectionHeading
             title="Revolutionize Your Job Search"
@@ -100,6 +100,15 @@ const Index = () => {
               title="Auto Application Tracking"
               description="Never lose track of your applications with our automated tracking and follow-up reminders."
             />
+          </div>
+          
+          <div className="mt-10 text-center">
+            <Button asChild size="lg" className="rounded-full">
+              <Link to="/resume-builder">
+                Try Our Resume Builder
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -140,7 +149,7 @@ const Index = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
           <SectionHeading
             title="Success Stories"
@@ -170,9 +179,14 @@ const Index = () => {
           <p className="text-white/80 mb-8 max-w-xl mx-auto">
             Join thousands of job seekers who have found their dream jobs faster with SleekJobs.
           </p>
-          <Button asChild size="lg" variant="secondary" className="rounded-full">
-            <Link to="/signup">Create Free Account</Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" variant="secondary" className="rounded-full">
+              <Link to="/signup">Create Free Account</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="rounded-full text-white border-white/20 hover:bg-white/10">
+              <Link to="/resume-builder">Build Your Resume</Link>
+            </Button>
+          </div>
         </div>
       </section>
     </Layout>

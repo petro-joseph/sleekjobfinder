@@ -20,7 +20,7 @@ const TestimonialCard = ({
 }: TestimonialCardProps) => {
   return (
     <div className={cn(
-      "p-6 rounded-xl bg-white border border-border shadow-sm",
+      "p-6 rounded-xl bg-card border border-border shadow-sm",
       className
     )}>
       <div className="flex items-center mb-4">
@@ -38,7 +38,7 @@ const TestimonialCard = ({
           )}
         </div>
         <div>
-          <h4 className="font-semibold">{author}</h4>
+          <h4 className="font-semibold text-foreground">{author}</h4>
           <p className="text-sm text-muted-foreground">{role}, {company}</p>
         </div>
       </div>

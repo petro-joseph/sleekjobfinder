@@ -11,7 +11,7 @@ interface FeatureCardProps {
 const FeatureCard = ({ icon, title, description, className }: FeatureCardProps) => {
   return (
     <div className={cn(
-      "p-6 rounded-xl bg-white border border-border shadow-sm transition-all duration-300 hover:shadow-md group",
+      "p-6 rounded-xl bg-card border border-border shadow-sm transition-all duration-300 hover:shadow-md group",
       className
     )}>
       <div className="mb-4 text-primary p-2 bg-primary/5 rounded-lg inline-block">
