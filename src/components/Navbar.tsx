@@ -1,12 +1,15 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Sparkles } from 'lucide-react';
+import { Menu, X, Sparkles, User, LogOut } from 'lucide-react';
+import { useAuthStore } from '@/lib/store';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isAuthenticated, user, logout } = useAuthStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,6 +20,11 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <header 
@@ -37,21 +45,50 @@ const Navbar = () => {
           <nav className="hidden md:flex items-center space-x-8">
             <NavLink href="/jobs">Find Jobs</NavLink>
             <NavLink href="/resume-builder">Resume Builder</NavLink>
-            <NavLink href="/pricing">Pricing</NavLink>
-            <NavLink href="/blog">Resources</NavLink>
+            {!isAuthenticated && <NavLink href="/pricing">Pricing</NavLink>}
+            {!isAuthenticated && <NavLink href="/blog">Resources</NavLink>}
+            {isAuthenticated && <NavLink href="/dashboard">Dashboard</NavLink>}
+            {isAuthenticated && <NavLink href="/saved-jobs">Saved Jobs</NavLink>}
+            {isAuthenticated && <NavLink href="/progress">Applications</NavLink>}
           </nav>
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button asChild variant="ghost" className="font-medium">
-              <Link to="/login">Log in</Link>
-            </Button>
-            <Button asChild size="pill" variant="gradient" className="group">
-              <Link to="/signup" className="flex items-center">
-                <Sparkles className="w-4 h-4 mr-2 group-hover:animate-pulse-soft" />
-                Get started
-              </Link>
-            </Button>
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-4">
+                <Button 
+                  asChild 
+                  variant="ghost" 
+                  className="font-medium flex items-center gap-2"
+                  onClick={() => navigate('/profile')}
+                >
+                  <Link to="/profile">
+                    <User className="w-4 h-4" />
+                    Profile
+                  </Link>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="font-medium flex items-center gap-2"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button asChild variant="ghost" className="font-medium">
+                  <Link to="/login">Log in</Link>
+                </Button>
+                <Button asChild size="pill" variant="gradient" className="group">
+                  <Link to="/signup" className="flex items-center">
+                    <Sparkles className="w-4 h-4 mr-2 group-hover:animate-pulse-soft" />
+                    Get started
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -86,26 +123,73 @@ const Navbar = () => {
               >
                 Resume Builder
               </MobileNavLink>
-              <MobileNavLink 
-                href="/pricing" 
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Pricing
-              </MobileNavLink>
-              <MobileNavLink 
-                href="/blog" 
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Resources
-              </MobileNavLink>
+              {!isAuthenticated && (
+                <>
+                  <MobileNavLink 
+                    href="/pricing" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Pricing
+                  </MobileNavLink>
+                  <MobileNavLink 
+                    href="/blog" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Resources
+                  </MobileNavLink>
+                </>
+              )}
+              {isAuthenticated && (
+                <>
+                  <MobileNavLink 
+                    href="/dashboard" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </MobileNavLink>
+                  <MobileNavLink 
+                    href="/saved-jobs" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Saved Jobs
+                  </MobileNavLink>
+                  <MobileNavLink 
+                    href="/progress" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Applications
+                  </MobileNavLink>
+                  <MobileNavLink 
+                    href="/profile" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Profile
+                  </MobileNavLink>
+                </>
+              )}
             </nav>
             <div className="flex flex-col space-y-2 pt-4 border-t">
-              <Button asChild variant="outline" className="w-full justify-center">
-                <Link to="/login">Log in</Link>
-              </Button>
-              <Button asChild className="w-full justify-center">
-                <Link to="/signup">Get started</Link>
-              </Button>
+              {isAuthenticated ? (
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-center"
+                  onClick={() => {
+                    handleLogout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Log out
+                </Button>
+              ) : (
+                <>
+                  <Button asChild variant="outline" className="w-full justify-center">
+                    <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>Log in</Link>
+                  </Button>
+                  <Button asChild className="w-full justify-center">
+                    <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>Get started</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

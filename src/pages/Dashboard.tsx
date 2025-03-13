@@ -8,7 +8,6 @@ import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart } from '
 import { useAuthStore } from '@/lib/store';
 import JobCardCompact from '@/components/JobCardCompact';
 import { toast } from "sonner";
-import ParticlesBackground from '@/components/ParticlesBackground';
 import { jobs } from '@/data/jobs';
 
 const Dashboard = () => {
@@ -36,10 +35,8 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="relative min-h-[calc(100vh-160px)]">
-        <ParticlesBackground />
-        
-        <div className="container mx-auto px-6 py-12 relative z-10">
+      <div className="min-h-[calc(100vh-160px)] bg-gradient-mesh">
+        <div className="container mx-auto px-6 py-12">
           {/* Welcome Card */}
           <div className="grid gap-8 md:grid-cols-12">
             <div className="md:col-span-8">
@@ -54,7 +51,7 @@ const Dashboard = () => {
                         Here's what's happening with your job search today
                       </p>
                     </div>
-                    <Button size="lg" className="group animate-pulse-soft" onClick={() => navigate('/jobs')}>
+                    <Button size="lg" className="group" onClick={() => navigate('/jobs')}>
                       Find Jobs
                       <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Button>
