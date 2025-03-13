@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { ArrowRight, Mail, Lock, AlertCircle } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { toast } from "sonner";
-import { useStore } from '@/lib/store';
+import { useAuthStore } from '@/lib/store';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,7 +16,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { setAuth } = useStore();
+  const { login } = useAuthStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,15 +36,7 @@ const Login = () => {
       // Check if credentials match our mock user
       if (email === 'johndoe@example.com' && password === 'qwerty@2025') {
         // Success - set authenticated in global store
-        setAuth({
-          user: {
-            id: '123',
-            name: 'John Doe',
-            email: 'johndoe@example.com',
-            avatar: 'https://ui-avatars.com/api/?name=John+Doe',
-          },
-          isAuthenticated: true
-        });
+        login(email, password);
         
         // Show success toast
         toast.success("Login successful! Welcome back.", {
