@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Sparkles } from 'lucide-react';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -20,15 +20,15 @@ const Navbar = () => {
 
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white/80 backdrop-blur-md shadow-sm' : 'bg-transparent'
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        isScrolled ? 'glassmorphism py-3' : 'bg-transparent py-5'
       }`}
     >
-      <div className="container mx-auto px-6 py-4">
+      <div className="container mx-auto px-6">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          <Link to="/" className="flex items-center space-x-2 group">
+            <span className="text-xl font-bold text-gradient font-display">
               SleekJobs
             </span>
           </Link>
@@ -46,14 +46,17 @@ const Navbar = () => {
             <Button asChild variant="ghost" className="font-medium">
               <Link to="/login">Log in</Link>
             </Button>
-            <Button asChild>
-              <Link to="/signup">Get started</Link>
+            <Button asChild size="pill" variant="gradient" className="group">
+              <Link to="/signup" className="flex items-center">
+                <Sparkles className="w-4 h-4 mr-2 group-hover:animate-pulse-soft" />
+                Get started
+              </Link>
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="p-2 md:hidden rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="p-2 md:hidden rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -68,7 +71,7 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t animate-in slide-in">
+        <div className="md:hidden glassmorphism animate-in slide-in">
           <div className="container mx-auto px-6 py-4 space-y-4">
             <nav className="flex flex-col space-y-4">
               <MobileNavLink 
@@ -136,7 +139,7 @@ const MobileNavLink = ({
   return (
     <Link 
       to={href} 
-      className="text-base font-medium py-2"
+      className="text-base font-medium py-2 transition-colors duration-200 hover:text-primary"
       onClick={onClick}
     >
       {children}
