@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { isAuthenticated } = useAuthStore();
   const location = useLocation();
   
