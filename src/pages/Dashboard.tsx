@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge'; // Add Badge import
 import StatCard from '@/components/StatCard';
 import JobCardCompact from '@/components/JobCardCompact';
 import ParticlesBackground from '@/components/ParticlesBackground';

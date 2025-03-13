@@ -1,31 +1,15 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useAuthStore } from '@/lib/store';
+import { useToast } from '@/hooks/use-toast';
 import { jobs } from '@/data/jobs';
-import { toast } from 'sonner';
-import {
-  Bookmark,
-  Search,
-  X,
-  Filter,
-  ArrowUpDown,
-  Clock,
-  BookmarkX,
-  FileText,
-} from 'lucide-react';
-import { Job } from '@/data/jobs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { useAuthStore } from '@/lib/store';
+import { BookmarkIcon, Briefcase, MapPin, Clock, Search, X, Filter, ArrowUpDown } from 'lucide-react';
 
 const SavedJobs = () => {
   const { user, removeJob } = useAuthStore();
@@ -33,38 +17,29 @@ const SavedJobs = () => {
   const [sortBy, setSortBy] = useState<'newest' | 'relevant'>('newest');
   const [industryFilter, setIndustryFilter] = useState<string>('');
 
-  // Get all saved jobs
   const savedJobs = jobs.filter(job => user?.savedJobs.includes(job.id));
-  
-  // Get all unique industries from saved jobs
   const industries = Array.from(new Set(savedJobs.map(job => job.industry)));
 
-  // Apply filters and sorting
   const filteredJobs = savedJobs
     .filter(job => {
-      // Apply search term filter
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = !searchTerm || 
         job.title.toLowerCase().includes(searchLower) ||
         job.company.toLowerCase().includes(searchLower) ||
         job.description.toLowerCase().includes(searchLower);
       
-      // Apply industry filter
       const matchesIndustry = !industryFilter || job.industry === industryFilter;
       
       return matchesSearch && matchesIndustry;
     })
     .sort((a, b) => {
-      // Sort by newest or "relevant" (mock relevance by featured status)
       if (sortBy === 'newest') {
-        // Convert postedAt strings to comparable values (assuming format like "2 days ago")
         const getPostedDays = (postedAt: string) => {
           const match = postedAt.match(/(\d+)/);
           return match ? parseInt(match[1]) : 0;
         };
         return getPostedDays(a.postedAt) - getPostedDays(b.postedAt);
       } else {
-        // Sort by "relevance" (featured jobs first)
         return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
       }
     });
@@ -116,7 +91,6 @@ const SavedJobs = () => {
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Sidebar Filters */}
             <motion.div
               variants={fadeInUp}
               initial="hidden"
@@ -130,7 +104,6 @@ const SavedJobs = () => {
                 </h3>
 
                 <div className="space-y-4">
-                  {/* Industry Filter */}
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Industry</label>
                     <Select
@@ -151,7 +124,6 @@ const SavedJobs = () => {
                     </Select>
                   </div>
 
-                  {/* Sort Options */}
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Sort By</label>
                     <Select
@@ -168,7 +140,6 @@ const SavedJobs = () => {
                     </Select>
                   </div>
 
-                  {/* Clear Filters */}
                   <Button
                     onClick={clearAllFilters}
                     variant="outline"
@@ -179,7 +150,6 @@ const SavedJobs = () => {
                 </div>
               </div>
 
-              {/* Quick Links */}
               <div className="bg-card rounded-xl border shadow-sm p-6">
                 <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
                 <div className="space-y-2">
@@ -205,14 +175,12 @@ const SavedJobs = () => {
               </div>
             </motion.div>
 
-            {/* Main Content */}
             <motion.div
               variants={fadeInUp}
               initial="hidden"
               animate="visible"
               className="lg:col-span-3"
             >
-              {/* Search Bar */}
               <div className="relative mb-6">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -231,7 +199,6 @@ const SavedJobs = () => {
                 )}
               </div>
 
-              {/* Results Info */}
               <div className="flex justify-between items-center mb-4">
                 <p className="text-sm text-muted-foreground">
                   {filteredJobs.length} saved {filteredJobs.length === 1 ? 'job' : 'jobs'}
@@ -245,7 +212,6 @@ const SavedJobs = () => {
                 </div>
               </div>
 
-              {/* Job List */}
               {filteredJobs.length > 0 ? (
                 <motion.div
                   variants={staggerItems}
@@ -283,7 +249,6 @@ const SavedJobs = () => {
   );
 };
 
-// Saved Job Card Component
 const SavedJobCard = ({ job, onRemove }: { job: Job; onRemove: () => void }) => {
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },

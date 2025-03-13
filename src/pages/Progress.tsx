@@ -1,11 +1,9 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -15,71 +13,76 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuthStore } from '@/lib/store';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 import { jobs } from '@/data/jobs';
-import { toast } from 'sonner';
-import {
-  Briefcase,
-  Bell,
-  AlertCircle,
-  Clock,
-  CheckCircle,
-  BarChart3,
-  Search,
-  Plus,
-  X,
-  FileText,
-  ExternalLink,
-} from 'lucide-react';
+import { Briefcase, Bell, AlertTriangle, CheckCircle, XCircle, Clock, Calendar } from 'lucide-react';
 
 const Progress = () => {
-  const { user, addAlert, toggleAlert } = useAuthStore();
-  const [newAlertQuery, setNewAlertQuery] = useState('');
-  const [newAlertFrequency, setNewAlertFrequency] = useState<'daily' | 'weekly'>('daily');
+  const { toast } = useToast();
+  const [applications, setApplications] = useState([
+    { jobId: '1', status: 'reviewing', date: '2024-03-10' },
+    { jobId: '2', status: 'interview', date: '2024-03-15' },
+    { jobId: '3', status: 'offered', date: '2024-03-20' },
+    { jobId: '4', status: 'rejected', date: '2024-03-25' },
+  ]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  // Get application data with job details
-  const applications = user?.applications.map(app => {
-    const jobData = jobs.find(j => j.id === app.jobId);
-    return {
-      ...app,
-      job: jobData
-    };
-  }) || [];
-
-  const handleAddAlert = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newAlertQuery.trim()) {
-      toast.error("Please enter a search term");
-      return;
-    }
-    
-    addAlert(newAlertQuery, newAlertFrequency);
-    setNewAlertQuery('');
-    toast.success("Job alert created");
+  const handleStatusUpdate = (jobId: string, newStatus: string) => {
+    setApplications(applications.map(app =>
+      app.jobId === jobId ? { ...app, status: newStatus } : app
+    ));
+    toast({
+      title: "Status Updated",
+      description: `Application status updated to ${newStatus}`,
+    });
   };
 
-  const handleToggleAlert = (alertId: string) => {
-    toggleAlert(alertId);
-    toast.success("Alert status updated");
+  const handleApplicationDelete = (jobId: string) => {
+    setApplications(applications.filter(app => app.jobId !== jobId));
+    toast({
+      title: "Application Deleted",
+      description: "Application has been removed from your list.",
+    });
   };
 
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 }
-    }
+  const filteredApplications = applications.filter(application => {
+    const job = jobs.find(j => j.id === application.jobId);
+    if (!job) return false;
+    return job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           job.company.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
+  const sortedApplications = [...filteredApplications].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+
+    return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+  });
+
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
   };
 
-  const staggerItems = {
+  const statusColors = {
+    reviewing: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+    interview: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+    offered: 'bg-green-500/10 text-green-500 border-green-500/20',
+    rejected: 'bg-red-500/10 text-red-500 border-red-500/20',
+  };
+
+  const fadeIn = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -89,362 +92,174 @@ const Progress = () => {
     }
   };
 
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+    }
+  };
+
   return (
     <Layout>
-      <section className="py-8 md:py-12">
-        <div className="container px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8"
-          >
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Application Progress</h1>
-            <p className="text-muted-foreground">
-              Track your job applications and set up alerts for new opportunities
-            </p>
-          </motion.div>
+      <div className="container mx-auto px-6 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-8"
+        >
+          <h1 className="text-3xl font-bold mb-2">Application Progress</h1>
+          <p className="text-muted-foreground">Track the status of your job applications</p>
+        </motion.div>
 
-          <Tabs defaultValue="applications" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="applications">
-                <Briefcase className="h-4 w-4 mr-2" />
-                Applications
-              </TabsTrigger>
-              <TabsTrigger value="alerts">
-                <Bell className="h-4 w-4 mr-2" />
-                Job Alerts
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Applications Tab */}
-            <TabsContent value="applications">
-              <motion.div
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-                className="bg-card rounded-xl border shadow-sm overflow-hidden"
-              >
-                <div className="p-6 border-b">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold flex items-center">
-                      <BarChart3 className="h-5 w-5 mr-2 text-primary" />
-                      Your Applications
-                    </h3>
-                    <Button asChild size="sm">
-                      <Link to="/jobs">
-                        <Search className="h-4 w-4 mr-2" />
-                        Find Jobs
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-
-                {applications.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Job</TableHead>
-                          <TableHead>Company</TableHead>
-                          <TableHead>Applied On</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        <motion.div
-                          variants={staggerItems}
-                          initial="hidden"
-                          animate="visible"
-                          component={null}
-                        >
-                          {applications.map(app => (
-                            <motion.tr
-                              key={app.jobId}
-                              variants={fadeInUp}
-                              className="border-b"
-                            >
-                              <TableCell className="font-medium py-4">
-                                {app.job?.title || "Unknown Job"}
-                              </TableCell>
-                              <TableCell>{app.job?.company || "Unknown Company"}</TableCell>
-                              <TableCell>{app.date}</TableCell>
-                              <TableCell>
-                                <Badge 
-                                  className={
-                                    app.status === 'interview' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
-                                    app.status === 'reviewing' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-                                    app.status === 'offered' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
-                                    app.status === 'rejected' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
-                                    'bg-primary/10 text-primary border-primary/20'
-                                  }
-                                >
-                                  {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <Button asChild size="sm" variant="ghost">
-                                  <Link to={`/jobs/${app.jobId}`}>
-                                    <ExternalLink className="h-4 w-4 mr-2" />
-                                    View
-                                  </Link>
-                                </Button>
-                              </TableCell>
-                            </motion.tr>
-                          ))}
-                        </motion.div>
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : (
-                  <div className="p-10 text-center">
-                    <AlertCircle className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No applications yet</h3>
-                    <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                      Start applying to jobs to track your application progress and status updates
-                    </p>
-                    <Button asChild>
-                      <Link to="/jobs">Browse Jobs</Link>
-                    </Button>
-                  </div>
-                )}
-              </motion.div>
-
-              {applications.length > 0 && (
-                <motion.div
-                  variants={fadeInUp}
-                  initial="hidden"
-                  animate="visible"
-                  className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6"
-                >
-                  <ApplicationsStat
-                    icon={<Clock className="h-5 w-5 text-amber-500" />}
-                    label="Pending"
-                    value={applications.filter(a => ['applied', 'reviewing'].includes(a.status)).length}
-                    color="bg-amber-500/10"
-                  />
-                  <ApplicationsStat
-                    icon={<CheckCircle className="h-5 w-5 text-blue-500" />}
-                    label="Interviewing"
-                    value={applications.filter(a => a.status === 'interview').length}
-                    color="bg-blue-500/10"
-                  />
-                  <ApplicationsStat
-                    icon={<Briefcase className="h-5 w-5 text-green-500" />}
-                    label="Offers"
-                    value={applications.filter(a => a.status === 'offered').length}
-                    color="bg-green-500/10"
-                  />
-                </motion.div>
-              )}
-
-              <motion.div
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-                className="bg-card rounded-xl border shadow-sm mt-6"
-              >
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Application Tips</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-lg border bg-secondary/30">
-                      <h4 className="font-medium mb-2 flex items-center">
-                        <FileText className="h-4 w-4 mr-2 text-primary" />
-                        Optimize Your Resume
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        Tailor your resume for each application to highlight relevant skills.
-                      </p>
-                      <Button asChild variant="link" size="sm" className="mt-2 p-0">
-                        <Link to="/resume-builder">Update Resume</Link>
-                      </Button>
-                    </div>
-                    <div className="p-4 rounded-lg border bg-secondary/30">
-                      <h4 className="font-medium mb-2 flex items-center">
-                        <CheckCircle className="h-4 w-4 mr-2 text-primary" />
-                        Follow Up
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        Send a follow-up email 1-2 weeks after applying to show your continued interest.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </TabsContent>
-
-            {/* Alerts Tab */}
-            <TabsContent value="alerts">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <motion.div
-                  variants={fadeInUp}
-                  initial="hidden"
-                  animate="visible"
-                  className="md:col-span-2"
-                >
-                  <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
-                    <div className="p-6 border-b">
-                      <h3 className="text-lg font-semibold flex items-center">
-                        <Bell className="h-5 w-5 mr-2 text-primary" />
-                        Your Job Alerts
-                      </h3>
-                    </div>
-
-                    {user?.alerts && user.alerts.length > 0 ? (
-                      <div className="p-6">
-                        <motion.div
-                          variants={staggerItems}
-                          initial="hidden"
-                          animate="visible"
-                          className="space-y-4"
-                        >
-                          {user.alerts.map(alert => (
-                            <motion.div
-                              key={alert.id}
-                              variants={fadeInUp}
-                              className="flex items-center justify-between p-4 border rounded-lg hover:border-primary/20 hover:bg-primary/5 transition-colors"
-                            >
-                              <div>
-                                <h4 className="font-medium">{alert.query}</h4>
-                                <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                                  <span>{alert.frequency === 'daily' ? 'Daily' : 'Weekly'} updates</span>
-                                  <Badge
-                                    variant="outline"
-                                    className={alert.active ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}
-                                  >
-                                    {alert.active ? 'Active' : 'Paused'}
-                                  </Badge>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleToggleAlert(alert.id)}
-                                >
-                                  {alert.active ? 'Pause' : 'Activate'}
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8 text-muted-foreground"
-                                  onClick={() => toast.info("Feature coming soon")}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </motion.div>
-                          ))}
-                        </motion.div>
-                      </div>
-                    ) : (
-                      <div className="p-10 text-center">
-                        <AlertCircle className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-medium mb-2">No job alerts yet</h3>
-                        <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                          Create your first job alert to get notified when new matching jobs are posted
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  variants={fadeInUp}
-                  initial="hidden"
-                  animate="visible"
-                  className="md:col-span-1"
-                >
-                  <div className="bg-card rounded-xl border shadow-sm">
-                    <div className="p-6 border-b">
-                      <h3 className="text-lg font-semibold flex items-center">
-                        <Plus className="h-5 w-5 mr-2 text-primary" />
-                        Create Job Alert
-                      </h3>
-                    </div>
-                    <form onSubmit={handleAddAlert} className="p-6">
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="query">Search Term</Label>
-                          <Input
-                            id="query"
-                            value={newAlertQuery}
-                            onChange={(e) => setNewAlertQuery(e.target.value)}
-                            placeholder="e.g. React Developer"
-                            className="bg-background"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="frequency">Frequency</Label>
-                          <Select
-                            value={newAlertFrequency}
-                            onValueChange={(value) => setNewAlertFrequency(value as 'daily' | 'weekly')}
-                          >
-                            <SelectTrigger id="frequency" className="bg-background">
-                              <SelectValue placeholder="Select frequency" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="daily">Daily</SelectItem>
-                              <SelectItem value="weekly">Weekly</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <Button type="submit" className="w-full mt-6">
-                        Create Alert
-                      </Button>
-                    </form>
-                  </div>
-
-                  <div className="bg-primary/5 rounded-xl border border-primary/20 p-6 mt-6">
-                    <h3 className="font-semibold mb-3">Why Create Job Alerts?</h3>
-                    <ul className="space-y-2 text-sm text-muted-foreground">
-                      <li className="flex items-start">
-                        <CheckCircle className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Get notified about new matching jobs</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Be one of the first to apply</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Save time on job searching</span>
-                      </li>
-                    </ul>
-                  </div>
-                </motion.div>
-              </div>
-            </TabsContent>
-          </Tabs>
+        <div className="mb-6 flex items-center justify-between">
+          <Input
+            type="text"
+            placeholder="Search by job title or company..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-md"
+          />
+          <Button variant="outline" onClick={toggleSortOrder}>
+            <Calendar className="w-4 h-4 mr-2" />
+            Sort by Date ({sortOrder === 'asc' ? 'Asc' : 'Desc'})
+          </Button>
         </div>
-      </section>
+
+        <motion.div
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { 
+              opacity: 1,
+              transition: { staggerChildren: 0.1 }
+            }
+          }}
+          initial="hidden"
+          animate="visible"
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Job</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedApplications.length > 0 ? (
+                sortedApplications.map((application) => {
+                  const job = jobs.find(j => j.id === application.jobId);
+                  if (!job) return null;
+
+                  return (
+                    <TableRow key={application.jobId}>
+                      <TableCell className="font-medium">{job.title}</TableCell>
+                      <TableCell>{job.company}</TableCell>
+                      <TableCell>
+                        <Badge className={statusColors[application.status as keyof typeof statusColors] || 'bg-primary/10 text-primary border-primary/20'}>
+                          {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                        </Badge>
+                        <span className="ml-2 text-muted-foreground">{application.date}</span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                Update Status
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Update Application Status</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Choose the new status for your application.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogBody 
+                                jobId={job.id} 
+                                onStatusUpdate={handleStatusUpdate} 
+                                onClose={() => {}}
+                              />
+                            </AlertDialogContent>
+                          </AlertDialog>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete your application from our records.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleApplicationDelete(job.id)}>
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center">
+                    No applications found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </motion.div>
+      </div>
     </Layout>
   );
 };
 
-// Helper component for application stats
-const ApplicationsStat = ({ 
-  icon,
-  label,
-  value,
-  color
-}: { 
-  icon: React.ReactNode, 
-  label: string, 
-  value: number,
-  color: string
-}) => (
-  <div className={`p-6 rounded-xl border ${color}`}>
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        {icon}
-        <h3 className="font-semibold">{label}</h3>
-      </div>
-      <div className="text-3xl font-bold">{value}</div>
-    </div>
-  </div>
-);
+interface AlertDialogBodyProps {
+  jobId: string;
+  onStatusUpdate: (jobId: string, newStatus: string) => void;
+  onClose: () => void;
+}
+
+const AlertDialogBody: React.FC<AlertDialogBodyProps> = ({ jobId, onStatusUpdate, onClose }) => {
+  const [status, setStatus] = useState('reviewing');
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStatus(e.target.value);
+  };
+
+  const handleSubmit = () => {
+    onStatusUpdate(jobId, status);
+    onClose();
+  };
+
+  return (
+    <AlertDialogFooter>
+      <select
+        value={status}
+        onChange={handleStatusChange}
+        className="border rounded px-4 py-2"
+      >
+        <option value="reviewing">Reviewing</option>
+        <option value="interview">Interview</option>
+        <option value="offered">Offered</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <AlertDialogCancel>Cancel</AlertDialogCancel>
+      <Button onClick={handleSubmit}>Update</Button>
+    </AlertDialogFooter>
+  );
+};
 
 export default Progress;

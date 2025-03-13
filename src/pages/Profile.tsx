@@ -1,423 +1,418 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import Layout from '@/components/Layout';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import Layout from '@/components/Layout';
 import { useAuthStore } from '@/lib/store';
-import { toast } from 'sonner';
-import { UserCircle, Mail, Globe, Shield, LogOut, Camera, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Calendar } from "lucide-react"
+import { Calendar as CalendarIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { DatePicker } from "@/components/ui/date-picker"
+
+const profileFormSchema = z.object({
+  firstName: z.string().min(2, {
+    message: 'First name must be at least 2 characters.',
+  }),
+  lastName: z.string().min(2, {
+    message: 'Last name must be at least 2 characters.',
+  }),
+  email: z.string().email({
+    message: 'Please enter a valid email address.',
+  }),
+  bio: z.string().max(160, {
+    message: 'Bio must be less than 160 characters.',
+  }).optional(),
+  location: z.string().optional(),
+  website: z.string().url({
+    message: 'Please enter a valid URL.',
+  }).optional(),
+});
+
+const settingsFormSchema = z.object({
+  notifications: z.boolean().default(true),
+  emailUpdates: z.boolean().default(false),
+  darkMode: z.boolean().default(false),
+});
 
 const Profile = () => {
-  const { user, logout } = useAuthStore();
-  const [publicProfile, setPublicProfile] = useState(false);
-  const [jobAlerts, setJobAlerts] = useState(true);
+  const { user, updateUser } = useAuthStore();
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
-  const handleLogout = () => {
-    logout();
-    toast.success("You've been logged out successfully");
+  // Profile form
+  const profileForm = useForm<z.infer<typeof profileFormSchema>>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
+      email: user?.email || '',
+      bio: user?.bio || '',
+      location: user?.location || '',
+      website: user?.website || '',
+    },
+  });
+
+  const handleProfileSubmit = async (values: z.infer<typeof profileFormSchema>) => {
+    setIsSaving(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Update user data in the store
+      updateUser({
+        ...user,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        bio: values.bio,
+        location: values.location,
+        website: values.website,
+      });
+
+      toast({
+        title: 'Profile updated successfully!',
+      });
+    } catch (error) {
+      toast({
+        title: 'Something went wrong.',
+        description: 'There was an error updating your profile. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success("Profile updated successfully");
-  };
+  // Settings form
+  const settingsForm = useForm<z.infer<typeof settingsFormSchema>>({
+    defaultValues: {
+      notifications: user?.settings.notifications || false,
+      emailUpdates: user?.settings.emailUpdates || false,
+      darkMode: user?.settings.darkMode || false,
+    },
+  });
 
-  const handleSaveSettings = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success("Settings updated successfully");
-  };
+  const handleSettingsSubmit = async (values: z.infer<typeof settingsFormSchema>) => {
+    setIsSaving(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5
-      }
+      // Update user settings in the store
+      updateUser({
+        ...user,
+        settings: {
+          notifications: values.notifications,
+          emailUpdates: values.emailUpdates,
+          darkMode: values.darkMode,
+        },
+      });
+
+      toast({
+        title: 'Settings updated successfully!',
+      });
+    } catch (error) {
+      toast({
+        title: 'Something went wrong.',
+        description: 'There was an error updating your settings. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   return (
     <Layout>
-      <section className="py-8 md:py-12">
-        <div className="container px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8"
-          >
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Profile Settings</h1>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="container relative pb-16"
+      >
+        <div className="mx-auto max-w-2xl">
+          <div className="space-y-2 text-center">
+            <h1 className="text-3xl font-bold">Profile</h1>
             <p className="text-muted-foreground">
-              Manage your profile information and account settings
+              Manage your profile and account settings.
             </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-4 gap-8">
-            {/* Sidebar */}
-            <motion.div
-              variants={fadeInUp}
-              initial="hidden"
-              animate="visible"
-              className="md:col-span-1"
-            >
-              <div className="space-y-6">
-                {/* User Profile */}
-                <div className="bg-card rounded-xl border shadow-sm p-6 text-center">
-                  <div className="relative w-24 h-24 mx-auto mb-4">
-                    {user?.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt={`${user.firstName} ${user.lastName}`}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full rounded-full bg-primary/10 flex items-center justify-center text-primary text-2xl font-medium">
-                        {user?.firstName.charAt(0)}
-                        {user?.lastName.charAt(0)}
-                      </div>
-                    )}
-                    <button className="absolute -right-1 bottom-0 bg-primary text-white p-1.5 rounded-full hover:bg-primary/90 transition-colors">
-                      <Camera className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <h3 className="font-semibold text-lg">
-                    {user?.firstName} {user?.lastName}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4">{user?.email}</p>
-                  <Button onClick={handleLogout} variant="outline" size="sm" className="w-full">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log Out
-                  </Button>
-                </div>
-
-                {/* Quick Links */}
-                <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
-                  <div className="p-4 border-b">
-                    <h3 className="font-medium text-sm">Quick Links</h3>
-                  </div>
-                  <div className="divide-y">
-                    <ProfileLink href="/dashboard" label="Dashboard" />
-                    <ProfileLink href="/saved-jobs" label="Saved Jobs" />
-                    <ProfileLink href="/progress" label="Application Progress" />
-                    <ProfileLink href="/resume-builder" label="Resume Builder" />
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Main Content */}
-            <motion.div
-              variants={fadeInUp}
-              initial="hidden"
-              animate="visible"
-              className="md:col-span-3"
-            >
-              <Tabs defaultValue="personal" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-6">
-                  <TabsTrigger value="personal">Personal Info</TabsTrigger>
-                  <TabsTrigger value="security">Security</TabsTrigger>
-                  <TabsTrigger value="preferences">Preferences</TabsTrigger>
-                </TabsList>
-
-                {/* Personal Info Tab */}
-                <TabsContent value="personal">
-                  <div className="bg-card rounded-xl border shadow-sm">
-                    <div className="p-6 border-b">
-                      <h3 className="text-lg font-semibold">Personal Information</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Update your basic profile information
-                      </p>
-                    </div>
-                    <form onSubmit={handleSaveProfile} className="p-6">
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label htmlFor="firstName">First Name</Label>
-                          <Input
-                            id="firstName"
-                            defaultValue={user?.firstName}
-                            className="bg-background"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="lastName">Last Name</Label>
-                          <Input
-                            id="lastName"
-                            defaultValue={user?.lastName}
-                            className="bg-background"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email</Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            defaultValue={user?.email}
-                            className="bg-background"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="phone">Phone Number</Label>
-                          <Input
-                            id="phone"
-                            type="tel"
-                            placeholder="(123) 456-7890"
-                            className="bg-background"
-                          />
-                        </div>
-                        <div className="space-y-2 md:col-span-2">
-                          <Label htmlFor="headline">Professional Headline</Label>
-                          <Input
-                            id="headline"
-                            placeholder="e.g. Senior Software Engineer with 5+ years experience"
-                            className="bg-background"
-                          />
-                        </div>
-                        <div className="space-y-2 md:col-span-2">
-                          <Label htmlFor="bio">About Me</Label>
-                          <Textarea
-                            id="bio"
-                            placeholder="Tell employers about yourself..."
-                            className="bg-background"
-                            rows={4}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mt-6 pt-6 border-t flex justify-end">
-                        <Button type="submit">Save Changes</Button>
-                      </div>
-                    </form>
-                  </div>
-
-                  <div className="bg-card rounded-xl border shadow-sm mt-6">
-                    <div className="p-6 border-b">
-                      <h3 className="text-lg font-semibold">Public Profile</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Control how your profile appears to employers
-                      </p>
-                    </div>
-                    <div className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <div className="font-medium">Public Profile</div>
-                          <div className="text-sm text-muted-foreground">
-                            Make your profile visible to employers
-                          </div>
-                        </div>
-                        <Switch
-                          checked={publicProfile}
-                          onCheckedChange={setPublicProfile}
-                        />
-                      </div>
-
-                      {publicProfile && (
-                        <div className="mt-4 p-4 border rounded-lg bg-secondary/30">
-                          <div className="text-sm mb-2">Your public profile URL:</div>
-                          <div className="flex">
-                            <div className="bg-background text-muted-foreground text-sm rounded-l-md border border-r-0 py-2 px-3 flex-grow">
-                              sleekjobs.com/p/{user?.firstName.toLowerCase()}-{user?.lastName.toLowerCase()}
-                            </div>
-                            <Button variant="secondary" size="sm" className="rounded-l-none">
-                              Copy
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </TabsContent>
-
-                {/* Security Tab */}
-                <TabsContent value="security">
-                  <div className="bg-card rounded-xl border shadow-sm">
-                    <div className="p-6 border-b">
-                      <h3 className="text-lg font-semibold">Password</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Update your password to keep your account secure
-                      </p>
-                    </div>
-                    <form onSubmit={handleSaveSettings} className="p-6">
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="currentPassword">Current Password</Label>
-                          <Input
-                            id="currentPassword"
-                            type="password"
-                            className="bg-background"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="newPassword">New Password</Label>
-                          <Input
-                            id="newPassword"
-                            type="password"
-                            className="bg-background"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                          <Input
-                            id="confirmPassword"
-                            type="password"
-                            className="bg-background"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mt-6 pt-6 border-t flex justify-end">
-                        <Button type="submit">Update Password</Button>
-                      </div>
-                    </form>
-                  </div>
-
-                  <div className="bg-card rounded-xl border shadow-sm mt-6">
-                    <div className="p-6 border-b">
-                      <h3 className="text-lg font-semibold">Account Security</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Manage your account security settings
-                      </p>
-                    </div>
-                    <div className="p-6">
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <div className="font-medium">Two-Factor Authentication</div>
-                            <div className="text-sm text-muted-foreground">
-                              Add an extra layer of security to your account
-                            </div>
-                          </div>
-                          <Button variant="outline">Enable</Button>
-                        </div>
-                        <Separator />
-                        <div>
-                          <h4 className="font-medium mb-2">Active Sessions</h4>
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center p-3 bg-secondary/30 rounded-lg">
-                              <div>
-                                <div className="font-medium text-sm">Current Device</div>
-                                <div className="text-xs text-muted-foreground">
-                                  Chrome on Windows • IP: 192.168.1.1
-                                </div>
-                              </div>
-                              <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
-                                Active
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                {/* Preferences Tab */}
-                <TabsContent value="preferences">
-                  <div className="bg-card rounded-xl border shadow-sm">
-                    <div className="p-6 border-b">
-                      <h3 className="text-lg font-semibold">Email Notifications</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Control what emails you receive from us
-                      </p>
-                    </div>
-                    <div className="p-6">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <div className="font-medium">Job Alerts</div>
-                            <div className="text-sm text-muted-foreground">
-                              Receive emails for new job matches
-                            </div>
-                          </div>
-                          <Switch
-                            checked={jobAlerts}
-                            onCheckedChange={setJobAlerts}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <div className="font-medium">Application Updates</div>
-                            <div className="text-sm text-muted-foreground">
-                              Get notified when your application status changes
-                            </div>
-                          </div>
-                          <Switch defaultChecked />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <div className="font-medium">Product Updates</div>
-                            <div className="text-sm text-muted-foreground">
-                              Learn about new features and improvements
-                            </div>
-                          </div>
-                          <Switch />
-                        </div>
-                      </div>
-
-                      <div className="mt-6 pt-6 border-t flex justify-end">
-                        <Button onClick={() => toast.success("Preferences saved")}>
-                          Save Preferences
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-card rounded-xl border shadow-sm mt-6">
-                    <div className="p-6 border-b">
-                      <h3 className="text-lg font-semibold">Privacy Settings</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Control how your data is used
-                      </p>
-                    </div>
-                    <div className="p-6">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <div className="font-medium">Analytics Cookies</div>
-                            <div className="text-sm text-muted-foreground">
-                              Help us improve by allowing analytics cookies
-                            </div>
-                          </div>
-                          <Switch defaultChecked />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <div className="font-medium">Personalized Experience</div>
-                            <div className="text-sm text-muted-foreground">
-                              Tailor your experience based on your activity
-                            </div>
-                          </div>
-                          <Switch defaultChecked />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </motion.div>
           </div>
+          <Tabs defaultValue="profile" className="mt-8 space-y-4">
+            <TabsList className="mx-auto w-full max-w-sm">
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsTrigger value="billing" disabled>
+                Billing
+                <Badge variant="secondary" className="ml-2">
+                  Soon
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="profile" className="space-y-4">
+              <Form {...profileForm}>
+                <form onSubmit={profileForm.handleSubmit(handleProfileSubmit)} className="space-y-8">
+                  <FormField
+                    control={profileForm.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={profileForm.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={profileForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="john.doe@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={profileForm.control}
+                    name="bio"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bio</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Write a short bio about yourself"
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          You can write a short bio about yourself.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={profileForm.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Location</FormLabel>
+                        <FormControl>
+                          <Input placeholder="New York, NY" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={profileForm.control}
+                    name="website"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Website</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" disabled={isSaving}>
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </form>
+              </Form>
+            </TabsContent>
+            <TabsContent value="settings" className="space-y-4">
+              <Form {...settingsForm}>
+                <form onSubmit={settingsForm.handleSubmit(handleSettingsSubmit)} className="space-y-8">
+                  <FormField
+                    control={settingsForm.control}
+                    name="notifications"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel>Notifications</FormLabel>
+                          <FormDescription>
+                            Enable push notifications to stay informed.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={settingsForm.control}
+                    name="emailUpdates"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel>Email updates</FormLabel>
+                          <FormDescription>
+                            Receive updates and promotions via email.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={settingsForm.control}
+                    name="darkMode"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel>Dark Mode</FormLabel>
+                          <FormDescription>
+                            Enable dark mode for a better viewing experience.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" disabled={isSaving}>
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </form>
+              </Form>
+            </TabsContent>
+            <TabsContent value="billing" className="space-y-4">
+              <div className="flex flex-col items-center justify-center rounded-md border">
+                <p className="text-muted-foreground">
+                  Billing is coming soon!
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
-      </section>
+        <section className="container grid items-center gap-6 py-8 md:py-10">
+      <div className="flex max-w-[980px] flex-col items-start gap-2">
+        <h1 className="text-3xl font-medium tracking-tight">
+          Your application progress
+        </h1>
+        <p className="text-muted-foreground">
+          Here you can see the progress of your applications
+        </p>
+      </div>
+      <div className="w-full">
+        <Card>
+          <CardHeader>
+            <CardTitle>Applications</CardTitle>
+            <CardDescription>
+              Here you can see the progress of your applications
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Applications Sent</CardTitle>
+                  <CardDescription>Total applications sent</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">24</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Interviews</CardTitle>
+                  <CardDescription>Total interviews scheduled</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">8</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Offers</CardTitle>
+                  <CardDescription>Total offers received</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">2</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Rejections</CardTitle>
+                  <CardDescription>Total rejections received</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">14</div>
+                </CardContent>
+              </Card>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button asChild>
+              <Link to="/jobs">Find More Jobs</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    </section>
+      </motion.div>
     </Layout>
   );
 };
-
-// Helper component for sidebar links
-const ProfileLink = ({ href, label }: { href: string; label: string }) => (
-  <a
-    href={href}
-    className="flex items-center justify-between p-3 hover:bg-primary/5 transition-colors"
-  >
-    <span className="text-sm">{label}</span>
-    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-  </a>
-);
 
 export default Profile;
