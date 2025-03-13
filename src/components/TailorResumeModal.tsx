@@ -13,7 +13,7 @@ import {
 import { FileText, CheckCircle, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { Job } from '@/data/jobs';
-import { useAuthStore } from '@/lib/store';
+import { useAuthStore, Resume } from '@/lib/store';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface TailorResumeModalProps {
@@ -24,7 +24,7 @@ interface TailorResumeModalProps {
 
 const TailorResumeModal = ({ job, isOpen, onClose }: TailorResumeModalProps) => {
   const { user } = useAuthStore();
-  const [selectedResumeId, setSelectedResumeId] = useState(user?.resumes[0]?.id || '');
+  const [selectedResumeId, setSelectedResumeId] = useState(user?.resumes?.[0]?.id || '');
   const [optimizing, setOptimizing] = useState(false);
   const [optimized, setOptimized] = useState(false);
 
@@ -48,7 +48,7 @@ const TailorResumeModal = ({ job, isOpen, onClose }: TailorResumeModalProps) => 
     onClose();
   };
 
-  const selectedResume = user?.resumes.find(r => r.id === selectedResumeId);
+  const selectedResume = user?.resumes?.find(r => r.id === selectedResumeId);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -81,7 +81,7 @@ const TailorResumeModal = ({ job, isOpen, onClose }: TailorResumeModalProps) => 
                         <SelectValue placeholder="Select a resume" />
                       </SelectTrigger>
                       <SelectContent>
-                        {user?.resumes.map(resume => (
+                        {user?.resumes?.map(resume => (
                           <SelectItem key={resume.id} value={resume.id}>
                             {resume.name}
                           </SelectItem>
