@@ -7,15 +7,34 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { jobs } from '@/data/jobs';
+import { jobs, Job } from '@/data/jobs';
 import { useAuthStore } from '@/lib/store';
-import { BookmarkIcon, Briefcase, MapPin, Clock, Search, X, Filter, ArrowUpDown } from 'lucide-react';
+import { 
+  BookmarkIcon, 
+  Briefcase, 
+  MapPin, 
+  Clock, 
+  Search, 
+  X, 
+  Filter, 
+  ArrowUpDown,
+  FileText,
+  BookmarkX
+} from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const SavedJobs = () => {
   const { user, removeJob } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'relevant'>('newest');
   const [industryFilter, setIndustryFilter] = useState<string>('');
+  const { toast } = useToast();
 
   const savedJobs = jobs.filter(job => user?.savedJobs.includes(job.id));
   const industries = Array.from(new Set(savedJobs.map(job => job.industry)));
