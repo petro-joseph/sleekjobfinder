@@ -1,3 +1,4 @@
+
 export interface Job {
   id: string;
   title: string;
@@ -10,7 +11,8 @@ export interface Job {
   postedAt: string;
   logo?: string;
   featured?: boolean;
-  industry: string; // Added industry field
+  industry: string;
+  tags: string[]; // Added tags property
 }
 
 export const jobs: Job[] = [
@@ -31,6 +33,7 @@ export const jobs: Job[] = [
     postedAt: '2 days ago',
     featured: true,
     industry: 'Technology',
+    tags: ['React', 'TypeScript', 'Frontend', 'UI/UX'],
   },
   {
     id: '2',
@@ -49,6 +52,7 @@ export const jobs: Job[] = [
     postedAt: '1 day ago',
     featured: true,
     industry: 'Technology',
+    tags: ['Product Management', 'Agile', 'SaaS', 'Analytics'],
   },
   {
     id: '3',
@@ -66,6 +70,7 @@ export const jobs: Job[] = [
     ],
     postedAt: '3 days ago',
     industry: 'Cloud Computing',
+    tags: ['AWS', 'Docker', 'Kubernetes', 'CI/CD'],
   },
   {
     id: '4',
@@ -83,6 +88,7 @@ export const jobs: Job[] = [
     ],
     postedAt: '1 week ago',
     industry: 'Design',
+    tags: ['Figma', 'UI Design', 'UX Research', 'Prototyping'],
   },
   {
     id: '5',
@@ -100,6 +106,7 @@ export const jobs: Job[] = [
     ],
     postedAt: '5 days ago',
     industry: 'Data Science',
+    tags: ['Python', 'Machine Learning', 'SQL', 'Data Visualization'],
   },
   {
     id: '6',
@@ -117,6 +124,7 @@ export const jobs: Job[] = [
     ],
     postedAt: '3 days ago',
     industry: 'Software Development',
+    tags: ['Node.js', 'React', 'RESTful APIs', 'Databases'],
   },
   {
     id: '7',
@@ -134,6 +142,7 @@ export const jobs: Job[] = [
     ],
     postedAt: '1 week ago',
     industry: 'Marketing',
+    tags: ['Content Strategy', 'SEO', 'Copywriting', 'Analytics'],
   },
   {
     id: '8',
@@ -151,6 +160,7 @@ export const jobs: Job[] = [
     ],
     postedAt: '2 weeks ago',
     industry: 'Customer Service',
+    tags: ['Customer Success', 'Account Management', 'CRM', 'Training'],
   },
 ];
 

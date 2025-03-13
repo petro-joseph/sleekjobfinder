@@ -9,6 +9,7 @@ import { useAuthStore } from '@/lib/store';
 import JobCardCompact from '@/components/JobCardCompact';
 import { toast } from "sonner";
 import ParticlesBackground from '@/components/ParticlesBackground';
+import { jobs } from '@/data/jobs';
 
 const Dashboard = () => {
   const { user, isAuthenticated } = useAuthStore();
@@ -23,30 +24,10 @@ const Dashboard = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Recommended jobs - simplified mock data
+  // Recommended jobs - use actual job data from our jobs array
   const recommendedJobs = [
-    {
-      id: "rec-1",
-      title: "Senior Frontend Developer",
-      company: "TechCorp Inc.",
-      location: "San Francisco, CA (Remote)",
-      salary: "$120,000 - $150,000",
-      tags: ["React", "TypeScript", "UI/UX"],
-      logo: "https://ui-avatars.com/api/?name=TechCorp&background=0D8ABC&color=fff",
-      posted: "2 days ago",
-      match: 95
-    },
-    {
-      id: "rec-2",
-      title: "Product Designer",
-      company: "Design Studios",
-      location: "New York, NY (Hybrid)",
-      salary: "$90,000 - $110,000",
-      tags: ["Figma", "UI Design", "Prototyping"],
-      logo: "https://ui-avatars.com/api/?name=Design+Studios&background=8A2BE2&color=fff",
-      posted: "3 days ago",
-      match: 88
-    },
+    jobs[0], // First job from our jobs array
+    jobs[3]  // Fourth job from our jobs array
   ];
 
   if (!user) {
@@ -124,16 +105,7 @@ const Dashboard = () => {
                       key={job.id} 
                       className="transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                     >
-                      <JobCardCompact 
-                        id={job.id} 
-                        title={job.title}
-                        company={job.company}
-                        location={job.location}
-                        tags={job.tags}
-                        logo={job.logo}
-                        posted={job.posted}
-                        match={job.match}
-                      />
+                      <JobCardCompact job={job} />
                     </div>
                   ))}
                 </div>
