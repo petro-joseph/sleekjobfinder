@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sun, Moon } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const DarkModeToggle = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     // Check if dark mode is saved in local storage
@@ -19,7 +21,7 @@ const DarkModeToggle = () => {
       setIsDarkMode(false);
       document.documentElement.classList.remove('dark');
     }
-  }, []);
+  }, [location.pathname]); // Re-run when pathname changes to ensure it works on all pages
 
   const toggleDarkMode = () => {
     if (isDarkMode) {
@@ -35,16 +37,16 @@ const DarkModeToggle = () => {
 
   return (
     <Button 
-      variant="ghost" 
+      variant="glass" 
       size="icon" 
       onClick={toggleDarkMode}
-      className="rounded-full"
+      className="rounded-full shadow-lg backdrop-blur-md"
       aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
     >
       {isDarkMode ? (
-        <Sun className="h-5 w-5" />
+        <Sun className="h-5 w-5 animate-in" />
       ) : (
-        <Moon className="h-5 w-5" />
+        <Moon className="h-5 w-5 animate-in" />
       )}
     </Button>
   );

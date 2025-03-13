@@ -11,6 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Card } from '@/components/ui/card';
 
 const Pricing = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly');
@@ -19,14 +20,14 @@ const Pricing = () => {
     <Layout>
       <section className="py-20">
         <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center mb-16">
+          <div className="max-w-3xl mx-auto text-center mb-16 animate-fade-in">
             <SectionHeading
               title="Simple, Transparent Pricing"
               subtitle="Choose the plan that's right for your job search needs. All plans include access to our core job search platform."
               centered
             />
             
-            <div className="inline-flex items-center p-1 mt-8 border rounded-full bg-secondary/50">
+            <div className="inline-flex items-center p-1 mt-8 border rounded-full bg-secondary/50 backdrop-blur-sm">
               <Button
                 variant={billingCycle === 'monthly' ? 'default' : 'ghost'}
                 className={`rounded-full ${billingCycle === 'monthly' ? '' : 'text-muted-foreground'}`}
@@ -48,17 +49,17 @@ const Pricing = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {pricingPlans.map((plan) => (
-              <div 
+            {pricingPlans.map((plan, index) => (
+              <Card 
                 key={plan.id}
-                className={`rounded-xl p-6 border transition-all duration-300 bg-white ${
+                className={`p-6 border transition-all duration-500 ${
                   plan.popular 
                     ? 'shadow-lg ring-2 ring-primary/20 relative z-10 scale-105 md:scale-100 md:transform md:hover:scale-105'
                     : 'shadow-sm hover:shadow'
-                }`}
+                } ${plan.popular ? 'glass' : ''} hover`}
               >
                 {plan.popular && (
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary text-white text-xs font-medium px-3 py-1 rounded-full">
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full shadow-md">
                     Most Popular
                   </div>
                 )}
@@ -79,8 +80,8 @@ const Pricing = () => {
                   </div>
                   
                   <Button 
-                    className={`w-full mb-6 ${plan.popular ? '' : 'bg-secondary text-primary hover:bg-secondary/80'}`}
-                    variant={plan.popular ? 'default' : 'outline'}
+                    className={`w-full mb-6 ${plan.popular ? 'gradient' : 'bg-secondary text-primary hover:bg-secondary/80'}`}
+                    variant={plan.popular ? 'gradient' : 'outline'}
                   >
                     {plan.cta}
                   </Button>
@@ -94,7 +95,7 @@ const Pricing = () => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </div>
@@ -110,7 +111,7 @@ const Pricing = () => {
             className="max-w-3xl mx-auto"
           />
           
-          <div className="max-w-3xl mx-auto mt-8">
+          <div className="max-w-3xl mx-auto mt-8 glassmorphism p-8 rounded-xl">
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1">
                 <AccordionTrigger>Can I switch plans later?</AccordionTrigger>
@@ -154,7 +155,7 @@ const Pricing = () => {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-6 text-center max-w-3xl">
-          <h2 className="heading-lg mb-6">Ready to accelerate your job search?</h2>
+          <h2 className="heading-lg mb-6 text-gradient bg-gradient-to-r from-primary to-primary/70">Ready to accelerate your job search?</h2>
           <p className="paragraph mb-8">
             Join thousands of professionals who have found their dream jobs faster with SleekJobs.
           </p>
@@ -162,7 +163,7 @@ const Pricing = () => {
             <Button size="lg" className="rounded-full">
               Get Started for Free
             </Button>
-            <Button size="lg" variant="outline" className="rounded-full">
+            <Button size="lg" variant="outline" className="rounded-full glass">
               Schedule a Demo
             </Button>
           </div>
