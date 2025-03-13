@@ -1,9 +1,8 @@
-
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge'; // Add Badge import
+import { Badge } from '@/components/ui/badge';
 import StatCard from '@/components/StatCard';
 import JobCardCompact from '@/components/JobCardCompact';
 import ParticlesBackground from '@/components/ParticlesBackground';
@@ -188,15 +187,15 @@ const Dashboard = () => {
                               <Badge 
                                 className={
                                   application.status === 'interview' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
-                                  application.status === 'reviewing' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-                                  application.status === 'offered' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                                  application.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                                  application.status === 'accepted' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
                                   application.status === 'rejected' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
                                   'bg-primary/10 text-primary border-primary/20'
                                 }
                               >
                                 {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
                               </Badge>
-                              <span className="text-xs text-muted-foreground ml-3">{application.date}</span>
+                              <span className="text-xs text-muted-foreground ml-3">{application.appliedAt.toLocaleDateString()}</span>
                             </div>
                           </div>
                         );
@@ -287,7 +286,7 @@ const Dashboard = () => {
                         <div key={resume.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div>
                             <h4 className="font-medium text-sm">{resume.name}</h4>
-                            <p className="text-xs text-muted-foreground">Updated: {resume.lastUpdated}</p>
+                            <p className="text-xs text-muted-foreground">Updated: {resume.updatedAt.toLocaleDateString()}</p>
                           </div>
                           <Button size="sm" variant="outline">View</Button>
                         </div>

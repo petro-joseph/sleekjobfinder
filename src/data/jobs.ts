@@ -1,4 +1,3 @@
-
 export interface Job {
   id: string;
   title: string;
@@ -154,3 +153,7 @@ export const jobs: Job[] = [
     industry: 'Customer Service',
   },
 ];
+
+export const getJob = (id: string): Job | undefined => {
+  return jobs.find(job => job.id === id);
+};

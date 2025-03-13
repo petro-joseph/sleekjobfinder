@@ -1,14 +1,14 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/lib/store';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shell } from '@/components/Shell';
-import { useQuery } from 'react-query';
-import { getJob } from '@/data/jobs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Shell from '@/components/Shell';
+import { useQuery } from '@tanstack/react-query';
+import { getJob, Job } from '@/data/jobs';
 import { useToast } from "@/hooks/use-toast";
 import { FileText, BookmarkX } from "lucide-react";
-import { Job } from "@/data/jobs";
 
 const SavedJobs = () => {
   const { toast } = useToast();
@@ -21,7 +21,7 @@ const SavedJobs = () => {
         const jobs = await Promise.all(
           user.savedJobs.map(async (jobId) => {
             try {
-              const job = await getJob(jobId);
+              const job = getJob(jobId);
               return job;
             } catch (error) {
               console.error(`Failed to fetch job with ID ${jobId}:`, error);
