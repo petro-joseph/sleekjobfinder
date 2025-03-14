@@ -46,7 +46,7 @@ const Dashboard = () => {
                     Welcome back, {user.firstName}
                   </h1>
                   <p className="text-muted-foreground text-sm md:text-base">
-                    Here's what's happening with your job search today
+                    Here's what's xxx happening with your job search today
                   </p>
                 </div>
                 <Button className="group w-full md:w-auto" onClick={() => navigate('/jobs')}>
