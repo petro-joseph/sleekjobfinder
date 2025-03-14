@@ -35,59 +35,39 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="min-h-[calc(100vh-160px)] bg-gradient-mesh">
-        <div className="container mx-auto px-4 py-6 md:px-6 md:py-12">
-          {/* Welcome Card */}
-          <Card className="overflow-hidden glass hover backdrop-blur-xl border-primary/20 shadow-lg animate-fade-in mb-6">
-            <CardContent className="p-6">
-              <div className="flex flex-col gap-4">
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-bold mb-2 text-gradient bg-gradient-to-r from-primary to-primary/70">
-                    Welcome back, {user.firstName}
-                  </h1>
-                  <p className="text-sm md:text-base text-muted-foreground">
-                    Here's what's happening with your job search today
-                  </p>
-                </div>
-                <Button className="group w-full md:w-auto" onClick={() => navigate('/jobs')}>
-                  Find Jobs
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Stats Cards - Horizontal Scrollable on Mobile */}
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <MobileStatCard 
-              icon={<Briefcase className="h-5 w-5 text-blue-500" />}
-              value={user.applications.length}
-              label="Applications"
-              onClick={() => navigate('/progress')}
-            />
-            <MobileStatCard 
-              icon={<BookmarkCheck className="h-5 w-5 text-green-500" />}
-              value={user.savedJobs.length}
-              label="Saved Jobs"
-              onClick={() => navigate('/saved-jobs')}
-            />
-            <MobileStatCard 
-              icon={<Bell className="h-5 w-5 text-yellow-500" />}
-              value={user.alerts.length}
-              label="Job Alerts"
-              onClick={() => navigate('/progress')}
-            />
-            <MobileStatCard 
-              icon={<BarChart className="h-5 w-5 text-purple-500" />}
-              value={user.resumes.length}
-              label="Resumes"
-              onClick={() => navigate('/resume-builder')}
-            />
-          </div>
-          
+        <div className="container mx-auto px-4 py-6 md:px-6 md:py-8">
           {/* Mobile Grid Layout for Dashboard */}
           <div className="grid gap-6 md:grid-cols-12">
             {/* Recommended Jobs - Full Width on Mobile */}
             <div className="md:col-span-8">
+              {/* Stats Cards - Horizontal Scrollable on Mobile */}
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <MobileStatCard 
+                  icon={<Briefcase className="h-5 w-5 text-blue-500" />}
+                  value={user.applications.length}
+                  label="Applications"
+                  onClick={() => navigate('/progress')}
+                />
+                <MobileStatCard 
+                  icon={<BookmarkCheck className="h-5 w-5 text-green-500" />}
+                  value={user.savedJobs.length}
+                  label="Saved Jobs"
+                  onClick={() => navigate('/saved-jobs')}
+                />
+                <MobileStatCard 
+                  icon={<Bell className="h-5 w-5 text-yellow-500" />}
+                  value={user.alerts.length}
+                  label="Job Alerts"
+                  onClick={() => navigate('/progress')}
+                />
+                <MobileStatCard 
+                  icon={<BarChart className="h-5 w-5 text-purple-500" />}
+                  value={user.resumes.length}
+                  label="Resumes"
+                  onClick={() => navigate('/resume-builder')}
+                />
+              </div>
+              
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">Recommended for you</h2>
                 <Button variant="link" className="text-primary text-sm" onClick={() => navigate('/jobs')}>
@@ -109,6 +89,24 @@ const Dashboard = () => {
             
             {/* Right Sidebar - Full Width on Mobile */}
             <div className="md:col-span-4">
+              {/* Welcome Card (Moved to Right Sidebar, Same Style as Profile Summary) */}
+              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
+                <CardHeader>
+                  <CardTitle>Welcome back, {user.firstName}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="flex flex-col gap-4">
+                    <p className="text-sm md:text-base text-muted-foreground">
+                      Here's what's happening with your job search today
+                    </p>
+                    <Button className="group w-full md:w-auto" onClick={() => navigate('/jobs')}>
+                      Find Jobs
+                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Profile Summary */}
               <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
                 <CardHeader>
@@ -219,7 +217,7 @@ const MobileStatCard = ({
 }) => {
   return (
     <Card 
-      className="glass hover backdrop-blur-xl border-primary/20 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer group"
+      className="mobile-slider-item glass hover backdrop-blur-xl border-primary/20 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer group min-w-[140px] md:min-w-0"
       onClick={onClick}
     >
       <CardContent className="p-4 flex items-center">
