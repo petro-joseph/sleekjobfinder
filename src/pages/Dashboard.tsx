@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'; // Added useState
+import { useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,6 @@ import { jobs } from '@/data/jobs';
 const Dashboard = () => {
   const { user, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
-  const [isProfileVisible, setIsProfileVisible] = useState(true); // State to control visibility
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -22,26 +21,6 @@ const Dashboard = () => {
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
-
-  // Scroll handler to show/hide profile summary on mobile
-  useEffect(() => {
-    let lastScrollY = window.scrollY;
-
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        // Scrolling down and past 50px
-        setIsProfileVisible(false);
-      } else if (currentScrollY < lastScrollY) {
-        // Scrolling up
-        setIsProfileVisible(true);
-      }
-      lastScrollY = currentScrollY;
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Recommended jobs - use actual job data from our jobs array
   const recommendedJobs = [
@@ -57,34 +36,6 @@ const Dashboard = () => {
     <Layout>
       <div className="min-h-[calc(100vh-160px)] bg-gradient-mesh">
         <div className="container mx-auto px-4 py-6 md:px-6 md:py-8">
-          {/* Profile Summary - LinkedIn-style top bar on mobile */}
-          <div
-            className={`md:hidden sticky top-0 z-10 glass backdrop-blur-xl border-primary/20 shadow-lg transition-all duration-300 ${
-              isProfileVisible ? 'translate-y-0' : '-translate-y-full'
-            }`}
-          >
-            <Card className="border-0">
-              <CardContent className="p-4">
-                <div className="flex items-center">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold">
-                    {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-                  </div>
-                  <div className="ml-3 flex-1">
-                    <div className="font-medium">{user.firstName} {user.lastName}</div>
-                    <div className="text-sm text-muted-foreground">{user.email}</div>
-                  </div>
-                  <Button 
-                    onClick={() => navigate('/profile')} 
-                    variant="outline" 
-                    className="touch-button"
-                  >
-                    Edit
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Mobile Grid Layout for Dashboard */}
           <div className="grid gap-6 md:grid-cols-12">
             {/* Recommended Jobs - Full Width on Mobile */}
@@ -136,8 +87,8 @@ const Dashboard = () => {
               </div>
             </div>
             
-            {/* Right Sidebar - Hidden on Mobile */}
-            <div className="hidden md:block md:col-span-4">
+            {/* Right Sidebar - Full Width on Mobile */}
+            <div className="md:col-span-4">
               {/* Welcome Card (Moved to Right Sidebar, Same Style as Profile Summary) */}
               <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
                 <CardHeader>
@@ -156,7 +107,7 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Profile Summary - Only on Desktop */}
+              {/* Profile Summary */}
               <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
                 <CardHeader>
                   <CardTitle>Profile Summary</CardTitle>
