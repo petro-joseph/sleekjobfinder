@@ -1,0 +1,159 @@
+
+/* Mobile-first base styles */
+html, body {
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Bottom Navigation Styles */
+.bottom-nav-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  height: 60px;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav {
+  height: 100%;
+  background-color: hsl(var(--background));
+  border-top: 1px solid hsl(var(--border));
+  backdrop-filter: blur(8px);
+  box-shadow: 0 -1px 10px rgba(0, 0, 0, 0.05);
+}
+
+.bottom-nav-item {
+  position: relative;
+  height: 100%;
+  padding: 8px 0;
+  transition: all 0.2s ease;
+}
+
+.bottom-nav-item:active {
+  transform: scale(0.95);
+}
+
+.bottom-nav-item-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background-color: hsl(var(--primary));
+}
+
+/* Page padding to account for bottom nav */
+.page-with-bottom-nav {
+  padding-bottom: calc(60px + env(safe-area-inset-bottom));
+}
+
+/* Mobile-optimized Cards and Sliders */
+.mobile-card {
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+}
+
+.mobile-slider {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0.5rem 0;
+  margin: 0 -1rem;
+  scroll-snap-type: x mandatory;
+}
+
+.mobile-slider::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-slider-item {
+  scroll-snap-align: start;
+  flex: 0 0 85%;
+  margin-right: 0.75rem;
+}
+
+.mobile-slider-item:first-child {
+  margin-left: 1rem;
+}
+
+/* Touch-friendly form elements */
+.touch-input {
+  min-height: 48px;
+}
+
+.touch-button {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Mobile typography */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  h3 {
+    font-size: 1.25rem;
+  }
+  
+  p {
+    font-size: 1rem;
+  }
+}
+
+/* Responsive padding for all pages */
+.mobile-container {
+  padding: 1rem;
+}
+
+/* Mobile-friendly heroes */
+.mobile-hero {
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+/* Swipeable actions */
+.swipe-action {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.swipe-action-content {
+  transition: transform 0.2s ease;
+}
+
+.swipe-action-reveal {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Floating action button */
+.floating-action-button {
+  position: fixed;
+  bottom: calc(70px + env(safe-area-inset-bottom));
+  right: 1rem;
+  z-index: 40;
+  height: 56px;
+  width: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}

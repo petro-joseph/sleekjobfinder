@@ -1,69 +1,75 @@
-# Welcome to your Lovable project
 
-## Project info
+# SleekJobs - Mobile-First Job Search App
 
-**URL**: https://lovable.dev/projects/c68ffc7c-8d4f-496b-b75e-dcd3f0327b9a
+## Overview
 
-## How can I edit this code?
+SleekJobs is a modern, mobile-first job search web application built with React, Tailwind CSS, and Shadcn/UI. This application prioritizes the mobile user experience with a sleek bottom navigation bar inspired by popular apps like X (Twitter) and LinkedIn.
 
-There are several ways of editing your application.
+## Key Mobile Features
 
-**Use Lovable**
+- **Bottom Navigation Bar**: Fixed at the bottom of the screen for logged-in users, providing easy access to primary sections (Home, Jobs, Saved, Progress, Profile)
+- **Touch-Optimized UI**: All interactive elements are sized appropriately for touch (minimum 48x48px)
+- **Horizontal Scrolling Cards**: Used for lists and collections that would normally appear as grids on desktop
+- **Responsive Typography**: Text sizes are optimized for mobile viewing
+- **Fixed Action Buttons**: Important actions are easily accessible via fixed position buttons
+- **Swipeable Elements**: Many elements support swipe gestures for a native app feel
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/c68ffc7c-8d4f-496b-b75e-dcd3f0327b9a) and start prompting.
+## Mobile-First Approach
 
-Changes made via Lovable will be committed automatically to this repo.
+The application follows these mobile-first principles:
 
-**Use your preferred IDE**
+1. **Design for small screens first**: All components are designed to look great on mobile before being adapted for larger screens
+2. **Progressive enhancement**: Additional features and layouts are added as screen size increases
+3. **Touch as primary input**: All interactive elements are designed for touch rather than mouse
+4. **Simplified navigation**: Bottom navigation provides quick access to key areas
+5. **Content prioritization**: Critical content appears above the fold on mobile devices
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+```bash
+# Install dependencies
+npm install
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Run the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Technology Stack
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- **React** with React Router for routing
+- **TailwindCSS** for styling
+- **Shadcn/UI** for UI components
+- **React Query** for data fetching
+- **Zustand** for state management
+- **Framer Motion** for animations
 
-**Use GitHub Codespaces**
+## Mobile Navigation
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+The bottom navigation bar:
 
-## What technologies are used for this project?
+- Appears only for authenticated users
+- Is hidden on desktop viewports (replaced by the top navigation)
+- Provides haptic feedback on navigation (where supported)
+- Visually indicates the current section
 
-This project is built with .
+## Mobile Optimization Tips
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+When extending this application, follow these guidelines:
 
-## How can I deploy this project?
+1. Test on real mobile devices, not just browser developer tools
+2. Ensure touch targets are at least 48x48px
+3. Use `touch-action` CSS property appropriately for custom touch behaviors
+4. Consider offline capabilities for mobile users with spotty connections
+5. Optimize images and assets for mobile data connections
+6. Implement skeleton loaders for better perceived performance
+7. Use system fonts where possible for better performance
 
-Simply open [Lovable](https://lovable.dev/projects/c68ffc7c-8d4f-496b-b75e-dcd3f0327b9a) and click on Share -> Publish.
+## File Structure Highlights
 
-## I want to use a custom domain - is that possible?
+- `/components/BottomNav.tsx`: The mobile bottom navigation component
+- `/styles/mobile.css`: Mobile-specific styles
+- `/components/Layout.tsx`: Responsive layout with adjustments for bottom navigation
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+## Contributing
+
+Contributions are welcome! Please follow the mobile-first approach when adding new features or components.

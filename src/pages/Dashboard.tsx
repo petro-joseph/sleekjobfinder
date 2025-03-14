@@ -36,83 +36,82 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="min-h-[calc(100vh-160px)] bg-gradient-mesh">
-        <div className="container mx-auto px-6 py-12">
+        <div className="container mx-auto px-4 py-6 md:px-6 md:py-12">
           {/* Welcome Card */}
-          <div className="grid gap-8 md:grid-cols-12">
+          <Card className="overflow-hidden glass hover backdrop-blur-xl border-primary/20 shadow-lg animate-fade-in mb-6">
+            <CardContent className="p-6">
+              <div className="flex flex-col gap-4">
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-bold mb-2 text-gradient bg-gradient-to-r from-primary to-primary/70">
+                    Welcome back, {user.firstName}
+                  </h1>
+                  <p className="text-muted-foreground text-sm md:text-base">
+                    Here's what's happening with your job search today
+                  </p>
+                </div>
+                <Button className="group w-full md:w-auto" onClick={() => navigate('/jobs')}>
+                  Find Jobs
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Stats Cards - Horizontal Scrollable on Mobile */}
+          <div className="mobile-slider flex md:grid md:grid-cols-4 md:gap-4 mb-8">
+            <MobileStatCard 
+              icon={<Briefcase className="h-5 w-5 text-blue-500" />}
+              value={user.applications.length}
+              label="Applications"
+              onClick={() => navigate('/progress')}
+            />
+            <MobileStatCard 
+              icon={<BookmarkCheck className="h-5 w-5 text-green-500" />}
+              value={user.savedJobs.length}
+              label="Saved Jobs"
+              onClick={() => navigate('/saved-jobs')}
+            />
+            <MobileStatCard 
+              icon={<Bell className="h-5 w-5 text-yellow-500" />}
+              value={user.alerts.length}
+              label="Job Alerts"
+              onClick={() => navigate('/progress')}
+            />
+            <MobileStatCard 
+              icon={<BarChart className="h-5 w-5 text-purple-500" />}
+              value={user.resumes.length}
+              label="Resumes"
+              onClick={() => navigate('/resume-builder')}
+            />
+          </div>
+          
+          {/* Mobile Grid Layout for Dashboard */}
+          <div className="grid gap-6 md:grid-cols-12">
+            {/* Recommended Jobs - Full Width on Mobile */}
             <div className="md:col-span-8">
-              <Card className="overflow-hidden glass hover backdrop-blur-xl border-primary/20 shadow-lg animate-fade-in">
-                <CardContent className="p-8">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                    <div>
-                      <h1 className="text-3xl font-bold mb-2 text-gradient bg-gradient-to-r from-primary to-primary/70">
-                        Welcome back, {user.firstName}
-                      </h1>
-                      <p className="text-muted-foreground mb-4">
-                        Here's what's happening with your job search today
-                      </p>
-                    </div>
-                    <Button size="lg" className="group" onClick={() => navigate('/jobs')}>
-                      Find Jobs
-                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Stats Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                <StatCard 
-                  icon={<Briefcase className="h-5 w-5 text-blue-500" />}
-                  value={user.applications.length}
-                  label="Applications"
-                  onClick={() => navigate('/progress')}
-                />
-                <StatCard 
-                  icon={<BookmarkCheck className="h-5 w-5 text-green-500" />}
-                  value={user.savedJobs.length}
-                  label="Saved Jobs"
-                  onClick={() => navigate('/saved-jobs')}
-                />
-                <StatCard 
-                  icon={<Bell className="h-5 w-5 text-yellow-500" />}
-                  value={user.alerts.length}
-                  label="Job Alerts"
-                  onClick={() => navigate('/progress')}
-                />
-                <StatCard 
-                  icon={<BarChart className="h-5 w-5 text-purple-500" />}
-                  value={user.resumes.length}
-                  label="Resumes"
-                  onClick={() => navigate('/resume-builder')}
-                />
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Recommended for you</h2>
+                <Button variant="link" className="text-primary text-sm" onClick={() => navigate('/jobs')}>
+                  View all <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
               </div>
               
-              {/* Recommended Jobs */}
-              <div className="mt-10">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">Recommended for you</h2>
-                  <Button variant="link" className="text-primary" onClick={() => navigate('/jobs')}>
-                    View all <ArrowRight className="ml-1 h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <div className="grid gap-4">
-                  {recommendedJobs.map(job => (
-                    <div 
-                      key={job.id} 
-                      className="transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-                    >
-                      <JobCardCompact job={job} />
-                    </div>
-                  ))}
-                </div>
+              <div className="grid gap-4">
+                {recommendedJobs.map(job => (
+                  <div 
+                    key={job.id} 
+                    className="transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  >
+                    <JobCardCompact job={job} />
+                  </div>
+                ))}
               </div>
             </div>
             
-            {/* Right Sidebar */}
+            {/* Right Sidebar - Full Width on Mobile */}
             <div className="md:col-span-4">
               {/* Profile Summary */}
-              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg">
+              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
                 <CardHeader>
                   <CardTitle>Profile Summary</CardTitle>
                 </CardHeader>
@@ -132,7 +131,7 @@ const Dashboard = () => {
                       <Button 
                         onClick={() => navigate('/profile')} 
                         variant="outline" 
-                        className="w-full justify-between"
+                        className="w-full justify-between touch-button"
                       >
                         Complete your profile
                         <ArrowRight className="h-4 w-4" />
@@ -143,7 +142,7 @@ const Dashboard = () => {
               </Card>
               
               {/* Recent Activity */}
-              <Card className="mt-6 glass hover backdrop-blur-xl border-primary/20 shadow-lg">
+              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg">
                 <CardHeader>
                   <CardTitle>Recent Activity</CardTitle>
                 </CardHeader>
@@ -173,14 +172,14 @@ const Dashboard = () => {
                   <Button 
                     onClick={() => navigate('/progress')} 
                     variant="ghost" 
-                    className="w-full text-primary justify-center mt-2"
+                    className="w-full text-primary justify-center mt-2 touch-button"
                   >
                     View all activity
                   </Button>
                 </CardContent>
               </Card>
               
-              {/* Premium Upgrade */}
+              {/* Premium Upgrade - Mobile Optimized */}
               <Card className="mt-6 overflow-hidden border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 to-primary/5">
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
@@ -193,7 +192,7 @@ const Dashboard = () => {
                   <Button 
                     onClick={() => navigate('/pricing')} 
                     variant="gradient"
-                    className="w-full"
+                    className="w-full touch-button"
                   >
                     View Plans
                   </Button>
@@ -207,8 +206,8 @@ const Dashboard = () => {
   );
 };
 
-// Stat Card Component
-const StatCard = ({ 
+// Mobile Optimized Stat Card Component
+const MobileStatCard = ({ 
   icon, 
   value, 
   label, 
@@ -221,7 +220,7 @@ const StatCard = ({
 }) => {
   return (
     <Card 
-      className="glass hover backdrop-blur-xl border-primary/20 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer group"
+      className="mobile-slider-item glass hover backdrop-blur-xl border-primary/20 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer group min-w-[140px] md:min-w-0"
       onClick={onClick}
     >
       <CardContent className="p-4 flex items-center">

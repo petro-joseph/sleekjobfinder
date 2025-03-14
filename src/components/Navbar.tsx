@@ -26,16 +26,21 @@ const Navbar = () => {
     navigate('/');
   };
 
+  // Hide navbar on certain routes for mobile
+  const hideNavbarOnMobile = isAuthenticated;
+
   return (
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        hideNavbarOnMobile ? 'md:block hidden' : ''
+      } ${
         isScrolled ? 'glassmorphism py-3' : 'bg-transparent py-5'
       }`}
     >
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
+          <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center space-x-2 group">
             <span className="text-xl font-bold text-gradient font-display">
               SleekJobs
             </span>
@@ -60,7 +65,6 @@ const Navbar = () => {
                   asChild 
                   variant="ghost" 
                   className="font-medium flex items-center gap-2"
-                  onClick={() => navigate('/profile')}
                 >
                   <Link to="/profile">
                     <User className="w-4 h-4" />
@@ -91,18 +95,20 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="p-2 md:hidden rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
+          {/* Mobile Menu Button - Hide on certain routes when logged in */}
+          {!hideNavbarOnMobile && (
+            <button
+              className="p-2 md:hidden rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -172,7 +178,7 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <Button 
                   variant="outline" 
-                  className="w-full justify-center"
+                  className="w-full justify-center touch-button"
                   onClick={() => {
                     handleLogout();
                     setIsMobileMenuOpen(false);
@@ -182,10 +188,10 @@ const Navbar = () => {
                 </Button>
               ) : (
                 <>
-                  <Button asChild variant="outline" className="w-full justify-center">
+                  <Button asChild variant="outline" className="w-full justify-center touch-button">
                     <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>Log in</Link>
                   </Button>
-                  <Button asChild className="w-full justify-center">
+                  <Button asChild className="w-full justify-center touch-button">
                     <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>Get started</Link>
                   </Button>
                 </>
@@ -223,7 +229,7 @@ const MobileNavLink = ({
   return (
     <Link 
       to={href} 
-      className="text-base font-medium py-2 transition-colors duration-200 hover:text-primary"
+      className="text-base font-medium py-2 transition-colors duration-200 hover:text-primary touch-button flex"
       onClick={onClick}
     >
       {children}

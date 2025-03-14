@@ -18,6 +18,8 @@ import Progress from "./pages/Progress";
 import SavedJobs from "./pages/SavedJobs";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuthStore } from "./lib/store";
+import BottomNav from "./components/BottomNav";
+import "./styles/mobile.css"; // Import mobile styles
 
 const queryClient = new QueryClient();
 
@@ -30,65 +32,68 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/jobs" element={<Jobs />} />
-            <Route path="/jobs/:id" element={<JobDetail />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/resume-builder" element={<ResumeBuilder />} />
-            
-            {/* Auth routes */}
-            <Route 
-              path="/login" 
-              element={
-                isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
-              } 
-            />
-            <Route 
-              path="/signup" 
-              element={
-                isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />
-              } 
-            />
-            
-            {/* Protected routes */}
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/progress" 
-              element={
-                <ProtectedRoute>
-                  <Progress />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/saved-jobs" 
-              element={
-                <ProtectedRoute>
-                  <SavedJobs />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Catch-all route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <div className="relative min-h-screen">
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/jobs/:id" element={<JobDetail />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/resume-builder" element={<ResumeBuilder />} />
+              
+              {/* Auth routes */}
+              <Route 
+                path="/login" 
+                element={
+                  isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+                } 
+              />
+              <Route 
+                path="/signup" 
+                element={
+                  isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />
+                } 
+              />
+              
+              {/* Protected routes */}
+              <Route 
+                path="/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/progress" 
+                element={
+                  <ProtectedRoute>
+                    <Progress />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/saved-jobs" 
+                element={
+                  <ProtectedRoute>
+                    <SavedJobs />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <BottomNav />
+          </div>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
