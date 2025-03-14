@@ -4,14 +4,31 @@ import { Home, Briefcase, User, Bookmark, BarChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/lib/store';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const BottomNav = () => {
   const location = useLocation();
   const { isAuthenticated } = useAuthStore();
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   
   // Only show for authenticated users
   if (!isAuthenticated) return null;
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   // Define navigation items
   const navItems = [
@@ -55,7 +72,7 @@ const BottomNav = () => {
   };
 
   return (
-    <div className="bottom-nav-container md:hidden">
+    <div className={`bottom-nav-container md:hidden transition-transform duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
       <nav className="bottom-nav">
         <div className="flex justify-around items-center w-full h-full">
           {navItems.map((item) => (

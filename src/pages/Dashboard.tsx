@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,10 +9,51 @@ import { useAuthStore } from '@/lib/store';
 import JobCardCompact from '@/components/JobCardCompact';
 import { toast } from "sonner";
 import { jobs } from '@/data/jobs';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const Dashboard = () => {
   const { user, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [profileBarVisible, setProfileBarVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  // Check if welcome card has been shown for this session
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    if (hasSeenWelcome) {
+      setShowWelcome(false);
+    } else {
+      setShowWelcome(true);
+      // Set flag after showing welcome card
+      localStorage.setItem('hasSeenWelcome', 'true');
+    }
+  }, []);
+
+  // Reset welcome card flag on logout
+  useEffect(() => {
+    if (!isAuthenticated) {
+      localStorage.removeItem('hasSeenWelcome');
+    }
+  }, [isAuthenticated]);
+
+  // Handle profile bar visibility on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setProfileBarVisible(false);
+      } else {
+        setProfileBarVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -32,16 +74,72 @@ const Dashboard = () => {
     return null; // Will be redirected by useEffect
   }
 
+  // Only show 2 jobs on mobile for less clutter
+  const displayedJobs = recommendedJobs.slice(0, 2);
+
   return (
     <Layout>
+      {/* Mobile Profile Summary - LinkedIn Style Sticky Bar */}
+      <div 
+        className={`md:hidden fixed top-[76px] left-0 right-0 z-40 glassmorphism transition-transform duration-300 ${
+          profileBarVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}
+      >
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center">
+            <Avatar className="h-10 w-10 border-2 border-primary/20">
+              <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-white">
+                {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="ml-3">
+              <div className="font-medium">{user.firstName} {user.lastName}</div>
+              <div className="text-xs text-muted-foreground">{user.jobTitle || 'Complete your profile'}</div>
+            </div>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="rounded-full p-2 h-8 w-8"
+            onClick={() => navigate('/profile')}
+          >
+            <User className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
       <div className="min-h-[calc(100vh-160px)] bg-gradient-mesh">
         <div className="container mx-auto px-4 py-6 md:px-6 md:py-8">
           {/* Mobile Grid Layout for Dashboard */}
           <div className="grid gap-6 md:grid-cols-12">
-            {/* Recommended Jobs - Full Width on Mobile */}
+            {/* Main Content - Full Width on Mobile */}
             <div className="md:col-span-8">
+              {/* Welcome Card - Moved to top, conditionally shown */}
+              {showWelcome && (
+                <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col gap-4">
+                      <div>
+                        <h2 className="text-xl font-bold mb-2">Welcome back, {user.firstName}</h2>
+                        <p className="text-sm md:text-base text-muted-foreground">
+                          Here's what's happening with your job search today
+                        </p>
+                      </div>
+                      <Button 
+                        className="group w-full md:w-auto touch-button" 
+                        variant="gradient"
+                        onClick={() => navigate('/jobs')}
+                      >
+                        Find Jobs
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
               {/* Stats Cards - 2x2 on mobile, 4-column on desktop */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <MobileStatCard 
                   icon={<Briefcase className="h-5 w-5 text-blue-500" />}
                   value={user.applications.length}
@@ -76,7 +174,7 @@ const Dashboard = () => {
               </div>
               
               <div className="grid gap-4">
-                {recommendedJobs.map(job => (
+                {displayedJobs.map(job => (
                   <div 
                     key={job.id} 
                     className="transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
@@ -84,31 +182,23 @@ const Dashboard = () => {
                     <JobCardCompact job={job} />
                   </div>
                 ))}
+                
+                {recommendedJobs.length > 2 && (
+                  <Button 
+                    variant="outline" 
+                    className="w-full touch-button mt-2"
+                    onClick={() => navigate('/jobs')}
+                  >
+                    Load More Jobs
+                  </Button>
+                )}
               </div>
             </div>
             
             {/* Right Sidebar - Full Width on Mobile */}
             <div className="md:col-span-4">
-              {/* Welcome Card (Moved to Right Sidebar, Same Style as Profile Summary) */}
-              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
-                <CardHeader>
-                  <CardTitle>Welcome back, {user.firstName}</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="flex flex-col gap-4">
-                    <p className="text-sm md:text-base text-muted-foreground">
-                      Here's what's happening with your job search today
-                    </p>
-                    <Button className="group w-full md:w-auto" onClick={() => navigate('/jobs')}>
-                      Find Jobs
-                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Profile Summary */}
-              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
+              {/* Profile Summary - Hidden on mobile, visible on desktop */}
+              <Card className="hidden md:block glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
                 <CardHeader>
                   <CardTitle>Profile Summary</CardTitle>
                 </CardHeader>
@@ -143,14 +233,14 @@ const Dashboard = () => {
                 <CardHeader>
                   <CardTitle>Recent Activity</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="p-3 md:p-6 space-y-4">
                   {user.applications.slice(0, 3).map(app => (
                     <div key={app.id} className="flex items-start pb-4 border-b border-border/50 last:border-0 last:pb-0">
                       <div className="w-2 h-2 mt-2 rounded-full bg-primary flex-shrink-0"></div>
                       <div className="ml-3">
-                        <div className="font-medium">{app.position}</div>
+                        <div className="font-bold">{app.position}</div>
                         <div className="text-sm text-muted-foreground">{app.company}</div>
-                        <div className="text-xs text-muted-foreground/70 mt-1">
+                        <div className="text-[10px] text-muted-foreground/70 mt-1">
                           {new Date(app.updatedAt).toLocaleDateString()}
                         </div>
                       </div>
@@ -178,7 +268,7 @@ const Dashboard = () => {
               
               {/* Premium Upgrade - Mobile Optimized */}
               <Card className="mt-6 overflow-hidden border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 to-primary/5">
-                <CardContent className="p-6">
+                <CardContent className="p-3 md:p-6">
                   <div className="flex items-center mb-4">
                     <Sparkles className="h-5 w-5 text-primary mr-2" />
                     <h3 className="font-bold">Upgrade to Premium</h3>
