@@ -1,7 +1,7 @@
 
 @layer base {  
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-semibold tracking-tight text-center;
+    @apply font-display font-semibold tracking-tight;
   }
 }
 
@@ -32,7 +32,7 @@
   }
   
   .paragraph {
-    @apply text-base text-muted-foreground text-center;
+    @apply text-base text-muted-foreground;
   }
   
   /* Gradient Text */

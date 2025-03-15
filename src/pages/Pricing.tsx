@@ -27,7 +27,7 @@ const Pricing = () => {
     <Layout>
       <section className="py-20">
         <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto text-center mb-16 animate-fade-in">
+          <div className="max-w-3xl mx-auto mb-16 animate-fade-in">
             <SectionHeading
               title="Simple, Transparent Pricing"
               subtitle="Choose the plan that's right for your job search needs. All plans include access to our core job search platform."
@@ -98,7 +98,7 @@ const Pricing = () => {
                   {plan.features.map((feature, index) => (
                     <div key={index} className="flex items-start">
                       <Check className="h-5 w-5 text-primary shrink-0 mr-3" />
-                      <span>{feature}</span>
+                      <span className="text-left">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -163,7 +163,7 @@ const Pricing = () => {
       <section className="py-20">
         <div className="container mx-auto px-6 text-center max-w-3xl">
           <h2 className="heading-lg mb-6 text-gradient bg-gradient-to-r from-primary to-primary/70">Ready to accelerate your job search?</h2>
-          <p className="paragraph mb-8">
+          <p className="paragraph mb-8 text-center">
             Join thousands of professionals who have found their dream jobs faster with SleekJobs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

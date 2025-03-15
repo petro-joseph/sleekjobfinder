@@ -9,19 +9,19 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated, isLoggedIn } = useAuthStore();
+  const { user, isAuthenticated, isLoggedIn } = useAuthStore();
   const location = useLocation();
   
   useEffect(() => {
-    if (!isAuthenticated && !isLoggedIn) {
+    if (!isAuthenticated && !isLoggedIn && !user) {
       toast.error("Please log in to access this page", {
         description: "You've been redirected to the login page"
       });
     }
-  }, [isAuthenticated, isLoggedIn]);
+  }, [isAuthenticated, isLoggedIn, user]);
 
   // If not authenticated, redirect to login
-  if (!isAuthenticated && !isLoggedIn) {
+  if (!isAuthenticated && !isLoggedIn && !user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

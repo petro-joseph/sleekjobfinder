@@ -57,13 +57,13 @@ const Dashboard = () => {
 
   // Navigate to login if not authenticated
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !user) {
       toast.error("Please log in to access the dashboard", {
         description: "You've been redirected to the login page"
       });
       navigate('/login');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, user]);
 
   // Prevent blank display by early return with null only if redirecting
   if (!user && !isAuthenticated) {

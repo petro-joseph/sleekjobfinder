@@ -24,8 +24,8 @@ import "./styles/mobile.css"; // Import mobile styles
 const queryClient = new QueryClient();
 
 const App = () => {
-  const { isAuthenticated, isLoggedIn } = useAuthStore();
-  const isUserAuthenticated = isAuthenticated || isLoggedIn;
+  const { user, isAuthenticated, isLoggedIn } = useAuthStore();
+  const isUserAuthenticated = isAuthenticated || isLoggedIn || !!user;
 
   return (
     <QueryClientProvider client={queryClient}>
