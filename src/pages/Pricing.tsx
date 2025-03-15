@@ -16,6 +16,13 @@ import { Card } from '@/components/ui/card';
 const Pricing = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly');
 
+  const calculateAnnualPrice = (price: string): string => {
+    // Remove $ and parse to number
+    const monthlyPrice = parseInt(price.replace('$', ''));
+    // Calculate annual price with 20% discount and format to remove decimals
+    return `$${Math.round(monthlyPrice * 0.8 * 12)}`;
+  };
+
   return (
     <Layout>
       <section className="py-20">
@@ -49,7 +56,7 @@ const Pricing = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {pricingPlans.map((plan, index) => (
+            {pricingPlans.map((plan) => (
               <Card 
                 key={plan.id}
                 className={`p-6 border transition-all duration-500 ${
@@ -71,7 +78,7 @@ const Pricing = () => {
                   <div className="mb-6">
                     <span className="text-4xl font-bold">
                       {billingCycle === 'annually' 
-                        ? `$${parseInt(plan.price.substring(1)) * 0.8}` 
+                        ? calculateAnnualPrice(plan.price)
                         : plan.price}
                     </span>
                     <span className="text-muted-foreground">
