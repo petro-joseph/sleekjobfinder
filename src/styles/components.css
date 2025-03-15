@@ -1,0 +1,100 @@
+
+@layer components {
+  /* Glass Card Styles */
+  .glass-card {
+    @apply bg-white/50 backdrop-blur-md border border-white/20 shadow-glass rounded-xl transition-all duration-300 hover:shadow-lg;
+  }
+  
+  .dark .glass-card {
+    @apply bg-black/30 border-white/10;
+  }
+  
+  /* Neumorphism Styles */
+  .neu-card {
+    @apply bg-white rounded-xl shadow-neu transition-all duration-300;
+  }
+  
+  .dark .neu-card {
+    @apply bg-gray-800 shadow-neu-dark;
+  }
+  
+  /* Button Overrides */
+  .btn-gradient {
+    @apply bg-gradient-teal-blue hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-white font-medium;
+  }
+  
+  /* Card Overrides */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:translate-y-[-5px];
+  }
+
+  /* Glassmorphism */
+  .glassmorphism {
+    @apply backdrop-blur-xl bg-white/10 border border-white/20 shadow-glass;
+  }
+
+  .dark .glassmorphism {
+    @apply bg-black/20 border-white/10;
+  }
+
+  /* Glass card effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Gradient button */
+  .gradient-btn {
+    background: linear-gradient(135deg, #2cb5aa 0%, #1a91c7 100%);
+    color: white;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .gradient-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(14, 165, 233, 0.3);
+  }
+}
+
+/* Gradient section */
+.gradient-section {
+  background: linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.dark .gradient-section {
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.1) 0%, rgba(14, 165, 233, 0.1) 100%);
+}
+
+.card {
+  padding: 2em;
+  border-radius: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.read-the-docs {
+  color: #888;
+  opacity: 0.8;
+  font-size: 0.875rem;
+  transition: opacity 0.3s ease;
+}
+
+.read-the-docs:hover {
+  opacity: 1;
+}
