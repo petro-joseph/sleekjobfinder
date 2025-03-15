@@ -24,7 +24,8 @@ import "./styles/mobile.css"; // Import mobile styles
 const queryClient = new QueryClient();
 
 const App = () => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isLoggedIn } = useAuthStore();
+  const isUserAuthenticated = isAuthenticated || isLoggedIn;
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -45,13 +46,13 @@ const App = () => {
               <Route 
                 path="/login" 
                 element={
-                  isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+                  isUserAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
                 } 
               />
               <Route 
                 path="/signup" 
                 element={
-                  isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />
+                  isUserAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />
                 } 
               />
               

@@ -20,13 +20,12 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
   }, [isAuthenticated, isLoggedIn]);
 
-  // Check both authentication states for better reliability
+  // If not authenticated, redirect to login
   if (!isAuthenticated && !isLoggedIn) {
-    console.log("Not authenticated, redirecting to login");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  console.log("User is authenticated, rendering children");
+  // If authenticated, render children
   return <>{children}</>;
 };
 
