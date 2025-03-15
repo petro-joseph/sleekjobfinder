@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart } from 'lucide-react';
+import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart, User } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import JobCardCompact from '@/components/JobCardCompact';
 import { toast } from "sonner";
@@ -94,7 +94,7 @@ const Dashboard = () => {
             </Avatar>
             <div className="ml-3">
               <div className="font-medium">{user.firstName} {user.lastName}</div>
-              <div className="text-xs text-muted-foreground">{user.jobTitle || 'Complete your profile'}</div>
+              <div className="text-xs text-muted-foreground">{user.bio || 'Complete your profile'}</div>
             </div>
           </div>
           <Button 
