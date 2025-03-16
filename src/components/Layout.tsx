@@ -30,7 +30,7 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
       </div>
       <Navbar />
       {isMobile && <MobileProfileBar />}
-      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-24' : 'pt-16'}`}>
+      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-24' : 'pt-12'}`}>
         {children}
       </main>
       {!hideFooter && <Footer />}

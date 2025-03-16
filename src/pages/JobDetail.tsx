@@ -14,11 +14,23 @@ import {
   CheckCircle,
   Share2,
   Bookmark,
-  Tag
+  Tag,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Link2,
+  Mail
 } from 'lucide-react';
 import { jobs, Job } from '@/data/jobs';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,7 +50,9 @@ const JobDetail = () => {
   }, [id]);
 
   const handleApply = () => {
-    toast.success("Application submitted successfully!");
+    if (job) {
+      navigate(`/apply/${job.id}`);
+    }
   };
 
   const handleSaveJob = () => {
@@ -46,9 +60,29 @@ const JobDetail = () => {
     toast(isSaved ? "Job removed from saved jobs" : "Job saved to your profile");
   };
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast.success("Link copied to clipboard!");
+  const handleShare = (platform: string) => {
+    const url = window.location.href;
+    const title = job ? `${job.title} at ${job.company}` : 'Job Posting';
+    
+    switch (platform) {
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+        break;
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`, '_blank');
+        break;
+      case 'linkedin':
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
+        break;
+      case 'email':
+        window.open(`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`Check out this job posting: ${url}`)}`, '_blank');
+        break;
+      case 'copy':
+      default:
+        navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard!");
+        break;
+    }
   };
 
   const navigateToIndustryJobs = () => {
@@ -59,6 +93,8 @@ const JobDetail = () => {
       window.location.href = '/jobs';
     }
   };
+
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -133,10 +169,40 @@ const JobDetail = () => {
                 <Bookmark className={`h-4 w-4 mr-2 ${isSaved ? "fill-current" : ""}`} />
                 {isSaved ? "Saved" : "Save Job"}
               </Button>
-              <Button onClick={handleShare} variant="outline">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={() => handleShare('linkedin')}>
+                      <Linkedin className="mr-2 h-4 w-4" />
+                      <span>LinkedIn</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare('twitter')}>
+                      <Twitter className="mr-2 h-4 w-4" />
+                      <span>Twitter</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare('facebook')}>
+                      <Facebook className="mr-2 h-4 w-4" />
+                      <span>Facebook</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare('email')}>
+                      <Mail className="mr-2 h-4 w-4" />
+                      <span>Email</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare('copy')}>
+                      <Link2 className="mr-2 h-4 w-4" />
+                      <span>Copy Link</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Button onClick={handleApply}>
                 Apply Now
               </Button>

@@ -10,43 +10,46 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 const Jobs = () => {
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>(jobs);
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState({
     jobTypes: {} as Record<string, boolean>,
     salaryRange: [50, 150] as [number, number],
     searchTerm: '',
-    industry: '' // New filter for industry
+    industry: '',
+    sortBy: 'relevant' // Default sort is 'relevant'
   });
 
   useEffect(() => {
+    // Check for industry selection from job detail page
+    const selectedIndustry = localStorage.getItem('selectedIndustry');
+    if (selectedIndustry) {
+      setActiveFilters(prev => ({
+        ...prev,
+        industry: selectedIndustry
+      }));
+      localStorage.removeItem('selectedIndustry');
+    }
+    
     // Simulate API call
     const timer = setTimeout(() => {
-      setFilteredJobs(jobs);
+      applyFilters();
       setIsLoading(false);
     }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
 
-  const handleFilterChange = (filters: any) => {
+  const applyFilters = () => {
     setIsLoading(true);
-    
-    // Save active filters
-    setActiveFilters({
-      ...activeFilters,
-      jobTypes: filters.jobTypes,
-      salaryRange: filters.salaryRange,
-      searchTerm: filters.searchTerm,
-    });
     
     // Simulate API call with delay
     setTimeout(() => {
       let filtered = [...jobs];
       
       // Filter by search term
-      if (filters.searchTerm) {
-        const searchLower = filters.searchTerm.toLowerCase();
+      if (activeFilters.searchTerm) {
+        const searchLower = activeFilters.searchTerm.toLowerCase();
         filtered = filtered.filter(
           job => 
             job.title.toLowerCase().includes(searchLower) || 
@@ -56,7 +59,7 @@ const Jobs = () => {
       }
       
       // Filter by job type
-      const activeJobTypes = Object.entries(filters.jobTypes)
+      const activeJobTypes = Object.entries(activeFilters.jobTypes)
         .filter(([_, value]) => value)
         .map(([key]) => key);
         
@@ -76,7 +79,7 @@ const Jobs = () => {
         const salaryStr = job.salary.replace(/[^0-9-]/g, '');
         const [min, max] = salaryStr.split('-').map(s => parseInt(s.trim(), 10));
         const avgSalary = (min + max) / 2;
-        return avgSalary >= filters.salaryRange[0] * 1000 && avgSalary <= filters.salaryRange[1] * 1000;
+        return avgSalary >= activeFilters.salaryRange[0] * 1000 && avgSalary <= activeFilters.salaryRange[1] * 1000;
       });
       
       // Filter by industry if set
@@ -84,9 +87,70 @@ const Jobs = () => {
         filtered = filtered.filter(job => job.industry === activeFilters.industry);
       }
       
+      // Sort the jobs
+      if (activeFilters.sortBy === 'newest') {
+        // Sort by posted date (newest first)
+        filtered.sort((a, b) => {
+          const dateA = parsePostedDate(a.postedAt);
+          const dateB = parsePostedDate(b.postedAt);
+          return dateB.getTime() - dateA.getTime();
+        });
+      } else {
+        // Sort by relevance - Featured jobs first, then by tags match or other relevance criteria
+        filtered.sort((a, b) => {
+          // Featured jobs come first
+          if (a.featured && !b.featured) return -1;
+          if (!a.featured && b.featured) return 1;
+          
+          // Then sort by "freshness" - newer jobs are more relevant
+          const dateA = parsePostedDate(a.postedAt);
+          const dateB = parsePostedDate(b.postedAt);
+          return dateB.getTime() - dateA.getTime();
+        });
+      }
+      
       setFilteredJobs(filtered);
       setIsLoading(false);
     }, 500);
+  };
+
+  // Helper function to parse posted date strings
+  const parsePostedDate = (postedStr: string): Date => {
+    const now = new Date();
+    if (postedStr.includes('day')) {
+      const days = parseInt(postedStr.split(' ')[0], 10);
+      const date = new Date();
+      date.setDate(now.getDate() - days);
+      return date;
+    } else if (postedStr.includes('week')) {
+      const weeks = parseInt(postedStr.split(' ')[0], 10);
+      const date = new Date();
+      date.setDate(now.getDate() - (weeks * 7));
+      return date;
+    } else if (postedStr.includes('month')) {
+      const months = parseInt(postedStr.split(' ')[0], 10);
+      const date = new Date();
+      date.setMonth(now.getMonth() - months);
+      return date;
+    } else if (postedStr.includes('hour')) {
+      const hours = parseInt(postedStr.split(' ')[0], 10);
+      const date = new Date();
+      date.setHours(now.getHours() - hours);
+      return date;
+    }
+    return now; // Default to now if format isn't recognized
+  };
+
+  const handleFilterChange = (filters: any) => {
+    const newFilters = {
+      ...activeFilters,
+      jobTypes: filters.jobTypes,
+      salaryRange: filters.salaryRange,
+      searchTerm: filters.searchTerm,
+    };
+    
+    setActiveFilters(newFilters);
+    setTimeout(() => applyFilters(), 0);
   };
 
   const handleIndustryClick = (industry: string) => {
@@ -96,13 +160,7 @@ const Jobs = () => {
     };
     
     setActiveFilters(newActiveFilters);
-    
-    // Apply the filters with the new industry
-    handleFilterChange({
-      jobTypes: newActiveFilters.jobTypes,
-      salaryRange: newActiveFilters.salaryRange,
-      searchTerm: newActiveFilters.searchTerm,
-    });
+    setTimeout(() => applyFilters(), 0);
   };
 
   const clearIndustryFilter = () => {
@@ -112,13 +170,15 @@ const Jobs = () => {
     };
     
     setActiveFilters(newActiveFilters);
-    
-    // Apply the filters without the industry
-    handleFilterChange({
-      jobTypes: newActiveFilters.jobTypes,
-      salaryRange: newActiveFilters.salaryRange,
-      searchTerm: newActiveFilters.searchTerm,
+    setTimeout(() => applyFilters(), 0);
+  };
+  
+  const handleSortChange = (sortType: 'newest' | 'relevant') => {
+    setActiveFilters({
+      ...activeFilters,
+      sortBy: sortType
     });
+    setTimeout(() => applyFilters(), 0);
   };
 
   return (
@@ -154,10 +214,18 @@ const Jobs = () => {
                     <div className="flex justify-between items-center">
                       <p className="text-muted-foreground">Showing {filteredJobs.length} jobs</p>
                       <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant={activeFilters.sortBy === 'newest' ? "default" : "outline"} 
+                          size="sm"
+                          onClick={() => handleSortChange('newest')}
+                        >
                           Newest
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant={activeFilters.sortBy === 'relevant' ? "default" : "outline"} 
+                          size="sm"
+                          onClick={() => handleSortChange('relevant')}
+                        >
                           Relevant
                         </Button>
                       </div>
@@ -198,13 +266,10 @@ const Jobs = () => {
                       jobTypes: {},
                       salaryRange: [50, 150],
                       searchTerm: '',
-                      industry: ''
+                      industry: '',
+                      sortBy: 'relevant'
                     });
-                    handleFilterChange({
-                      jobTypes: {},
-                      salaryRange: [50, 150],
-                      searchTerm: '',
-                    });
+                    setTimeout(() => applyFilters(), 0);
                   }}>
                     Clear All Filters
                   </Button>

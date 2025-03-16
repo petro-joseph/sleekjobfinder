@@ -1,9 +1,10 @@
+
 import { useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart } from 'lucide-react';
+import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart, Rocket } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import JobCardCompact from '@/components/JobCardCompact';
 import { toast } from "sonner";
@@ -36,10 +37,24 @@ const Dashboard = () => {
     <Layout>
       <div className="min-h-[calc(100vh-160px)] bg-gradient-mesh">
         <div className="container mx-auto px-4 py-6 md:px-6 md:py-8">
-          {/* Mobile Grid Layout for Dashboard */}
           <div className="grid gap-6 md:grid-cols-12">
-            {/* Recommended Jobs - Full Width on Mobile */}
             <div className="md:col-span-8">
+              {/* Welcome Banner */}
+              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6 overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10">
+                <CardContent className="p-6">
+                  <div className="flex flex-col gap-4">
+                    <h2 className="text-2xl font-bold">Welcome back, {user.firstName}</h2>
+                    <p className="text-base text-muted-foreground">
+                      Here's what's happening with your job search today
+                    </p>
+                    <Button className="group w-full md:w-auto" onClick={() => navigate('/jobs')}>
+                      Find Jobs
+                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              
               {/* Stats Cards - 2x2 on mobile, 4-column on desktop */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <MobileStatCard 
@@ -85,61 +100,9 @@ const Dashboard = () => {
                   </div>
                 ))}
               </div>
-            </div>
-            
-            {/* Right Sidebar - Full Width on Mobile */}
-            <div className="md:col-span-4">
-              {/* Welcome Card (Moved to Right Sidebar, Same Style as Profile Summary) */}
-              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
-                <CardHeader>
-                  <CardTitle>Welcome back, {user.firstName}</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="flex flex-col gap-4">
-                    <p className="text-sm md:text-base text-muted-foreground">
-                      Here's what's happening with your job search today
-                    </p>
-                    <Button className="group w-full md:w-auto" onClick={() => navigate('/jobs')}>
-                      Find Jobs
-                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Profile Summary */}
-              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
-                <CardHeader>
-                  <CardTitle>Profile Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold">
-                        {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-                      </div>
-                      <div className="ml-3">
-                        <div className="font-medium">{user.firstName} {user.lastName}</div>
-                        <div className="text-sm text-muted-foreground">{user.email}</div>
-                      </div>
-                    </div>
-                    
-                    <div className="pt-4">
-                      <Button 
-                        onClick={() => navigate('/profile')} 
-                        variant="outline" 
-                        className="w-full justify-between touch-button"
-                      >
-                        Complete your profile
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
               
               {/* Recent Activity */}
-              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg">
+              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mt-6">
                 <CardHeader>
                   <CardTitle>Recent Activity</CardTitle>
                 </CardHeader>
@@ -175,17 +138,34 @@ const Dashboard = () => {
                   </Button>
                 </CardContent>
               </Card>
-              
-              {/* Premium Upgrade - Mobile Optimized */}
-              <Card className="mt-6 overflow-hidden border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 to-primary/5">
+            </div>
+            
+            {/* Right Sidebar - Full Width on Mobile */}
+            <div className="md:col-span-4">
+              {/* Premium Upgrade - Enhanced Look */}
+              <Card className="overflow-hidden border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent mb-6">
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
                     <Sparkles className="h-5 w-5 text-primary mr-2" />
                     <h3 className="font-bold">Upgrade to Premium</h3>
                   </div>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Get 5x more job matches and priority application status
+                    Get 5x more job matches, priority application status, and direct contact with recruiters.
                   </p>
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center">
+                      <Rocket className="h-4 w-4 text-primary mr-2" />
+                      <span className="text-sm">Priority application status</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Rocket className="h-4 w-4 text-primary mr-2" />
+                      <span className="text-sm">AI-powered resume optimization</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Rocket className="h-4 w-4 text-primary mr-2" />
+                      <span className="text-sm">Direct message recruiters</span>
+                    </div>
+                  </div>
                   <Button 
                     onClick={() => navigate('/pricing')} 
                     variant="gradient" 
@@ -195,6 +175,39 @@ const Dashboard = () => {
                   </Button>
                 </CardContent>
               </Card>
+              
+              {/* Profile Summary - Only on Desktop */}
+              <div className="hidden md:block">
+                <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
+                  <CardHeader>
+                    <CardTitle>Profile Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold">
+                          {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                        </div>
+                        <div className="ml-3">
+                          <div className="font-medium">{user.firstName} {user.lastName}</div>
+                          <div className="text-sm text-muted-foreground">{user.email}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-4">
+                        <Button 
+                          onClick={() => navigate('/profile')} 
+                          variant="outline" 
+                          className="w-full justify-between touch-button"
+                        >
+                          Complete your profile
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         </div>
