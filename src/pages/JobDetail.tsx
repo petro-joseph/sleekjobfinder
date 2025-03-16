@@ -30,13 +30,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuthStore } from '@/lib/store';
+import TailorResumeModal from '@/components/TailorResumeModal';
 
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaved, setIsSaved] = useState(false);
+  const { user, saveJob, removeJob } = useAuthStore();
+  const [tailorModalOpen, setTailorModalOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -54,9 +57,18 @@ const JobDetail = () => {
     }
   };
 
+  const isSaved = user?.savedJobs.some(j => j.id === id) || false;
+
   const handleSaveJob = () => {
-    setIsSaved(!isSaved);
-    toast(isSaved ? "Job removed from saved jobs" : "Job saved to your profile");
+    if (!job) return;
+    
+    if (isSaved) {
+      removeJob(job.id);
+      toast("Job removed from saved jobs");
+    } else {
+      saveJob(job);
+      toast("Job saved to your profile");
+    }
   };
 
   const handleShare = (platform: string) => {
@@ -89,6 +101,24 @@ const JobDetail = () => {
       localStorage.setItem('selectedIndustry', job.industry);
       window.location.href = '/jobs';
     }
+  };
+  
+  const handleTailorResume = () => {
+    if (!user) {
+      toast("Please login to tailor your resume");
+      navigate('/login');
+      return;
+    }
+    
+    if (user.resumes.length === 0) {
+      toast.warning("Please create a resume first", {
+        description: "You'll be redirected to the resume builder"
+      });
+      navigate('/resume-builder');
+      return;
+    }
+    
+    setTailorModalOpen(true);
   };
 
   if (isLoading) {
@@ -314,8 +344,11 @@ const JobDetail = () => {
               </div>
               
               <div className="mt-6 pt-6 border-t">
-                <Button onClick={handleApply} className="w-full">
+                <Button onClick={handleApply} className="w-full mb-2">
                   Apply for this position
+                </Button>
+                <Button variant="outline" onClick={handleTailorResume} className="w-full">
+                  Tailor Resume for This Job
                 </Button>
               </div>
             </div>
@@ -332,6 +365,7 @@ const JobDetail = () => {
           </div>
         </div>
       </div>
+      {job && <TailorResumeModal job={job} isOpen={tailorModalOpen} onClose={() => setTailorModalOpen(false)} />}
     </Layout>
   );
 };

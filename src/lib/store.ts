@@ -1,231 +1,162 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Job } from '@/data/jobs';
 
-export interface Resume {
+export interface User {
   id: string;
-  name: string;
-  createdAt: Date;
-  updatedAt: Date;
-  content?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  country?: string;
+  title?: string;
+  company?: string;
+  bio?: string;
   skills?: string[];
+  experience?: Experience[];
+  education?: Education[];
+  applications: Application[];
+  savedJobs: Job[];
+  alerts: Alert[];
+  resumes: Resume[];
+}
+
+export interface Experience {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  startDate: string;
+  endDate?: string;
+  description: string;
+}
+
+export interface Education {
+  id: string;
+  school: string;
+  degree: string;
+  fieldOfStudy: string;
+  startDate: string;
+  endDate: string;
+  description: string;
 }
 
 export interface Application {
   id: string;
-  jobId: string;
-  status: 'pending' | 'reviewed' | 'interview' | 'rejected' | 'accepted';
-  appliedAt: Date;
-  updatedAt: Date;
-  company: string;
   position: string;
+  company: string;
+  status: 'applied' | 'interview' | 'offer' | 'rejected';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Alert {
   id: string;
-  keywords: string[];
-  location?: string;
-  createdAt: Date;
-  active: boolean;
-  frequency: 'daily' | 'weekly';
+  query: string;
+  frequency: 'daily' | 'weekly' | 'monthly';
+  createdAt: string;
 }
 
-export interface User {
+export interface Resume {
   id: string;
-  email: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserRegistration {
   firstName: string;
   lastName: string;
-  savedJobs: string[];
-  bio?: string;
-  location?: string;
-  website?: string;
-  avatarUrl?: string;
-  resumes: Resume[];
-  applications: Application[];
-  alerts: Alert[];
-  settings: {
-    notifications: boolean;
-    emailUpdates: boolean;
-    darkMode: boolean;
-  };
+  email: string;
+  password: string;
 }
 
-interface AuthState {
-  user: User | null;
+export interface AuthState {
   isAuthenticated: boolean;
-  isLoggedIn: boolean;
-  login: (email: string, password: string) => void;
+  user: User | null;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (email: string, password: string, firstName: string, lastName: string) => void;
-  saveJob: (jobId: string) => void;
+  register: (user: UserRegistration) => Promise<void>;
+  saveJob: (job: Job) => void;
   removeJob: (jobId: string) => void;
-  updateUser: (userData: Partial<User>) => void;
 }
 
-// Mock data
-const mockResumes: Resume[] = [
-  {
-    id: '1',
-    name: 'Software Engineer Resume',
-    createdAt: new Date('2023-04-15'),
-    updatedAt: new Date('2023-06-10'),
-    skills: ['JavaScript', 'React', 'TypeScript', 'Node.js']
-  },
-  {
-    id: '2',
-    name: 'Product Manager Resume',
-    createdAt: new Date('2023-03-22'),
-    updatedAt: new Date('2023-05-18'),
-    skills: ['Product Strategy', 'User Research', 'Agile', 'Roadmapping']
-  }
-];
+const defaultUser: User = {
+  id: '1',
+  firstName: 'John',
+  lastName: 'Doe',
+  email: 'john.doe@example.com',
+  applications: [],
+  savedJobs: [],
+  alerts: [],
+  resumes: [],
+};
 
-const mockApplications: Application[] = [
-  {
-    id: '1',
-    jobId: '3',
-    status: 'interview',
-    appliedAt: new Date('2023-05-20'),
-    updatedAt: new Date('2023-06-05'),
-    company: 'TechCorp Inc.',
-    position: 'Senior Frontend Developer'
-  },
-  {
-    id: '2',
-    jobId: '5',
-    status: 'pending',
-    appliedAt: new Date('2023-06-12'),
-    updatedAt: new Date('2023-06-12'),
-    company: 'InnovateSoft',
-    position: 'UX Designer'
-  },
-  {
-    id: '3',
-    jobId: '7',
-    status: 'rejected',
-    appliedAt: new Date('2023-05-10'),
-    updatedAt: new Date('2023-05-25'),
-    company: 'Global Systems',
-    position: 'Product Manager'
-  }
-];
-
-const mockAlerts: Alert[] = [
-  {
-    id: '1',
-    keywords: ['React', 'Frontend', 'JavaScript'],
-    location: 'Remote',
-    createdAt: new Date('2023-04-10'),
-    active: true,
-    frequency: 'daily'
-  },
-  {
-    id: '2',
-    keywords: ['Product Manager', 'Product Owner'],
-    location: 'San Francisco, CA',
-    createdAt: new Date('2023-05-05'),
-    active: true,
-    frequency: 'weekly'
-  }
-];
-
-// Create store with persistence
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: null,
       isAuthenticated: false,
-      isLoggedIn: false,
-      
-      login: (email, password) => {
-        set({
-          user: {
-            id: '1',
-            email,
-            firstName: 'John',
-            lastName: 'Doe',
-            savedJobs: ['1', '2'],
-            bio: '',
-            location: '',
-            website: '',
-            avatarUrl: '',
-            resumes: mockResumes,
-            applications: mockApplications,
-            alerts: mockAlerts,
-            settings: {
-              notifications: true,
-              emailUpdates: false,
-              darkMode: false,
-            }
-          },
-          isAuthenticated: true,
-          isLoggedIn: true
-        });
+      user: null,
+      login: async (email, password) => {
+        // Here you would typically make an API call to authenticate the user
+        // For this example, we'll just simulate a successful login
+        set({ isAuthenticated: true, user: defaultUser });
       },
-      
       logout: () => {
-        set({ user: null, isAuthenticated: false, isLoggedIn: false });
+        set({ isAuthenticated: false, user: null });
       },
-      
-      register: (email, password, firstName, lastName) => {
-        set({
-          user: {
-            id: '1',
-            email,
-            firstName,
-            lastName,
-            savedJobs: [],
-            bio: '',
-            location: '',
-            website: '',
-            avatarUrl: '',
-            resumes: [],
-            applications: [],
-            alerts: [],
-            settings: {
-              notifications: true,
-              emailUpdates: false,
-              darkMode: false,
+      register: async (userData) => {
+        // Here you would typically make an API call to register the user
+        // For this example, we'll just simulate a successful registration
+        const newUser: User = {
+          id: Math.random().toString(), // Generate a random ID
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email,
+          applications: [],
+          savedJobs: [],
+          alerts: [],
+          resumes: [],
+        };
+        set({ isAuthenticated: true, user: newUser });
+      },
+      saveJob: (job) => {
+        set((state) => {
+          if (!state.user) return state;
+          
+          // Check if job is already saved
+          const isJobSaved = state.user.savedJobs.some(j => j.id === job.id);
+          if (isJobSaved) return state;
+          
+          return {
+            ...state,
+            user: {
+              ...state.user,
+              savedJobs: [...state.user.savedJobs, job]
             }
-          },
-          isAuthenticated: true,
-          isLoggedIn: true
+          };
         });
       },
-      
-      saveJob: (jobId) => {
-        set((state) => ({
-          user: state.user ? {
-            ...state.user,
-            savedJobs: [...state.user.savedJobs, jobId]
-          } : null
-        }));
-      },
-      
       removeJob: (jobId) => {
-        set((state) => ({
-          user: state.user ? {
-            ...state.user,
-            savedJobs: state.user.savedJobs.filter(id => id !== jobId)
-          } : null
-        }));
+        set((state) => {
+          if (!state.user) return state;
+          
+          return {
+            ...state,
+            user: {
+              ...state.user,
+              savedJobs: state.user.savedJobs.filter(job => job.id !== jobId)
+            }
+          };
+        });
       },
-      
-      updateUser: (userData) => {
-        set((state) => ({
-          user: state.user ? { ...state.user, ...userData } : null
-        }));
-      }
     }),
     {
-      name: 'sleekjobs-auth-storage', // name of the item in localStorage
-      // Optional: Customize how the persisted state gets parsed and stored
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-        isLoggedIn: state.isLoggedIn,
-      }),
+      name: 'auth-storage',
     }
   )
 );

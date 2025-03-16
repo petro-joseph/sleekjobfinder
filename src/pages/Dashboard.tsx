@@ -4,14 +4,15 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart, Rocket } from 'lucide-react';
+import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart, Rocket, Clock, MapPin, Building } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import JobCardCompact from '@/components/JobCardCompact';
 import { toast } from "sonner";
 import { jobs } from '@/data/jobs';
+import { Badge } from '@/components/ui/badge';
 
 const Dashboard = () => {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, saveJob, removeJob } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,6 +30,21 @@ const Dashboard = () => {
     jobs[3]  // Fourth job from our jobs array
   ];
 
+  const handleBookmarkToggle = (jobId: string) => {
+    const job = jobs.find(j => j.id === jobId);
+    if (!job) return;
+    
+    const isJobSaved = user?.savedJobs.some(j => j.id === jobId);
+    
+    if (isJobSaved) {
+      removeJob(jobId);
+      toast.success(`Removed ${job.title} from saved jobs`);
+    } else {
+      saveJob(job);
+      toast.success(`Saved ${job.title} to your profile`);
+    }
+  };
+
   if (!user) {
     return null; // Will be redirected by useEffect
   }
@@ -40,7 +56,7 @@ const Dashboard = () => {
           <div className="grid gap-6 md:grid-cols-12">
             <div className="md:col-span-8">
               {/* Welcome Banner */}
-              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6 overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10">
+              <Card className="glass backdrop-blur-xl border-primary/20 shadow-lg mb-6 overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10">
                 <CardContent className="p-6">
                   <div className="flex flex-col gap-4">
                     <h2 className="text-2xl font-bold">Welcome back, {user.firstName}</h2>
@@ -92,17 +108,69 @@ const Dashboard = () => {
               
               <div className="grid gap-4">
                 {recommendedJobs.map(job => (
-                  <div 
+                  <Card 
                     key={job.id} 
-                    className="transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                    className="transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border border-border/60"
                   >
-                    <JobCardCompact job={job} />
-                  </div>
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start">
+                          <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center mr-4 text-primary font-semibold text-xl">
+                            {job.logo ? (
+                              <img src={job.logo} alt={job.company} className="w-full h-full object-contain rounded-lg" />
+                            ) : (
+                              job.company.substring(0, 2)
+                            )}
+                          </div>
+                          <div className="pt-1">
+                            <h3 className="font-semibold text-lg mb-1" onClick={() => navigate(`/jobs/${job.id}`)} style={{ cursor: 'pointer' }}>{job.title}</h3>
+                            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                              <div className="flex items-center">
+                                <Building className="h-3.5 w-3.5 mr-1" />
+                                {job.company}
+                              </div>
+                              <div className="flex items-center">
+                                <MapPin className="h-3.5 w-3.5 mr-1" />
+                                {job.location}
+                              </div>
+                              <div className="flex items-center">
+                                <Clock className="h-3.5 w-3.5 mr-1" />
+                                {job.postedAt}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                          <BookmarkCheck 
+                            className={`h-5 w-5 cursor-pointer ${user.savedJobs.some(j => j.id === job.id) ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
+                            onClick={() => handleBookmarkToggle(job.id)}
+                          />
+                          <Badge variant="outline" className="mt-2">
+                            {job.type}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <Button 
+                          onClick={() => navigate(`/jobs/${job.id}`)} 
+                          variant="outline"
+                          className="mr-2"
+                        >
+                          View Details
+                        </Button>
+                        <Button 
+                          onClick={() => navigate(`/apply/${job.id}`)}
+                        >
+                          Apply Now
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
               
               {/* Recent Activity */}
-              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mt-6">
+              <Card className="backdrop-blur-xl border-primary/20 shadow-lg mt-6">
                 <CardHeader>
                   <CardTitle>Recent Activity</CardTitle>
                 </CardHeader>
@@ -178,7 +246,7 @@ const Dashboard = () => {
               
               {/* Profile Summary - Only on Desktop */}
               <div className="hidden md:block">
-                <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
+                <Card className="backdrop-blur-xl border-primary/20 shadow-lg mb-6">
                   <CardHeader>
                     <CardTitle>Profile Summary</CardTitle>
                   </CardHeader>
@@ -230,7 +298,7 @@ const MobileStatCard = ({
 }) => {
   return (
     <Card 
-      className="glass hover backdrop-blur-xl border-primary/20 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer group"
+      className="backdrop-blur-xl border-primary/20 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer group"
       onClick={onClick}
     >
       <CardContent className="p-4 flex items-center">

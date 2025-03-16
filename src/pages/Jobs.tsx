@@ -17,7 +17,7 @@ const Jobs = () => {
     salaryRange: [50, 150] as [number, number],
     searchTerm: '',
     industry: '',
-    sortBy: 'relevant' // Default sort is 'relevant'
+    sortBy: 'relevant' // Ensuring default sort is 'relevant'
   });
 
   useEffect(() => {
@@ -95,7 +95,7 @@ const Jobs = () => {
           const dateB = parsePostedDate(b.postedAt);
           return dateB.getTime() - dateA.getTime();
         });
-      } else {
+      } else if (activeFilters.sortBy === 'relevant') {
         // Sort by relevance - Featured jobs first, then by tags match or other relevance criteria
         filtered.sort((a, b) => {
           // Featured jobs come first

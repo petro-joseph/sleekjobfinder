@@ -1,35 +1,65 @@
 
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { jobs, Job } from '@/data/jobs';
 import Layout from '@/components/Layout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import {
+  Briefcase,
+  Building,
+  MapPin,
+  ChevronLeft,
+  FileText,
+  Sparkles,
+  Upload,
+  CheckCircle,
+  PenTool,
+  Send,
+  Clock
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { useAuthStore } from '@/lib/store';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { jobs, Job } from '@/data/jobs';
-import { useAuthStore } from '@/lib/store';
-import { toast } from 'sonner';
-import { ChevronLeft, Upload, Download, FileText, PenTool, Info, CheckCircle, Edit } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-// Import the missing Sparkles icon
-import { Sparkles } from 'lucide-react';
+import TailorResumeModal from '@/components/TailorResumeModal';
 
 const Apply = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
+  
   const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedResume, setSelectedResume] = useState('');
-  const [coverLetter, setCoverLetter] = useState('');
+  const [selectedTab, setSelectedTab] = useState("resume");
+  const [selectedResumeId, setSelectedResumeId] = useState("");
+  const [coverLetter, setCoverLetter] = useState("");
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [resumeKeywords, setResumeKeywords] = useState<string[]>([]);
-  const [generatedCoverLetter, setGeneratedCoverLetter] = useState('');
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [tailorModalOpen, setTailorModalOpen] = useState(false);
+  
   useEffect(() => {
     if (!isAuthenticated) {
       toast.error("Please log in to apply for jobs", {
@@ -38,101 +68,85 @@ const Apply = () => {
       navigate('/login');
       return;
     }
-
-    // Simulate API call to get job details
+    
     const timer = setTimeout(() => {
       const foundJob = jobs.find(j => j.id === id);
       setJob(foundJob || null);
+      
+      if (user?.resumes?.length > 0) {
+        setSelectedResumeId(user.resumes[0].id);
+      }
+      
       setIsLoading(false);
-      
-      // Set default resume if user has any
-      if (user?.resumes && user.resumes.length > 0) {
-        setSelectedResume(user.resumes[0].id);
-      }
-      
-      // Generate some placeholder keywords for resume optimization
-      if (foundJob) {
-        setResumeKeywords([
-          'Experience with ' + foundJob.tags[0],
-          foundJob.tags[1] + ' expertise',
-          'Knowledge of ' + foundJob.industry,
-          'Proficiency in ' + foundJob.tags[2],
-          foundJob.title.split(' ')[0] + ' skills'
-        ]);
-      }
-    }, 800);
-
+    }, 500);
+    
     return () => clearTimeout(timer);
   }, [id, isAuthenticated, navigate, user]);
-
+  
   const generateCoverLetter = () => {
+    if (!job) return;
+    
     setIsGeneratingCoverLetter(true);
     
     // Simulate AI generating a cover letter
     setTimeout(() => {
-      if (job) {
-        const generated = 
-`Dear Hiring Manager,
+      const generatedLetter = `Dear Hiring Manager,
 
-I am writing to express my interest in the ${job.title} position at ${job.company}, as advertised on SleekJobs. With my background in ${job.tags[0]} and experience with ${job.tags[1]}, I believe I am well-qualified for this role.
+I am writing to express my strong interest in the ${job.title} position at ${job.company}. With my background in ${job.industry} and expertise in ${job.requirements[0].split(' ')[0]}, I believe I am well-positioned to make valuable contributions to your team.
 
-Throughout my career, I have developed strong skills in ${job.industry} and have consistently demonstrated my ability to deliver results. My experience aligns perfectly with the requirements outlined in your job description, particularly in the areas of ${job.tags.join(', ')}.
+${job.description}
 
-What attracts me to ${job.company} is your reputation for innovation and commitment to excellence in the ${job.industry} sector. I am particularly impressed by your company's recent achievements and would be excited to contribute to your continued success.
+Throughout my career, I have developed strong skills in:
+• ${job.requirements[0]}
+• ${job.requirements[1]}
+• ${job.requirements.length > 2 ? job.requirements[2] : 'Problem-solving and critical thinking'}
 
-I am confident that my skills and experience make me an ideal candidate for this position. I would welcome the opportunity to discuss how my background and skills would benefit ${job.company}.
+I am particularly drawn to ${job.company}'s reputation for innovation and excellence in the ${job.industry} industry. I am excited about the opportunity to bring my unique perspective and skills to your team.
 
-Thank you for considering my application. I look forward to the possibility of working with your team.
+Thank you for considering my application. I look forward to the possibility of discussing how my background and skills would be a good match for this position.
 
 Sincerely,
 ${user?.firstName} ${user?.lastName}`;
-
-        setGeneratedCoverLetter(generated);
-        setCoverLetter(generated);
-        setIsGeneratingCoverLetter(false);
-        
-        // Simulate AI suggestions
-        setAiSuggestions([
-          `Mention your specific achievements related to ${job.tags[0]}`,
-          `Add details about your experience with ${job.tags[1]}`,
-          `Highlight your educational background in ${job.industry}`,
-          `Consider mentioning your certifications relevant to this role`
-        ]);
-        
-        toast.success("Cover letter generated successfully");
-      }
+      
+      setCoverLetter(generatedLetter);
+      setIsGeneratingCoverLetter(false);
     }, 2000);
   };
-
+  
   const handleSubmitApplication = () => {
-    if (!selectedResume) {
-      toast.error("Please select a resume before submitting your application");
+    if (!selectedResumeId && !coverLetter) {
+      toast.error("Please select a resume or write a cover letter");
       return;
     }
     
+    setIsSubmitting(true);
+    
     // Simulate submitting application
-    setIsLoading(true);
     setTimeout(() => {
-      toast.success("Application submitted successfully!", {
-        description: "The employer will review your application and contact you if interested"
-      });
-      navigate('/progress');
+      setIsSubmitting(false);
+      setIsSuccess(true);
+      toast.success("Application submitted successfully!");
     }, 1500);
   };
-
+  
+  const getSelectedResume = () => {
+    if (!user || !selectedResumeId) return null;
+    return user.resumes.find(resume => resume.id === selectedResumeId);
+  };
+  
   if (isLoading) {
     return (
       <Layout>
         <div className="container mx-auto px-6 py-12">
           <div className="flex flex-col items-center justify-center py-12">
             <div className="loader mb-4" />
-            <p className="text-muted-foreground">Loading application form...</p>
+            <p className="text-muted-foreground">Loading job details...</p>
           </div>
         </div>
       </Layout>
     );
   }
-
+  
   if (!job) {
     return (
       <Layout>
@@ -140,280 +154,303 @@ ${user?.firstName} ${user?.lastName}`;
           <div className="bg-secondary/50 rounded-lg p-8 text-center">
             <h2 className="text-2xl font-semibold mb-4">Job Not Found</h2>
             <p className="text-muted-foreground mb-6">
-              The job you're trying to apply for doesn't exist or has been removed.
+              The job you're looking for doesn't exist or has been removed.
             </p>
-            <Button onClick={() => navigate('/jobs')}>
-              Browse Jobs
+            <Button asChild>
+              <Link to="/jobs">Back to Jobs</Link>
             </Button>
           </div>
         </div>
       </Layout>
     );
   }
-
+  
+  if (isSuccess) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-6 py-12 max-w-3xl">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 mb-4">
+              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+            </div>
+            <h1 className="text-3xl font-bold mb-2">Application Submitted!</h1>
+            <p className="text-muted-foreground">
+              Your application for <span className="font-medium text-foreground">{job.title}</span> at <span className="font-medium text-foreground">{job.company}</span> has been submitted successfully.
+            </p>
+          </div>
+          
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>What's Next?</CardTitle>
+              <CardDescription>Here's what you can expect from your application process</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex">
+                  <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    <Clock className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Application Review</h3>
+                    <p className="text-sm text-muted-foreground">
+                      The hiring team will review your application and resume
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex">
+                  <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    <Send className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Initial Contact</h3>
+                    <p className="text-sm text-muted-foreground">
+                      If your profile is a good match, they'll reach out via email or phone
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex">
+                  <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    <Briefcase className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Interview Process</h3>
+                    <p className="text-sm text-muted-foreground">
+                      You may be invited for one or more interviews
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button variant="outline" asChild>
+              <Link to="/progress">
+                <Clock className="mr-2 h-4 w-4" />
+                Track Application
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/jobs">
+                <Briefcase className="mr-2 h-4 w-4" />
+                Browse More Jobs
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+  
   return (
     <Layout>
       <div className="container mx-auto px-6 py-12">
-        {/* Back navigation */}
         <div className="mb-8">
-          <Button variant="ghost" className="group" size="sm" onClick={() => navigate(`/jobs/${id}`)}>
-            <ChevronLeft className="mr-1 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            Back to Job Details
+          <Button asChild variant="ghost" className="group" size="sm">
+            <Link to={`/jobs/${job.id}`}>
+              <ChevronLeft className="mr-1 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+              Back to Job Details
+            </Link>
           </Button>
         </div>
-
-        {/* Job application header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Apply for {job.title}</h1>
-          <div className="flex items-center text-muted-foreground">
-            <span className="mr-2">{job.company}</span>
-            <span className="mx-2">•</span>
-            <span>{job.location}</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <Tabs defaultValue="resume" className="w-full">
-              <TabsList className="grid grid-cols-2 w-full mb-6">
-                <TabsTrigger value="resume">Resume</TabsTrigger>
-                <TabsTrigger value="cover-letter">Cover Letter</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="resume">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Select Resume</CardTitle>
-                    <CardDescription>
-                      Choose or upload a resume that best matches this job
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {user?.resumes && user.resumes.length > 0 ? (
-                      <div className="space-y-6">
-                        <div className="grid gap-3">
-                          <Label htmlFor="resume">Your Resumes</Label>
-                          <Select 
-                            value={selectedResume} 
-                            onValueChange={setSelectedResume}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a resume" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {user.resumes.map(resume => (
-                                <SelectItem key={resume.id} value={resume.id}>
-                                  {resume.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Button className="w-full" variant="outline">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Preview Resume
-                          </Button>
-                          <Button className="w-full">
-                            <Edit className="mr-2 h-4 w-4" />
-                            Tailor for this Job
-                          </Button>
-                        </div>
-                        
-                        <div className="mt-6 pt-6 border-t">
-                          <h3 className="text-lg font-medium mb-4">AI Resume Suggestions</h3>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            Based on this job description, we recommend highlighting these keywords in your resume:
-                          </p>
-                          <div className="space-y-2">
-                            {resumeKeywords.map((keyword, index) => (
-                              <div key={index} className="flex items-start">
-                                <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
-                                <span className="text-sm">{keyword}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 className="text-lg font-medium mb-2">No Resume Available</h3>
-                        <p className="text-muted-foreground mb-6">
-                          You don't have any resumes yet. Upload one or create a new resume.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                          <Button variant="outline">
-                            <Upload className="mr-2 h-4 w-4" />
-                            Upload Resume
-                          </Button>
-                          <Button onClick={() => navigate('/resume-builder')}>
-                            Create New Resume
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="cover-letter">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Cover Letter</CardTitle>
-                    <CardDescription>
-                      Create a personalized cover letter for this job application
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      {!generatedCoverLetter ? (
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center py-4">
-                          <Button 
-                            variant="outline" 
-                            onClick={() => setCoverLetter("Dear Hiring Manager,\n\nI am writing to express my interest in the position...")}
-                          >
-                            <PenTool className="mr-2 h-4 w-4" />
-                            Write My Own
-                          </Button>
-                          <Button 
-                            onClick={generateCoverLetter}
-                            disabled={isGeneratingCoverLetter}
-                          >
-                            {isGeneratingCoverLetter ? (
-                              <>Generating...</>
-                            ) : (
-                              <>
-                                <Sparkles className="mr-2 h-4 w-4" />
-                                Generate with AI
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-medium">Your Cover Letter</h3>
-                            <Button variant="outline" size="sm" onClick={generateCoverLetter}>
-                              <Sparkles className="mr-2 h-4 w-4" />
-                              Regenerate
-                            </Button>
-                          </div>
-                          
-                          <Textarea
-                            className="min-h-[300px] font-mono"
-                            value={coverLetter}
-                            onChange={(e) => setCoverLetter(e.target.value)}
-                          />
-                          
-                          {aiSuggestions.length > 0 && (
-                            <div className="mt-4 bg-secondary/30 p-4 rounded-lg">
-                              <div className="flex items-center mb-2">
-                                <Info className="h-4 w-4 mr-2 text-primary" />
-                                <span className="font-medium">AI Suggestions</span>
-                              </div>
-                              <ul className="space-y-1 text-sm text-muted-foreground">
-                                {aiSuggestions.map((suggestion, index) => (
-                                  <li key={index} className="flex items-start">
-                                    <span className="text-primary mr-2">•</span>
-                                    {suggestion}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          
-                          <div className="flex justify-end gap-2">
-                            <Button variant="outline">
-                              <Download className="mr-2 h-4 w-4" />
-                              Download
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-            
-            <div className="mt-8">
-              <Button onClick={handleSubmitApplication} size="lg" className="w-full md:w-auto">
-                Submit Application
-              </Button>
+        
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Apply for {job.title}</h1>
+            <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
+              <div className="flex items-center">
+                <Building className="h-4 w-4 mr-1" />
+                {job.company}
+              </div>
+              <div className="flex items-center">
+                <MapPin className="h-4 w-4 mr-1" />
+                {job.location}
+              </div>
+              <div className="flex items-center">
+                <Badge variant="outline">{job.type}</Badge>
+              </div>
             </div>
           </div>
           
-          <div className="lg:col-span-1">
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Job Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium">Company</h3>
-                    <p className="text-sm text-muted-foreground">{job.company}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Location</h3>
-                    <p className="text-sm text-muted-foreground">{job.location}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Employment Type</h3>
-                    <p className="text-sm text-muted-foreground">{job.type}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Salary Range</h3>
-                    <p className="text-sm text-muted-foreground">{job.salary}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Key Skills</h3>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {job.tags.map((tag, index) => (
-                        <span key={index} className="text-xs bg-secondary px-2 py-1 rounded-full">
-                          {tag}
-                        </span>
-                      ))}
+          <Tabs defaultValue="resume" value={selectedTab} onValueChange={setSelectedTab}>
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="resume">
+                <FileText className="mr-2 h-4 w-4" />
+                Resume
+              </TabsTrigger>
+              <TabsTrigger value="cover-letter">
+                <PenTool className="mr-2 h-4 w-4" />
+                Cover Letter
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="resume" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Select Resume</CardTitle>
+                  <CardDescription>
+                    Choose a resume to submit with your application or tailor a resume for this job
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {user?.resumes && user.resumes.length > 0 ? (
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="resume">Your Resumes</Label>
+                        <Select
+                          value={selectedResumeId}
+                          onValueChange={setSelectedResumeId}
+                        >
+                          <SelectTrigger id="resume">
+                            <SelectValue placeholder="Select a resume" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {user.resumes.map(resume => (
+                              <SelectItem key={resume.id} value={resume.id}>
+                                {resume.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {selectedResumeId && (
+                        <div className="border rounded-lg p-4 flex justify-between items-center">
+                          <div className="flex items-center">
+                            <FileText className="h-8 w-8 text-primary mr-3" />
+                            <div>
+                              <p className="font-medium">{getSelectedResume()?.name}</p>
+                              <p className="text-sm text-muted-foreground">Last updated: {getSelectedResume()?.updatedAt}</p>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm">
+                            Preview
+                          </Button>
+                        </div>
+                      )}
+                      
+                      <div className="bg-secondary/30 rounded-lg p-4">
+                        <div className="flex items-start mb-2">
+                          <Sparkles className="h-5 w-5 text-primary mr-2 mt-0.5" />
+                          <div>
+                            <h3 className="font-medium">Tailor your resume</h3>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Our AI can optimize your resume to match this job's requirements
+                            </p>
+                          </div>
+                        </div>
+                        <Button variant="secondary" onClick={() => setTailorModalOpen(true)}>
+                          Tailor Resume
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-6">
+                      <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium mb-2">No Resumes Yet</h3>
+                      <p className="text-muted-foreground mb-4">
+                        You haven't created any resumes yet. Create one to apply for this job.
+                      </p>
+                      <Button asChild>
+                        <Link to="/resume-builder">
+                          Create Resume
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="cover-letter" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Cover Letter</CardTitle>
+                  <CardDescription>
+                    Write a cover letter or use our AI to generate one tailored to this job
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label htmlFor="cover-letter">Your Cover Letter</Label>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={generateCoverLetter}
+                          disabled={isGeneratingCoverLetter}
+                        >
+                          {isGeneratingCoverLetter ? (
+                            <>
+                              <div className="loader mr-2" /> 
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="mr-2 h-4 w-4" />
+                              Generate with AI
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      <Textarea
+                        id="cover-letter"
+                        placeholder="Write or generate a cover letter to introduce yourself and explain why you're a good fit for this role..."
+                        className="min-h-[300px]"
+                        value={coverLetter}
+                        onChange={(e) => setCoverLetter(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="bg-secondary/30 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <Sparkles className="h-5 w-5 text-primary mr-2 mt-0.5" />
+                        <div>
+                          <h3 className="font-medium">Cover Letter Tips</h3>
+                          <ul className="text-sm text-muted-foreground mt-2 space-y-1">
+                            <li>• Address your letter to the hiring manager if possible</li>
+                            <li>• Highlight relevant skills and experiences</li>
+                            <li>• Explain why you're interested in this specific role and company</li>
+                            <li>• Keep it concise, around 250-400 words</li>
+                            <li>• Proofread carefully for errors</li>
+                          </ul>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-primary/5 border-primary/20">
-              <CardHeader>
-                <CardTitle>Application Tips</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-start">
-                    <CheckCircle className="h-4 w-4 text-primary mr-2 mt-0.5" />
-                    <p className="text-sm">Tailor your resume to highlight relevant experience</p>
-                  </div>
-                  <div className="flex items-start">
-                    <CheckCircle className="h-4 w-4 text-primary mr-2 mt-0.5" />
-                    <p className="text-sm">Include specific achievements with measurable results</p>
-                  </div>
-                  <div className="flex items-start">
-                    <CheckCircle className="h-4 w-4 text-primary mr-2 mt-0.5" />
-                    <p className="text-sm">Address requirements from the job description</p>
-                  </div>
-                  <div className="flex items-start">
-                    <CheckCircle className="h-4 w-4 text-primary mr-2 mt-0.5" />
-                    <p className="text-sm">Proofread for spelling and grammatical errors</p>
-                  </div>
-                  <div className="flex items-start">
-                    <CheckCircle className="h-4 w-4 text-primary mr-2 mt-0.5" />
-                    <p className="text-sm">Research the company before submitting</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+          
+          <div className="flex justify-between items-center pt-6 border-t mt-8">
+            <Button variant="outline" onClick={() => navigate(`/jobs/${job.id}`)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmitApplication}
+              disabled={isSubmitting || (!selectedResumeId && !coverLetter)}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="loader mr-2" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  Submit Application
+                  <Send className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </div>
+      
+      {job && <TailorResumeModal job={job} isOpen={tailorModalOpen} onClose={() => setTailorModalOpen(false)} />}
     </Layout>
   );
 };
