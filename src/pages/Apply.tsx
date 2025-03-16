@@ -14,6 +14,9 @@ import { toast } from 'sonner';
 import { ChevronLeft, Upload, Download, FileText, PenTool, Info, CheckCircle, Edit } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+// Import the missing Sparkles icon
+import { Sparkles } from 'lucide-react';
+
 const Apply = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

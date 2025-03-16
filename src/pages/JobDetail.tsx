@@ -1,5 +1,4 @@
-
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -34,12 +33,12 @@ import {
 
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
-    // Simulate API call
     const timer = setTimeout(() => {
       const foundJob = jobs.find(j => j.id === id);
       setJob(foundJob || null);
@@ -87,14 +86,10 @@ const JobDetail = () => {
 
   const navigateToIndustryJobs = () => {
     if (job) {
-      // Store the industry in localStorage to be picked up by the Jobs page
       localStorage.setItem('selectedIndustry', job.industry);
-      // Navigate back to jobs
       window.location.href = '/jobs';
     }
   };
-
-  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -130,7 +125,6 @@ const JobDetail = () => {
   return (
     <Layout>
       <div className="container mx-auto px-6 py-12">
-        {/* Back navigation */}
         <div className="mb-8">
           <Button asChild variant="ghost" className="group" size="sm">
             <Link to="/jobs">
@@ -140,7 +134,6 @@ const JobDetail = () => {
           </Button>
         </div>
 
-        {/* Job header */}
         <div className="bg-card rounded-xl p-8 shadow-sm border mb-8">
           <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between mb-6">
             <div className="flex items-center">
@@ -247,10 +240,8 @@ const JobDetail = () => {
           </div>
         </div>
 
-        {/* Job content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            {/* Job description */}
             <div className="bg-card rounded-xl p-8 shadow-sm border">
               <h2 className="text-xl font-semibold mb-4">Job Description</h2>
               <p className="text-foreground/90 mb-6">{job.description}</p>
@@ -266,7 +257,6 @@ const JobDetail = () => {
               </ul>
             </div>
 
-            {/* Company info */}
             <div className="bg-card rounded-xl p-8 shadow-sm border">
               <h2 className="text-xl font-semibold mb-4">About {job.company}</h2>
               <p className="text-foreground/90">
@@ -277,7 +267,6 @@ const JobDetail = () => {
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-card rounded-xl p-6 shadow-sm border">
               <h3 className="text-lg font-semibold mb-4">Job Overview</h3>
