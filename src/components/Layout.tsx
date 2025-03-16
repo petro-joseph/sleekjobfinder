@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import DarkModeToggle from './DarkModeToggle';
 import { useAuthStore } from '@/lib/store';
 import MobileProfileBar from './MobileProfileBar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ interface LayoutProps {
 const Layout = ({ children, hideFooter = false }: LayoutProps) => {
   const location = useLocation();
   const { isAuthenticated } = useAuthStore();
+  const isMobile = useIsMobile();
 
   // Scroll to top on route change
   useEffect(() => {
@@ -27,8 +29,8 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
         <DarkModeToggle />
       </div>
       <Navbar />
-      <MobileProfileBar />
-      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''}`}>
+      {isMobile && <MobileProfileBar />}
+      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-24' : 'pt-16'}`}>
         {children}
       </main>
       {!hideFooter && <Footer />}

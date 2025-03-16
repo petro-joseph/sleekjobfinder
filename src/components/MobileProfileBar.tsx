@@ -17,7 +17,6 @@ const MobileProfileBar = () => {
     : 'U';
   
   const fullName = `${user.firstName} ${user.lastName}`;
-  const hasProfile = user.bio && user.location;
   
   return (
     <div className={cn(
@@ -37,15 +36,6 @@ const MobileProfileBar = () => {
           
           <div className="flex-1 min-w-0">
             <p className="font-medium truncate">{fullName}</p>
-            {hasProfile ? (
-              <p className="text-sm text-muted-foreground truncate">
-                {user.bio?.split(' ').slice(0, 5).join(' ')}...
-              </p>
-            ) : (
-              <p className="text-sm text-primary truncate">
-                Complete your profile →
-              </p>
-            )}
           </div>
           
           <UserIcon className="h-5 w-5 text-muted-foreground" />
