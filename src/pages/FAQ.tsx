@@ -58,7 +58,7 @@ const FAQ = () => {
       id: 6,
       category: 'jobs',
       question: 'Can I set up job alerts?',
-      answer: 'Yes, you can create custom job alerts based on your preferences. You'll receive notifications when new positions matching your criteria are posted. You can set the frequency of these alerts to daily, weekly, or as they come in.'
+      answer: "Yes, you can create custom job alerts based on your preferences. You'll receive notifications when new positions matching your criteria are posted. You can set the frequency of these alerts to daily, weekly, or as they come in."
     },
     {
       id: 7,
