@@ -14,8 +14,7 @@ import JobDetail from './pages/JobDetail';
 import Apply from './pages/Apply';
 import Progress from './pages/Progress';
 import ResumeBuilder from './pages/ResumeBuilder';
-import './styles/index.css';
-import './styles/mobile.css';
+import './index.css';
 import { useAuthStore } from './lib/store';
 
 function App() {
