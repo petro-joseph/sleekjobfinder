@@ -21,36 +21,38 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Navigation columns */}
-          <div>
-            <h3 className="font-semibold mb-4">Platform</h3>
-            <ul className="space-y-3">
-              <FooterLink href="/jobs">Find Jobs</FooterLink>
-              <FooterLink href="/resume-builder">Resume Builder</FooterLink>
-              <FooterLink href="/auto-apply">Auto-Apply</FooterLink>
-              <FooterLink href="/pricing">Pricing</FooterLink>
-            </ul>
-          </div>
+          {/* Navigation columns - mobile 2-column grid, desktop 3-column */}
+          <div className="grid grid-cols-2 md:grid-cols-3 col-span-1 md:col-span-3 gap-8 md:gap-0">
+            <div>
+              <h3 className="font-semibold mb-4">Platform</h3>
+              <ul className="space-y-3">
+                <FooterLink href="/jobs">Find Jobs</FooterLink>
+                <FooterLink href="/resume-builder">Resume Builder</FooterLink>
+                <FooterLink href="/auto-apply">Auto-Apply</FooterLink>
+                <FooterLink href="/pricing">Pricing</FooterLink>
+              </ul>
+            </div>
 
-          <div>
-            <h3 className="font-semibold mb-4">Resources</h3>
-            <ul className="space-y-3">
-              <FooterLink href="/blog">Blog</FooterLink>
-              <FooterLink href="/guides">Career Guides</FooterLink>
-              <FooterLink href="/faq">FAQs</FooterLink>
-              <FooterLink href="/support">Support</FooterLink>
-            </ul>
-          </div>
+            <div>
+              <h3 className="font-semibold mb-4">Resources</h3>
+              <ul className="space-y-3">
+                <FooterLink href="/blog">Blog</FooterLink>
+                <FooterLink href="/guides">Career Guides</FooterLink>
+                <FooterLink href="/faq">FAQs</FooterLink>
+                <FooterLink href="/support">Support</FooterLink>
+              </ul>
+            </div>
 
-          <div>
-            <h3 className="font-semibold mb-4">Company</h3>
-            <ul className="space-y-3">
-              <FooterLink href="/about">About</FooterLink>
-              <FooterLink href="/careers">Careers</FooterLink>
-              <FooterLink href="/contact">Contact</FooterLink>
-              <FooterLink href="/privacy">Privacy</FooterLink>
-              <FooterLink href="/terms">Terms</FooterLink>
-            </ul>
+            <div className="col-span-2 md:col-span-1 mt-6 md:mt-0">
+              <h3 className="font-semibold mb-4">Company</h3>
+              <ul className="space-y-3">
+                <FooterLink href="/about">About</FooterLink>
+                <FooterLink href="/careers">Careers</FooterLink>
+                <FooterLink href="/contact">Contact</FooterLink>
+                <FooterLink href="/privacy">Privacy</FooterLink>
+                <FooterLink href="/terms">Terms</FooterLink>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

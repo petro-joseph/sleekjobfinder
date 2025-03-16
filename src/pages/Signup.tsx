@@ -8,7 +8,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import Layout from '@/components/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from "sonner";
-import { User, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react';
+import { User, Mail, Lock, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { useAuthStore } from '@/lib/store';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -17,9 +18,15 @@ const Signup = () => {
     password: '',
     agreeToTerms: false
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { register } = useAuthStore();
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -46,18 +53,26 @@ const Signup = () => {
     setIsLoading(true);
     setError('');
     
+    // Parse name into first and last name
+    const nameParts = formData.name.trim().split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+    
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
       
+      // Register the user
+      register(formData.email, formData.password, firstName, lastName);
+      
       // Show success toast and redirect
-      toast.success("Account created successfully! Please sign in.", {
+      toast.success("Account created successfully! Welcome to SleekJobs.", {
         position: "top-center",
         duration: 3000,
       });
       
-      // Redirect to login
-      navigate('/login');
+      // Redirect to dashboard
+      navigate('/dashboard');
     }, 1500);
   };
 
@@ -123,13 +138,24 @@ const Signup = () => {
                       <Input
                         id="password"
                         name="password"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         value={formData.password}
                         onChange={handleChange}
-                        className="pl-10 py-6 transition-all border-muted/30 focus:border-primary"
+                        className="pl-10 pr-10 py-6 transition-all border-muted/30 focus:border-primary"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={togglePasswordVisibility}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? 
+                          <EyeOff className="h-5 w-5" /> : 
+                          <Eye className="h-5 w-5" />
+                        }
+                      </button>
                     </div>
                     <p className="text-xs text-muted-foreground ml-1">
                       Must be at least 8 characters

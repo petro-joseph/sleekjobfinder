@@ -4,11 +4,12 @@ import { Home, Briefcase, User, Bookmark, BarChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/lib/store';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useEffect } from 'react';
+import { useScrollDirection } from '@/hooks/useScrollDirection';
 
 const BottomNav = () => {
   const location = useLocation();
   const { isAuthenticated } = useAuthStore();
+  const { scrollDirection } = useScrollDirection();
   
   // Only show for authenticated users
   if (!isAuthenticated) return null;
@@ -55,7 +56,10 @@ const BottomNav = () => {
   };
 
   return (
-    <div className="bottom-nav-container md:hidden">
+    <div className={cn(
+      "bottom-nav-container md:hidden transition-transform duration-300",
+      scrollDirection === 'down' ? 'translate-y-full' : 'translate-y-0'
+    )}>
       <nav className="bottom-nav">
         <div className="flex justify-around items-center w-full h-full">
           {navItems.map((item) => (

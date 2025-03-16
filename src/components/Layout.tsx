@@ -5,6 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import DarkModeToggle from './DarkModeToggle';
 import { useAuthStore } from '@/lib/store';
+import MobileProfileBar from './MobileProfileBar';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -26,7 +27,8 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
         <DarkModeToggle />
       </div>
       <Navbar />
-      <main className={`flex-grow pt-[76px] ${isAuthenticated ? 'page-with-bottom-nav' : ''}`}>
+      <MobileProfileBar />
+      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''}`}>
         {children}
       </main>
       {!hideFooter && <Footer />}

@@ -1,5 +1,6 @@
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { Job } from '@/data/jobs';
 
 export interface Resume {
@@ -39,6 +40,7 @@ export interface User {
   bio?: string;
   location?: string;
   website?: string;
+  avatarUrl?: string;
   resumes: Resume[];
   applications: Application[];
   alerts: Alert[];
@@ -128,86 +130,102 @@ const mockAlerts: Alert[] = [
   }
 ];
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isAuthenticated: false,
-  isLoggedIn: false,
-  
-  login: (email, password) => {
-    set({
-      user: {
-        id: '1',
-        email,
-        firstName: 'John',
-        lastName: 'Doe',
-        savedJobs: ['1', '2'],
-        bio: '',
-        location: '',
-        website: '',
-        resumes: mockResumes,
-        applications: mockApplications,
-        alerts: mockAlerts,
-        settings: {
-          notifications: true,
-          emailUpdates: false,
-          darkMode: false,
-        }
+// Create store with persistence
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      isAuthenticated: false,
+      isLoggedIn: false,
+      
+      login: (email, password) => {
+        set({
+          user: {
+            id: '1',
+            email,
+            firstName: 'John',
+            lastName: 'Doe',
+            savedJobs: ['1', '2'],
+            bio: '',
+            location: '',
+            website: '',
+            avatarUrl: '',
+            resumes: mockResumes,
+            applications: mockApplications,
+            alerts: mockAlerts,
+            settings: {
+              notifications: true,
+              emailUpdates: false,
+              darkMode: false,
+            }
+          },
+          isAuthenticated: true,
+          isLoggedIn: true
+        });
       },
-      isAuthenticated: true,
-      isLoggedIn: true
-    });
-  },
-  
-  logout: () => {
-    set({ user: null, isAuthenticated: false, isLoggedIn: false });
-  },
-  
-  register: (email, password, firstName, lastName) => {
-    set({
-      user: {
-        id: '1',
-        email,
-        firstName,
-        lastName,
-        savedJobs: [],
-        bio: '',
-        location: '',
-        website: '',
-        resumes: [],
-        applications: [],
-        alerts: [],
-        settings: {
-          notifications: true,
-          emailUpdates: false,
-          darkMode: false,
-        }
+      
+      logout: () => {
+        set({ user: null, isAuthenticated: false, isLoggedIn: false });
       },
-      isAuthenticated: true,
-      isLoggedIn: true
-    });
-  },
-  
-  saveJob: (jobId) => {
-    set((state) => ({
-      user: state.user ? {
-        ...state.user,
-        savedJobs: [...state.user.savedJobs, jobId]
-      } : null
-    }));
-  },
-  
-  removeJob: (jobId) => {
-    set((state) => ({
-      user: state.user ? {
-        ...state.user,
-        savedJobs: state.user.savedJobs.filter(id => id !== jobId)
-      } : null
-    }));
-  },
-  
-  updateUser: (userData) => {
-    set((state) => ({
-      user: state.user ? { ...state.user, ...userData } : null
-    }));
-  }
-}));
+      
+      register: (email, password, firstName, lastName) => {
+        set({
+          user: {
+            id: '1',
+            email,
+            firstName,
+            lastName,
+            savedJobs: [],
+            bio: '',
+            location: '',
+            website: '',
+            avatarUrl: '',
+            resumes: [],
+            applications: [],
+            alerts: [],
+            settings: {
+              notifications: true,
+              emailUpdates: false,
+              darkMode: false,
+            }
+          },
+          isAuthenticated: true,
+          isLoggedIn: true
+        });
+      },
+      
+      saveJob: (jobId) => {
+        set((state) => ({
+          user: state.user ? {
+            ...state.user,
+            savedJobs: [...state.user.savedJobs, jobId]
+          } : null
+        }));
+      },
+      
+      removeJob: (jobId) => {
+        set((state) => ({
+          user: state.user ? {
+            ...state.user,
+            savedJobs: state.user.savedJobs.filter(id => id !== jobId)
+          } : null
+        }));
+      },
+      
+      updateUser: (userData) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, ...userData } : null
+        }));
+      }
+    }),
+    {
+      name: 'sleekjobs-auth-storage', // name of the item in localStorage
+      // Optional: Customize how the persisted state gets parsed and stored
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+        isLoggedIn: state.isLoggedIn,
+      }),
+    }
+  )
+);
