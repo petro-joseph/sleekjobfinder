@@ -18,7 +18,8 @@ import {
   Twitter,
   Linkedin,
   Link2,
-  Mail
+  Mail,
+  MessageSquare
 } from 'lucide-react';
 import { jobs, Job } from '@/data/jobs';
 import { SectionHeading } from '@/components/ui/section-heading';
@@ -72,21 +73,27 @@ const JobDetail = () => {
   };
 
   const handleShare = (platform: string) => {
+    if (!job) return;
+    
     const url = window.location.href;
-    const title = job ? `${job.title} at ${job.company}` : 'Job Posting';
+    const title = `${job.title} at ${job.company}`;
+    const text = `Check out this job: ${title}`;
     
     switch (platform) {
       case 'facebook':
         window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
         break;
       case 'twitter':
-        window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`, '_blank');
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
         break;
       case 'linkedin':
         window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
         break;
       case 'email':
         window.open(`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`Check out this job posting: ${url}`)}`, '_blank');
+        break;
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${encodeURIComponent(text + ': ' + url)}`, '_blank');
         break;
       case 'copy':
       default:
@@ -168,18 +175,18 @@ const JobDetail = () => {
           <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between mb-6">
             <div className="flex items-center">
               <div className="w-16 h-16 rounded-lg bg-secondary flex items-center justify-center mr-6 text-primary font-semibold text-xl">
-                {job.logo ? (
-                  <img src={job.logo} alt={job.company} className="w-full h-full object-contain rounded-lg" />
+                {job?.logo ? (
+                  <img src={job.logo} alt={job?.company} className="w-full h-full object-contain rounded-lg" />
                 ) : (
-                  job.company.substring(0, 2)
+                  job?.company.substring(0, 2)
                 )}
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold mb-1">{job.title}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold mb-1">{job?.title}</h1>
                 <div className="flex items-center gap-2">
                   <Building className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-lg text-muted-foreground">{job.company}</span>
-                  {job.featured && (
+                  <span className="text-lg text-muted-foreground">{job?.company}</span>
+                  {job?.featured && (
                     <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                       Featured
                     </Badge>
@@ -217,6 +224,10 @@ const JobDetail = () => {
                     <DropdownMenuItem onClick={() => handleShare('email')}>
                       <Mail className="mr-2 h-4 w-4" />
                       <span>Email</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare('whatsapp')}>
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      <span>WhatsApp</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleShare('copy')}>
                       <Link2 className="mr-2 h-4 w-4" />

@@ -15,7 +15,10 @@ import Apply from './pages/Apply';
 import Progress from './pages/Progress';
 import ResumeBuilder from './pages/ResumeBuilder';
 import './index.css';
+import './styles/mobile.css';
 import { useAuthStore } from './lib/store';
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 
 function App() {
   return (
@@ -40,6 +43,8 @@ function App() {
         <Route path="/progress" element={<Progress />} />
         <Route path="/resume-builder" element={<ResumeBuilder />} />
       </Routes>
+      <SonnerToaster position="bottom-right" />
+      <Toaster />
     </Router>
   );
 }

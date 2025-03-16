@@ -7,6 +7,7 @@ import DarkModeToggle from './DarkModeToggle';
 import { useAuthStore } from '@/lib/store';
 import MobileProfileBar from './MobileProfileBar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import BottomNav from './BottomNav';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -30,10 +31,11 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
       </div>
       <Navbar />
       {isMobile && <MobileProfileBar />}
-      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-24' : 'pt-16'}`}>
+      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-24' : 'pt-2'}`}>
         {children}
       </main>
       {!hideFooter && <Footer />}
+      {isAuthenticated && <BottomNav />}
     </div>
   );
 };
