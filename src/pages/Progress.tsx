@@ -133,7 +133,7 @@ const Progress = () => {
                         <td className="py-3 px-4 text-sm">{app.company}</td>
                         <td className="py-3 px-4 text-sm font-medium">{app.position}</td>
                         <td className="py-3 px-4 text-sm text-muted-foreground">
-                          {new Date(app.appliedAt).toLocaleDateString()}
+                          {new Date(app.createdAt).toLocaleDateString()}
                         </td>
                         <td className="py-3 px-4">
                           <span className={`text-xs px-2 py-1 rounded-full ${
@@ -150,7 +150,7 @@ const Progress = () => {
                           {new Date(app.updatedAt).toLocaleDateString()}
                         </td>
                         <td className="py-3 px-4 text-right">
-                          <Button variant="ghost" size="icon" onClick={() => navigate(`/jobs/${app.jobId}`)}>
+                          <Button variant="ghost" size="icon" onClick={() => navigate(`/jobs/${app.jobId || ''}`)}>
                             <ChevronRight className="h-4 w-4" />
                           </Button>
                         </td>
@@ -241,7 +241,7 @@ const Progress = () => {
                       <div className="flex items-start justify-between">
                         <div>
                           <h4 className="font-medium mb-1">
-                            {alert.keywords.join(', ')}
+                            {alert.query}
                           </h4>
                           {alert.location && (
                             <p className="text-sm text-muted-foreground mb-2">

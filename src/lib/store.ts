@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Job } from '@/data/jobs';
@@ -16,6 +17,9 @@ export interface User {
   title?: string;
   company?: string;
   bio?: string;
+  avatarUrl?: string;
+  location?: string;
+  website?: string;
   skills?: string[];
   experience?: Experience[];
   education?: Education[];
@@ -23,6 +27,11 @@ export interface User {
   savedJobs: Job[];
   alerts: Alert[];
   resumes: Resume[];
+  settings?: {
+    notifications: boolean;
+    emailUpdates: boolean;
+    darkMode: boolean;
+  }
 }
 
 export interface Experience {
@@ -47,16 +56,20 @@ export interface Education {
 
 export interface Application {
   id: string;
+  jobId?: string;
   position: string;
   company: string;
-  status: 'applied' | 'interview' | 'offer' | 'rejected';
+  status: 'applied' | 'interview' | 'offer' | 'rejected' | 'reviewed' | 'accepted';
   createdAt: string;
   updatedAt: string;
+  appliedAt?: string;
 }
 
 export interface Alert {
   id: string;
   query: string;
+  keywords: string[];
+  location?: string;
   frequency: 'daily' | 'weekly' | 'monthly';
   createdAt: string;
 }
@@ -80,9 +93,10 @@ export interface AuthState {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (user: UserRegistration) => Promise<void>;
+  register: (userData: UserRegistration) => Promise<void>;
   saveJob: (job: Job) => void;
   removeJob: (jobId: string) => void;
+  updateUser: (userData: Partial<User>) => void;
 }
 
 const defaultUser: User = {
@@ -94,6 +108,11 @@ const defaultUser: User = {
   savedJobs: [],
   alerts: [],
   resumes: [],
+  settings: {
+    notifications: false,
+    emailUpdates: false,
+    darkMode: false,
+  }
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -121,6 +140,11 @@ export const useAuthStore = create<AuthState>()(
           savedJobs: [],
           alerts: [],
           resumes: [],
+          settings: {
+            notifications: false,
+            emailUpdates: false,
+            darkMode: false,
+          }
         };
         set({ isAuthenticated: true, user: newUser });
       },
@@ -150,6 +174,19 @@ export const useAuthStore = create<AuthState>()(
             user: {
               ...state.user,
               savedJobs: state.user.savedJobs.filter(job => job.id !== jobId)
+            }
+          };
+        });
+      },
+      updateUser: (userData) => {
+        set((state) => {
+          if (!state.user) return state;
+          
+          return {
+            ...state,
+            user: {
+              ...state.user,
+              ...userData
             }
           };
         });

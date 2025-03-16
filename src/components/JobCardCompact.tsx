@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/store';
+import { jobs } from '@/data/jobs';
 
 interface JobCardCompactProps {
   job: Job;
@@ -15,17 +16,18 @@ interface JobCardCompactProps {
 }
 
 const JobCardCompact = ({ job, className }: JobCardCompactProps) => {
-  const { user, saveJob } = useAuthStore();
-  const isSaved = user?.savedJobs.includes(job.id);
+  const { user, saveJob, removeJob } = useAuthStore();
+  const isSaved = user?.savedJobs.some(savedJob => savedJob.id === job.id);
 
   const handleSave = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    saveJob(job.id);
     
     if (isSaved) {
+      removeJob(job.id);
       toast.info("Job removed from saved jobs");
     } else {
+      saveJob(job);
       toast.success("Job saved to your profile", {
         description: "View all saved jobs in your dashboard"
       });

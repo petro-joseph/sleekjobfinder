@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -63,7 +62,12 @@ const Signup = () => {
       setIsLoading(false);
       
       // Register the user
-      register(formData.email, formData.password, firstName, lastName);
+      register({
+        firstName,
+        lastName,
+        email: formData.email,
+        password: formData.password
+      });
       
       // Show success toast and redirect
       toast.success("Account created successfully! Welcome to SleekJobs.", {

@@ -11,18 +11,15 @@ import { Input } from '@/components/ui/input';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Job } from '@/data/jobs';
 
-// Import mock jobs data
-import { jobs as allJobs } from '@/data/jobs';
-
 const SavedJobs = () => {
   const { user, removeJob } = useAuthStore();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Get saved jobs by finding job objects that match saved IDs
-  const savedJobs = user?.savedJobs 
-    ? allJobs.filter(job => user.savedJobs.includes(job.id))
-    : [];
+  // If no user or no saved jobs, return appropriate UI
+  if (!user) return null;
+  
+  const savedJobs = user.savedJobs || [];
   
   // Filter by search term
   const filteredJobs = searchTerm 
@@ -39,8 +36,6 @@ const SavedJobs = () => {
       position: "top-center"
     });
   };
-
-  if (!user) return null;
 
   return (
     <Layout>

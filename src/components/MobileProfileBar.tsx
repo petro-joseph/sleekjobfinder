@@ -28,7 +28,7 @@ const MobileProfileBar = () => {
       <div className="backdrop-blur-md bg-background/80 border-b border-border/40 px-4">
         <Link to="/profile" className="flex items-center space-x-3 py-2">
           <Avatar className="h-10 w-10 border-2 border-primary/20">
-            <AvatarImage src={user.avatarUrl} />
+            <AvatarImage src={user.avatarUrl || undefined} />
             <AvatarFallback className="bg-primary/10 text-primary">
               {initials}
             </AvatarFallback>
