@@ -1,14 +1,11 @@
 
 import { Link } from 'react-router-dom';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const Footer = () => {
-  const isMobile = useIsMobile();
-
   return (
     <footer className="bg-secondary py-16">
       <div className="container mx-auto px-6">
-        <div className={`grid grid-cols-1 ${isMobile ? 'md:grid-cols-5' : 'grid-cols-2 md:grid-cols-5'} gap-10`}>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-10">
           {/* Brand column */}
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center space-x-2">
@@ -45,7 +42,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div className="hidden md:block">
+          <div>
             <h3 className="font-semibold mb-4">Company</h3>
             <ul className="space-y-3">
               <FooterLink href="/about">About</FooterLink>

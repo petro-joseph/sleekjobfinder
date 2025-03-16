@@ -14,7 +14,6 @@ html, body {
   z-index: 50;
   height: 60px;
   padding-bottom: env(safe-area-inset-bottom);
-  transition: transform 0.3s ease;
 }
 
 .bottom-nav {
@@ -157,37 +156,4 @@ html, body {
   display: grid;
   place-items: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Glassmorphism styles */
-.glassmorphism {
-  backdrop-filter: blur(8px);
-  background-color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.dark .glassmorphism {
-  background-color: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* LinkedIn-style sticky profile bar */
-.profile-sticky-bar {
-  position: fixed;
-  top: 76px;
-  left: 0;
-  right: 0;
-  z-index: 40;
-  transition: transform 0.3s ease;
-}
-
-/* Hide scrollbar but allow scrolling */
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
 }
