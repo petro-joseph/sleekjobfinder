@@ -16,18 +16,11 @@ import { Card } from '@/components/ui/card';
 const Pricing = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly');
 
-  const calculateAnnualPrice = (price: string): string => {
-    // Remove $ and parse to number
-    const monthlyPrice = parseInt(price.replace('$', ''));
-    // Calculate annual price with 20% discount and format to remove decimals
-    return `$${Math.round(monthlyPrice * 0.8 * 12)}`;
-  };
-
   return (
     <Layout>
       <section className="py-20">
         <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto mb-16 animate-fade-in">
+          <div className="max-w-3xl mx-auto text-center mb-16 animate-fade-in">
             <SectionHeading
               title="Simple, Transparent Pricing"
               subtitle="Choose the plan that's right for your job search needs. All plans include access to our core job search platform."
@@ -56,7 +49,7 @@ const Pricing = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {pricingPlans.map((plan) => (
+            {pricingPlans.map((plan, index) => (
               <Card 
                 key={plan.id}
                 className={`p-6 border transition-all duration-500 ${
@@ -78,7 +71,7 @@ const Pricing = () => {
                   <div className="mb-6">
                     <span className="text-4xl font-bold">
                       {billingCycle === 'annually' 
-                        ? calculateAnnualPrice(plan.price)
+                        ? `$${parseInt(plan.price.substring(1)) * 0.8}` 
                         : plan.price}
                     </span>
                     <span className="text-muted-foreground">
@@ -98,7 +91,7 @@ const Pricing = () => {
                   {plan.features.map((feature, index) => (
                     <div key={index} className="flex items-start">
                       <Check className="h-5 w-5 text-primary shrink-0 mr-3" />
-                      <span className="text-left">{feature}</span>
+                      <span>{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -163,7 +156,7 @@ const Pricing = () => {
       <section className="py-20">
         <div className="container mx-auto px-6 text-center max-w-3xl">
           <h2 className="heading-lg mb-6 text-gradient bg-gradient-to-r from-primary to-primary/70">Ready to accelerate your job search?</h2>
-          <p className="paragraph mb-8 text-center">
+          <p className="paragraph mb-8">
             Join thousands of professionals who have found their dream jobs faster with SleekJobs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
 import { Bookmark, ExternalLink, Trash2, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Job } from '@/data/jobs';
 
 // Import mock jobs data
@@ -178,4 +179,11 @@ const SavedJobCard = ({
   );
 };
 
-export default SavedJobs;
+// Wrap with ProtectedRoute component
+const ProtectedSavedJobsPage = () => (
+  <ProtectedRoute>
+    <SavedJobs />
+  </ProtectedRoute>
+);
+
+export default ProtectedSavedJobsPage;

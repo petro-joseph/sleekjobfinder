@@ -1,18 +1,250 @@
 
-/* Import base styles first */
-@import './styles/base.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Import typography styles */
-@import './styles/typography.css';
+@import url('https://rsms.me/inter/inter.css');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-/* Import component styles */
-@import './styles/components.css';
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
 
-/* Import animation styles */
-@import './styles/animations.css';
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-/* Import utility styles */
-@import './styles/utilities.css';
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-/* Import mobile-specific styles */
-@import './styles/mobile.css';
+    --primary: 196 100% 47%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 196 85% 95%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 196 100% 47%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 196 100% 50%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 222 47% 15%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 223 47% 15%;
+    --muted-foreground: 215.4 16.3% 66.9%;
+
+    --accent: 196 85% 15%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 215.4 16.3% 22%;
+    --input: 215.4 16.3% 22%;
+    --ring: 196 100% 50%;
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 196 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border selection:bg-primary/10 selection:text-primary;
+  }
+
+  html, body {
+    @apply antialiased scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Glass Card Styles */
+  .glass-card {
+    @apply bg-white/50 backdrop-blur-md border border-white/20 shadow-glass rounded-xl transition-all duration-300 hover:shadow-lg;
+  }
+  
+  .dark .glass-card {
+    @apply bg-black/30 border-white/10;
+  }
+  
+  /* Neumorphism Styles */
+  .neu-card {
+    @apply bg-white rounded-xl shadow-neu transition-all duration-300;
+  }
+  
+  .dark .neu-card {
+    @apply bg-gray-800 shadow-neu-dark;
+  }
+  
+  /* Text Styles */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .link-hover {
+    @apply relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-full after:origin-bottom-right after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:origin-bottom-left hover:after:scale-x-100;
+  }
+  
+  .heading-xl {
+    @apply text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-balance font-display;
+  }
+  
+  .heading-lg {
+    @apply text-3xl sm:text-4xl font-bold tracking-tight text-balance font-display;
+  }
+
+  .heading-md {
+    @apply text-2xl sm:text-3xl font-bold tracking-tight text-balance font-display;
+  }
+  
+  .heading-sm {
+    @apply text-xl font-semibold tracking-tight text-balance font-display;
+  }
+  
+  .paragraph {
+    @apply text-base text-muted-foreground;
+  }
+  
+  /* Gradient Text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-teal-blue animate-gradient-shift bg-[length:200%_auto];
+  }
+  
+  /* Button Overrides */
+  .btn-gradient {
+    @apply bg-gradient-teal-blue hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-white font-medium;
+  }
+  
+  /* Card Overrides */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:translate-y-[-5px];
+  }
+}
+
+/* Custom animations */
+.animate-in {
+  animation: animate-in 0.5s ease-out forwards;
+}
+
+@keyframes animate-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-1 {
+  animation-delay: 0.1s;
+}
+
+.stagger-2 {
+  animation-delay: 0.2s;
+}
+
+.stagger-3 {
+  animation-delay: 0.3s;
+}
+
+/* Loader animation */
+.loader {
+  width: 45px;
+  aspect-ratio: 0.75;
+  --c: no-repeat linear-gradient(theme(colors.primary.DEFAULT) 0 0);
+  background: var(--c) 0% 50%, var(--c) 50% 50%, var(--c) 100% 50%;
+  background-size: 20% 100%;
+  animation: loading 1s infinite linear;
+}
+
+@keyframes loading {
+  0%   {background-size: 20% 100%, 20% 100%, 20% 100%}
+  33%  {background-size: 20% 10%, 20% 100%, 20% 100%}
+  50%  {background-size: 20% 100%, 20% 10%, 20% 100%}
+  66%  {background-size: 20% 100%, 20% 100%, 20% 10%}
+  100% {background-size: 20% 100%, 20% 100%, 20% 100%}
+}
+
+/* Glassmorphism */
+.glassmorphism {
+  @apply backdrop-blur-xl bg-white/10 border border-white/20 shadow-glass;
+}
+
+.dark .glassmorphism {
+  @apply bg-black/20 border-white/10;
+}
+
+/* Gradient backgrounds */
+.bg-gradient-mesh {
+  background-color: hsla(196, 100%, 50%, 0.1);
+  background-image: radial-gradient(at 40% 20%, hsla(196, 100%, 50%, 0.1) 0px, transparent 50%),
+                    radial-gradient(at 80% 0%, hsla(196, 50%, 50%, 0.1) 0px, transparent 50%),
+                    radial-gradient(at 0% 50%, hsla(196, 100%, 50%, 0.1) 0px, transparent 50%),
+                    radial-gradient(at 80% 50%, hsla(196, 50%, 50%, 0.1) 0px, transparent 50%),
+                    radial-gradient(at 0% 100%, hsla(196, 100%, 50%, 0.1) 0px, transparent 50%),
+                    radial-gradient(at 80% 100%, hsla(196, 50%, 50%, 0.1) 0px, transparent 50%),
+                    radial-gradient(at 50% 50%, hsla(196, 100%, 50%, 0.1) 0px, transparent 50%);
+}
+
+.dark .bg-gradient-mesh {
+  background-color: hsla(196, 100%, 50%, 0.05);
+  background-image: radial-gradient(at 40% 20%, hsla(196, 100%, 50%, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 80% 0%, hsla(196, 50%, 50%, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 0% 50%, hsla(196, 100%, 50%, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 80% 50%, hsla(196, 50%, 50%, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 0% 100%, hsla(196, 100%, 50%, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 80% 100%, hsla(196, 50%, 50%, 0.05) 0px, transparent 50%),
+                    radial-gradient(at 50% 50%, hsla(196, 100%, 50%, 0.05) 0px, transparent 50%);
+}

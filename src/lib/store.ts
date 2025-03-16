@@ -1,6 +1,6 @@
+
 import { create } from 'zustand';
 import { Job } from '@/data/jobs';
-import { persist } from 'zustand/middleware';
 
 export interface Resume {
   id: string;
@@ -61,6 +61,7 @@ interface AuthState {
   updateUser: (userData: Partial<User>) => void;
 }
 
+// Mock data
 const mockResumes: Resume[] = [
   {
     id: '1',
@@ -127,93 +128,86 @@ const mockAlerts: Alert[] = [
   }
 ];
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      isAuthenticated: false,
-      isLoggedIn: false,
-      
-      login: (email, password) => {
-        set({
-          user: {
-            id: '1',
-            email,
-            firstName: 'John',
-            lastName: 'Doe',
-            savedJobs: ['1', '2'],
-            bio: '',
-            location: '',
-            website: '',
-            resumes: mockResumes,
-            applications: mockApplications,
-            alerts: mockAlerts,
-            settings: {
-              notifications: true,
-              emailUpdates: false,
-              darkMode: false,
-            }
-          },
-          isAuthenticated: true,
-          isLoggedIn: true
-        });
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  isAuthenticated: false,
+  isLoggedIn: false,
+  
+  login: (email, password) => {
+    set({
+      user: {
+        id: '1',
+        email,
+        firstName: 'John',
+        lastName: 'Doe',
+        savedJobs: ['1', '2'],
+        bio: '',
+        location: '',
+        website: '',
+        resumes: mockResumes,
+        applications: mockApplications,
+        alerts: mockAlerts,
+        settings: {
+          notifications: true,
+          emailUpdates: false,
+          darkMode: false,
+        }
       },
-      
-      logout: () => {
-        set({ user: null, isAuthenticated: false, isLoggedIn: false });
+      isAuthenticated: true,
+      isLoggedIn: true
+    });
+  },
+  
+  logout: () => {
+    set({ user: null, isAuthenticated: false, isLoggedIn: false });
+  },
+  
+  register: (email, password, firstName, lastName) => {
+    set({
+      user: {
+        id: '1',
+        email,
+        firstName,
+        lastName,
+        savedJobs: [],
+        bio: '',
+        location: '',
+        website: '',
+        resumes: [],
+        applications: [],
+        alerts: [],
+        settings: {
+          notifications: true,
+          emailUpdates: false,
+          darkMode: false,
+        }
       },
-      
-      register: (email, password, firstName, lastName) => {
-        set({
-          user: {
-            id: '1',
-            email,
-            firstName,
-            lastName,
-            savedJobs: [],
-            bio: '',
-            location: '',
-            website: '',
-            resumes: [],
-            applications: [],
-            alerts: [],
-            settings: {
-              notifications: true,
-              emailUpdates: false,
-              darkMode: false,
-            }
-          },
-          isAuthenticated: true,
-          isLoggedIn: true
-        });
-      },
-      
-      saveJob: (jobId) => {
-        set((state) => ({
-          user: state.user ? {
-            ...state.user,
-            savedJobs: [...state.user.savedJobs, jobId]
-          } : null
-        }));
-      },
-      
-      removeJob: (jobId) => {
-        set((state) => ({
-          user: state.user ? {
-            ...state.user,
-            savedJobs: state.user.savedJobs.filter(id => id !== jobId)
-          } : null
-        }));
-      },
-      
-      updateUser: (userData) => {
-        set((state) => ({
-          user: state.user ? { ...state.user, ...userData } : null
-        }));
-      }
-    }),
-    {
-      name: 'job-search-auth-storage',
-    }
-  )
-);
+      isAuthenticated: true,
+      isLoggedIn: true
+    });
+  },
+  
+  saveJob: (jobId) => {
+    set((state) => ({
+      user: state.user ? {
+        ...state.user,
+        savedJobs: [...state.user.savedJobs, jobId]
+      } : null
+    }));
+  },
+  
+  removeJob: (jobId) => {
+    set((state) => ({
+      user: state.user ? {
+        ...state.user,
+        savedJobs: state.user.savedJobs.filter(id => id !== jobId)
+      } : null
+    }));
+  },
+  
+  updateUser: (userData) => {
+    set((state) => ({
+      user: state.user ? { ...state.user, ...userData } : null
+    }));
+  }
+}));

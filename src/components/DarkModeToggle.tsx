@@ -8,24 +8,19 @@ const DarkModeToggle = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
 
-  // Initialize theme based on localStorage or system preference
   useEffect(() => {
-    const initializeTheme = () => {
-      // Check if dark mode is saved in local storage
-      const savedTheme = localStorage.getItem('theme');
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      
-      // Set initial theme based on localStorage or system preference
-      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-        document.documentElement.classList.add('dark');
-        setIsDarkMode(true);
-      } else {
-        document.documentElement.classList.remove('dark');
-        setIsDarkMode(false);
-      }
-    };
-
-    initializeTheme();
+    // Check if dark mode is saved in local storage
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // Set initial theme based on localStorage or system preference
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove('dark');
+    }
   }, [location.pathname]); // Re-run when pathname changes to ensure it works on all pages
 
   const toggleDarkMode = () => {

@@ -55,38 +55,26 @@ const Dashboard = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  // Navigate to login if not authenticated
   useEffect(() => {
-    if (!isAuthenticated && !user) {
+    if (!isAuthenticated) {
       toast.error("Please log in to access the dashboard", {
         description: "You've been redirected to the login page"
       });
       navigate('/login');
     }
-  }, [isAuthenticated, navigate, user]);
+  }, [isAuthenticated, navigate]);
 
-  // Prevent blank display by early return with null only if redirecting
-  if (!user && !isAuthenticated) {
-    return null; // Will be redirected by useEffect
-  }
-
-  // Default empty data for safety to prevent blank screen if user object is incomplete
-  const userData = user || { 
-    firstName: 'User', 
-    lastName: '', 
-    email: '', 
-    bio: '',
-    applications: [],
-    savedJobs: [],
-    alerts: [],
-    resumes: []
-  };
-
-  // Only show 2 jobs on mobile for less clutter
+  // Recommended jobs - use actual job data from our jobs array
   const recommendedJobs = [
     jobs[0], // First job from our jobs array
     jobs[3]  // Fourth job from our jobs array
   ];
+
+  if (!user) {
+    return null; // Will be redirected by useEffect
+  }
+
+  // Only show 2 jobs on mobile for less clutter
   const displayedJobs = recommendedJobs.slice(0, 2);
 
   return (
@@ -100,13 +88,13 @@ const Dashboard = () => {
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center">
             <Avatar className="h-10 w-10 border-2 border-primary/20">
-              <AvatarFallback className="bg-gradient-to-br from-primary/90 to-primary/70 text-white">
-                {userData.firstName.charAt(0)}{userData.lastName.charAt(0)}
+              <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-white">
+                {user.firstName.charAt(0)}{user.lastName.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div className="ml-3">
-              <div className="font-medium">{userData.firstName} {userData.lastName}</div>
-              <div className="text-xs text-muted-foreground">{userData.bio || 'Complete your profile'}</div>
+              <div className="font-medium">{user.firstName} {user.lastName}</div>
+              <div className="text-xs text-muted-foreground">{user.bio || 'Complete your profile'}</div>
             </div>
           </div>
           <Button 
@@ -128,11 +116,11 @@ const Dashboard = () => {
             <div className="md:col-span-8">
               {/* Welcome Card - Moved to top, conditionally shown */}
               {showWelcome && (
-                <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6 text-center">
+                <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
                   <CardContent className="p-6">
-                    <div className="flex flex-col gap-4 items-center">
+                    <div className="flex flex-col gap-4">
                       <div>
-                        <h2 className="text-xl font-bold mb-2">Welcome back, {userData.firstName}</h2>
+                        <h2 className="text-xl font-bold mb-2">Welcome back, {user.firstName}</h2>
                         <p className="text-sm md:text-base text-muted-foreground">
                           Here's what's happening with your job search today
                         </p>
@@ -154,25 +142,25 @@ const Dashboard = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <MobileStatCard 
                   icon={<Briefcase className="h-5 w-5 text-blue-500" />}
-                  value={userData.applications.length}
+                  value={user.applications.length}
                   label="Applications"
                   onClick={() => navigate('/progress')}
                 />
                 <MobileStatCard 
                   icon={<BookmarkCheck className="h-5 w-5 text-green-500" />}
-                  value={userData.savedJobs.length}
+                  value={user.savedJobs.length}
                   label="Saved Jobs"
                   onClick={() => navigate('/saved-jobs')}
                 />
                 <MobileStatCard 
                   icon={<Bell className="h-5 w-5 text-yellow-500" />}
-                  value={userData.alerts.length}
+                  value={user.alerts.length}
                   label="Job Alerts"
                   onClick={() => navigate('/progress')}
                 />
                 <MobileStatCard 
                   icon={<BarChart className="h-5 w-5 text-purple-500" />}
-                  value={userData.resumes.length}
+                  value={user.resumes.length}
                   label="Resumes"
                   onClick={() => navigate('/resume-builder')}
                 />
@@ -212,17 +200,17 @@ const Dashboard = () => {
               {/* Profile Summary - Hidden on mobile, visible on desktop */}
               <Card className="hidden md:block glass hover backdrop-blur-xl border-primary/20 shadow-lg mb-6">
                 <CardHeader>
-                  <CardTitle className="text-center">Profile Summary</CardTitle>
+                  <CardTitle>Profile Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/90 to-primary/70 flex items-center justify-center text-white font-bold">
-                        {userData.firstName.charAt(0)}{userData.lastName.charAt(0)}
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold">
+                        {user.firstName.charAt(0)}{user.lastName.charAt(0)}
                       </div>
                       <div className="ml-3">
-                        <div className="font-medium">{userData.firstName} {userData.lastName}</div>
-                        <div className="text-sm text-muted-foreground">{userData.email}</div>
+                        <div className="font-medium">{user.firstName} {user.lastName}</div>
+                        <div className="text-sm text-muted-foreground">{user.email}</div>
                       </div>
                     </div>
                     
@@ -242,11 +230,11 @@ const Dashboard = () => {
               
               {/* Recent Activity */}
               <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg">
-                <CardHeader className="text-center">
+                <CardHeader>
                   <CardTitle>Recent Activity</CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 md:p-6 space-y-4">
-                  {userData.applications.slice(0, 3).map(app => (
+                  {user.applications.slice(0, 3).map(app => (
                     <div key={app.id} className="flex items-start pb-4 border-b border-border/50 last:border-0 last:pb-0">
                       <div className="w-2 h-2 mt-2 rounded-full bg-primary flex-shrink-0"></div>
                       <div className="ml-3">
@@ -280,8 +268,8 @@ const Dashboard = () => {
               
               {/* Premium Upgrade - Mobile Optimized */}
               <Card className="mt-6 overflow-hidden border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 to-primary/5">
-                <CardContent className="p-3 md:p-6 text-center">
-                  <div className="flex items-center justify-center mb-4">
+                <CardContent className="p-3 md:p-6">
+                  <div className="flex items-center mb-4">
                     <Sparkles className="h-5 w-5 text-primary mr-2" />
                     <h3 className="font-bold">Upgrade to Premium</h3>
                   </div>

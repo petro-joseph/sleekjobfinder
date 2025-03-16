@@ -20,8 +20,8 @@ export function SectionHeading({
       centered && "text-center mx-auto",
       className
     )}>
-      <h2 className={cn("heading-lg", !centered && "text-left")}>{title}</h2>
-      {subtitle && <p className={cn("paragraph", centered && "text-center")}>{subtitle}</p>}
+      <h2 className="heading-lg">{title}</h2>
+      {subtitle && <p className="paragraph max-w-[80ch]">{subtitle}</p>}
     </div>
   );
 }
