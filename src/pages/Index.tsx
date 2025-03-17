@@ -37,12 +37,12 @@ const Index = () => {
     <Layout>
       {/* Hero Section */}
       <motion.section
-        className="pt-16 pb-12 md:pt-24 md:pb-20 relative overflow-hidden bg-gray-900"
+        className="pt-16 pb-12 md:pt-24 md:pb-20 relative overflow-hidden bg-background dark:bg-gray-900"
         variants={sectionVariants}
         initial="hidden"
         animate="show"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-gray-900 to-gray-900"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-background dark:via-gray-900 to-background dark:to-gray-900"></div>
         <div className="container mx-auto px-4 md:px-6 relative">
           <div className="max-w-3xl mx-auto text-center">
             <motion.div
@@ -56,7 +56,7 @@ const Index = () => {
             </motion.div>
 
             <motion.h1
-              className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-white leading-tight"
+              className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-foreground leading-tight"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
@@ -65,7 +65,7 @@ const Index = () => {
             </motion.h1>
 
             <motion.p
-              className="text-base md:text-lg mb-6 md:mb-8 max-w-xl mx-auto text-gray-300 leading-relaxed"
+              className="text-base md:text-lg mb-6 md:mb-8 max-w-xl mx-auto text-muted-foreground leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
@@ -82,7 +82,7 @@ const Index = () => {
               <Button asChild size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 touch-button w-full sm:w-auto">
                 <Link to="/signup">Start for Free</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-full group text-white border-primary/20 hover:bg-primary/10 touch-button w-full sm:w-auto">
+              <Button asChild size="lg" variant="outline" className="rounded-full group text-foreground border-primary/20 hover:bg-primary/10 touch-button w-full sm:w-auto">
                 <Link to="/jobs" className="flex items-center">
                   Browse Jobs
                   <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -120,7 +120,7 @@ const Index = () => {
 
       {/* Featured Jobs Section */}
       <motion.section
-        className="py-10 bg-gray-900"
+        className="py-10 bg-background dark:bg-gray-900"
         variants={sectionVariants}
         initial="hidden"
         animate="show"
@@ -130,7 +130,7 @@ const Index = () => {
             title="Featured Jobs"
             subtitle="Discover opportunities tailored for you"
             centered
-            className="text-white"
+            className="text-foreground"
           />
 
           <motion.div className="mt-6" variants={sectionVariants}>
@@ -181,7 +181,7 @@ const Index = () => {
 
       {/* Features Section */}
       <motion.section
-        className="py-10 bg-gray-900"
+        className="py-10 bg-background dark:bg-gray-900"
         variants={sectionVariants}
         initial="hidden"
         animate="show"
@@ -191,11 +191,11 @@ const Index = () => {
             title="Supercharge Your Job Hunt"
             subtitle="Leverage AI to find jobs, optimize resumes, and land interviews faster."
             centered
-            className="text-white"
+            className="text-foreground"
           />
 
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mt-6"
             variants={sectionVariants}
           >
             {[
@@ -211,7 +211,7 @@ const Index = () => {
                   icon={<div className="p-2 rounded-full bg-gradient-to-br from-primary to-primary/50">{feature.icon}</div>}
                   title={feature.title}
                   description={feature.description}
-                  className="backdrop-blur-xl border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300 text-white h-full"
+                  className="backdrop-blur-xl border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300 text-foreground h-full"
                 />
               </motion.div>
             ))}
@@ -235,7 +235,7 @@ const Index = () => {
 
       {/* How It Works Section */}
       <motion.section
-        className="py-10 bg-gradient-to-br from-gray-900 to-gray-800 relative"
+        className="py-10 bg-gradient-to-br from-background dark:from-gray-900 to-background dark:to-gray-800 relative"
         variants={sectionVariants}
         initial="hidden"
         animate="show"
@@ -245,11 +245,11 @@ const Index = () => {
             title="How It Works"
             subtitle="A simple process to get you hired faster."
             centered
-            className="text-white"
+            className="text-foreground"
           />
 
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto relative mt-6"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 max-w-4xl mx-auto relative mt-6"
             variants={sectionVariants}
           >
             {[
@@ -263,7 +263,7 @@ const Index = () => {
                 variants={cardVariants}
               >
                 <div className="bg-primary/10 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-primary font-bold text-sm md:text-base">{step.step}</div>
-                <h3 className="text-lg md:text-xl font-semibold mb-2 text-white">{step.title}</h3>
+                <h3 className="text-lg md:text-xl font-semibold mb-2 text-foreground">{step.title}</h3>
                 <p className="text-sm md:text-base text-muted-foreground">{step.description}</p>
                 {index < 2 && !isMobile && (
                   <ChevronRight className="absolute top-6 -right-4 text-primary/50 hidden md:block" size={24} />
@@ -287,7 +287,7 @@ const Index = () => {
 
       {/* Testimonials Section */}
       <motion.section
-        className="py-10 bg-gray-900 relative"
+        className="py-10 bg-background dark:bg-gray-900 relative"
         variants={sectionVariants}
         initial="hidden"
         animate="show"
@@ -297,7 +297,7 @@ const Index = () => {
             title="Success Stories"
             subtitle="See how SleekJobs has transformed careers."
             centered
-            className="text-white"
+            className="text-foreground"
           />
 
           <motion.div className="mt-6" variants={sectionVariants}>
@@ -322,7 +322,7 @@ const Index = () => {
                         role={testimonial.role}
                         company={testimonial.company}
                         avatar={testimonial.avatar}
-                        className="h-full backdrop-blur-xl border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300 text-white shadow-lg"
+                        className="h-full backdrop-blur-xl border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300 text-foreground shadow-lg"
                       />
                     </motion.div>
                   </CarouselItem>
@@ -338,7 +338,7 @@ const Index = () => {
 
       {/* CTA Section */}
       <motion.section
-        className="py-12 bg-gradient-to-br from-primary to-primary/50 text-white relative"
+        className="py-12 bg-primary/90 text-foreground relative"
         variants={sectionVariants}
         initial="hidden"
         animate="show"
@@ -353,7 +353,7 @@ const Index = () => {
             Start Your Job Search Today
           </motion.h2>
           <motion.p
-            className="text-base md:text-lg mb-6 md:mb-8 max-w-xl mx-auto text-white/80 leading-relaxed"
+            className="text-base md:text-lg mb-6 md:mb-8 max-w-xl mx-auto text-muted-foreground leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
@@ -366,10 +366,10 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
           >
-            <Button asChild size="lg" variant="secondary" className="rounded-full bg-white text-primary hover:bg-white/90 touch-button animate-pulse w-full sm:w-auto">
+            <Button asChild size="lg" variant="secondary" className="rounded-full bg-white text-primary hover:bg-white/90 touch-button w-full sm:w-auto">
               <Link to="/signup">Create Free Account</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="rounded-full text-white border-white/20 hover:bg-white/10 touch-button w-full sm:w-auto">
+            <Button asChild size="lg" variant="outline" className="rounded-full text-foreground border-foreground/20 hover:bg-foreground/10 touch-button w-full sm:w-auto">
               <Link to="/resume-builder">Optimize Your Resume</Link>
             </Button>
           </motion.div>
