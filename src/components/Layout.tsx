@@ -27,22 +27,29 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
   // Update dark mode based on user's device preference
   useEffect(() => {
     const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    if (darkModeMediaQuery.matches) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    const savedTheme = localStorage.getItem('theme');
     
-    const handleChange = (e: MediaQueryListEvent) => {
-      if (e.matches) {
+    // Only apply system preference if user hasn't set a preference
+    if (!savedTheme) {
+      if (darkModeMediaQuery.matches) {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
-    };
-    
-    darkModeMediaQuery.addEventListener('change', handleChange);
-    return () => darkModeMediaQuery.removeEventListener('change', handleChange);
+      
+      const handleChange = (e: MediaQueryListEvent) => {
+        if (!localStorage.getItem('theme')) { // Only respond to system changes if user hasn't set preference
+          if (e.matches) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        }
+      };
+      
+      darkModeMediaQuery.addEventListener('change', handleChange);
+      return () => darkModeMediaQuery.removeEventListener('change', handleChange);
+    }
   }, []);
 
   return (
@@ -52,7 +59,7 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
       </div>
       <Navbar />
       {isAuthenticated && isMobile && <MobileProfileBar />}
-      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-16' : 'pt-16 mt-2'}`}>
+      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-12' : 'pt-14 mt-4'}`}>
         {children}
       </main>
       {!hideFooter && <Footer />}

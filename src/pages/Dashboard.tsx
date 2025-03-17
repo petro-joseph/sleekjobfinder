@@ -25,12 +25,6 @@ const Dashboard = () => {
     { id: '3', type: 'application', company: 'Global Systems', position: 'Product Manager', date: '2023-05-25', status: 'rejected' },
   ];
 
-  // Job alerts
-  const jobAlerts = [
-    { id: '1', query: 'Frontend Developer', location: 'Remote', frequency: 'Daily', createdAt: '2023-05-15' },
-    { id: '2', query: 'React Developer', location: 'New York', frequency: 'Weekly', createdAt: '2023-05-10' },
-  ];
-
   useEffect(() => {
     if (!isAuthenticated) {
       toast.error("Please log in to access the dashboard", {
@@ -72,6 +66,8 @@ const Dashboard = () => {
     return null; // Will be redirected by useEffect
   }
 
+  const isOnboardingComplete = user.onboardingStep >= 3;
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -91,7 +87,7 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="min-h-[calc(100vh-160px)] bg-gradient-mesh">
-        <div className="container mx-auto px-4 py-2 md:px-6 md:py-6">
+        <div className="container mx-auto px-4 py-6 md:py-6">
           <motion.div 
             className="grid gap-6 md:grid-cols-12"
             variants={containerVariants}
@@ -103,17 +99,24 @@ const Dashboard = () => {
               variants={itemVariants}
             >
               {/* Welcome Banner */}
-              <Card className="glass backdrop-blur-xl border-primary/20 shadow-lg mb-6 overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10 hover:border-primary/40 transition-all duration-300 rounded-xl">
+              <Card className="bg-primary text-primary-foreground mb-6 overflow-hidden rounded-xl border-0 shadow-lg">
                 <CardContent className="p-6">
                   <div className="flex flex-col gap-4">
-                    <h2 className="text-2xl font-bold text-foreground">Welcome back, {user.firstName}</h2>
-                    <p className="text-base text-muted-foreground">
+                    <h2 className="text-2xl font-bold">Welcome back, {user.firstName}</h2>
+                    <p className="text-base opacity-90">
                       Here's what's happening with your job search today
                     </p>
-                    <Button className="group w-full md:w-auto bg-primary text-primary-foreground" onClick={() => navigate('/jobs')}>
-                      Find Jobs
-                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </Button>
+                    {isOnboardingComplete ? (
+                      <Button className="group w-full sm:w-auto bg-white text-primary hover:bg-white/90" onClick={() => navigate('/jobs')}>
+                        Find Jobs
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    ) : (
+                      <Button className="group w-full sm:w-auto bg-white text-primary hover:bg-white/90" onClick={() => navigate('/profile')}>
+                        Complete your profile
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -125,25 +128,25 @@ const Dashboard = () => {
               >
                 <MobileStatCard 
                   icon={<Briefcase className="h-5 w-5 text-blue-500" />}
-                  value={user.applications.length}
+                  value={user.applications?.length || 0}
                   label="Applications"
                   onClick={() => navigate('/progress')}
                 />
                 <MobileStatCard 
                   icon={<BookmarkCheck className="h-5 w-5 text-green-500" />}
-                  value={user.savedJobs.length}
+                  value={user.savedJobs?.length || 0}
                   label="Saved Jobs"
                   onClick={() => navigate('/saved-jobs')}
                 />
                 <MobileStatCard 
                   icon={<Bell className="h-5 w-5 text-yellow-500" />}
-                  value={jobAlerts.length}
+                  value={2}
                   label="Job Alerts"
                   onClick={() => navigate('/progress')}
                 />
                 <MobileStatCard 
                   icon={<BarChart className="h-5 w-5 text-purple-500" />}
-                  value={user.resumes.length}
+                  value={user.resumes?.length || 0}
                   label="Resumes"
                   onClick={() => navigate('/resume-builder')}
                 />
@@ -169,7 +172,9 @@ const Dashboard = () => {
                     transition={{ delay: index * 0.1 }}
                   >
                     <Card 
-                      className={`transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border-2 ${job.featured ? 'border-primary/40 bg-primary/[0.03] shadow-md' : 'border-border/60'} rounded-xl`}
+                      className={`transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border-2 rounded-xl ${
+                        job.featured ? 'border-primary/40 bg-primary/[0.03] shadow-md' : 'border-border/60'
+                      }`}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './pages/Index';
@@ -29,6 +28,7 @@ import './styles/mobile.css';
 import { useAuthStore } from './lib/store';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
+import UserPreferences from './pages/UserPreferences';
 
 function App() {
   return (
@@ -63,7 +63,8 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/resume-builder" element={<ResumeBuilder />} />
-        
+        <Route path="/preferences" element={<UserPreferences />} />
+
         {/* 404 Route - must be last */}
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -18,8 +18,12 @@ const DarkModeToggle = ({ className }: DarkModeToggleProps) => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
-    // Set initial theme based on localStorage or system preference
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+    // Set initial theme based on localStorage (user preference) or fall back to system preference
+    if (savedTheme) {
+      setIsDarkMode(savedTheme === 'dark');
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    } else if (prefersDark) {
+      // Only use system preference if there's no saved user preference
       setIsDarkMode(true);
       document.documentElement.classList.add('dark');
     } else {
@@ -29,15 +33,10 @@ const DarkModeToggle = ({ className }: DarkModeToggleProps) => {
   }, [location.pathname]); 
 
   const toggleDarkMode = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-      setIsDarkMode(false);
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-      setIsDarkMode(true);
-    }
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    document.documentElement.classList.toggle('dark', newMode);
+    localStorage.setItem('theme', newMode ? 'dark' : 'light');
   };
 
   return (

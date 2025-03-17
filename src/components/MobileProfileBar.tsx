@@ -21,7 +21,7 @@ const MobileProfileBar = () => {
   return (
     <div className={cn(
       "fixed top-0 left-0 right-0 z-40 w-full md:hidden border-b",
-      "transition-all duration-300 backdrop-blur-lg bg-background/80 shadow-sm",
+      "transition-all duration-300 backdrop-blur-xl bg-background/80 shadow-sm",
       "glassmorphism animate-in",
       scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
     )}>

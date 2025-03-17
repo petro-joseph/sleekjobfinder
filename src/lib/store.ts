@@ -27,6 +27,17 @@ export interface User {
   savedJobs: Job[];
   alerts: Alert[];
   resumes: Resume[];
+  onboardingStep?: number;
+  isOnboardingComplete?: boolean;
+  jobPreferences?: {
+    locations: string[];
+    jobTypes: string[];
+    industries: string[];
+    salaryRange?: {
+      min: number;
+      max: number;
+    };
+  };
   settings?: {
     notifications: boolean;
     emailUpdates: boolean;
@@ -79,6 +90,8 @@ export interface Resume {
   name: string;
   createdAt: string;
   updatedAt: string;
+  filePath?: string;
+  isPrimary?: boolean;
 }
 
 export interface UserRegistration {
@@ -108,8 +121,19 @@ const defaultUser: User = {
   savedJobs: [],
   alerts: [],
   resumes: [],
+  onboardingStep: 2,
+  isOnboardingComplete: false,
+  jobPreferences: {
+    locations: ['Remote', 'New York, NY'],
+    jobTypes: ['Full-time', 'Remote'],
+    industries: ['Technology'],
+    salaryRange: {
+      min: 50000,
+      max: 120000
+    }
+  },
   settings: {
-    notifications: false,
+    notifications: true,
     emailUpdates: false,
     darkMode: false,
   }
@@ -140,8 +164,10 @@ export const useAuthStore = create<AuthState>()(
           savedJobs: [],
           alerts: [],
           resumes: [],
+          onboardingStep: 1,
+          isOnboardingComplete: false,
           settings: {
-            notifications: false,
+            notifications: true,
             emailUpdates: false,
             darkMode: false,
           }
