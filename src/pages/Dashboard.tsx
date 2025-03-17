@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart, Rocket, Clock, MapPin, Building, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
-import JobCardCompact from '@/components/JobCardCompact';
 import { toast } from "sonner";
 import { jobs } from '@/data/jobs';
 import { Badge } from '@/components/ui/badge';
@@ -19,18 +18,17 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 3;
 
-  // Mock data for recent activities
+  // Recent activities - limit to 3 as requested
   const recentActivities = [
-    { id: '1', type: 'application', company: 'Tech Solutions Inc.', position: 'Frontend Developer', date: '2023-06-15', status: 'interview' },
-    { id: '2', type: 'saved', company: 'Global Systems', position: 'UX Designer', date: '2023-06-14', status: 'applied' },
-    { id: '3', type: 'viewed', company: 'Creative Labs', position: 'Product Manager', date: '2023-06-12', status: 'rejected' },
-    { id: '4', type: 'application', company: 'Digital Innovations', position: 'AI Engineer', date: '2023-06-10', status: 'applied' },
+    { id: '1', type: 'application', company: 'TechCorp Inc.', position: 'Senior Frontend Developer', date: '2023-06-05', status: 'interview' },
+    { id: '2', type: 'application', company: 'InnovateSoft', position: 'UX Designer', date: '2023-06-12', status: 'pending' },
+    { id: '3', type: 'application', company: 'Global Systems', position: 'Product Manager', date: '2023-05-25', status: 'rejected' },
   ];
 
   // Job alerts
   const jobAlerts = [
-    { id: '1', query: 'Frontend Developer', location: 'Remote', frequency: 'Daily' },
-    { id: '2', query: 'React Developer', location: 'New York', frequency: 'Weekly' },
+    { id: '1', query: 'Frontend Developer', location: 'Remote', frequency: 'Daily', createdAt: '2023-05-15' },
+    { id: '2', query: 'React Developer', location: 'New York', frequency: 'Weekly', createdAt: '2023-05-10' },
   ];
 
   useEffect(() => {
@@ -93,7 +91,7 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="min-h-[calc(100vh-160px)] bg-gradient-mesh">
-        <div className="container mx-auto px-4 py-3 md:px-6 md:py-6">
+        <div className="container mx-auto px-4 py-2 md:px-6 md:py-6">
           <motion.div 
             className="grid gap-6 md:grid-cols-12"
             variants={containerVariants}
@@ -105,14 +103,14 @@ const Dashboard = () => {
               variants={itemVariants}
             >
               {/* Welcome Banner */}
-              <Card className="glass backdrop-blur-xl border-primary/20 shadow-lg mb-4 overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10 hover:border-primary/40 transition-all duration-300">
+              <Card className="glass backdrop-blur-xl border-primary/20 shadow-lg mb-6 overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10 hover:border-primary/40 transition-all duration-300 rounded-xl">
                 <CardContent className="p-6">
                   <div className="flex flex-col gap-4">
-                    <h2 className="text-2xl font-bold">Welcome back, {user.firstName}</h2>
+                    <h2 className="text-2xl font-bold text-foreground">Welcome back, {user.firstName}</h2>
                     <p className="text-base text-muted-foreground">
                       Here's what's happening with your job search today
                     </p>
-                    <Button className="group w-full md:w-auto" onClick={() => navigate('/jobs')}>
+                    <Button className="group w-full md:w-auto bg-primary text-primary-foreground" onClick={() => navigate('/jobs')}>
                       Find Jobs
                       <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Button>
@@ -171,11 +169,9 @@ const Dashboard = () => {
                     transition={{ delay: index * 0.1 }}
                   >
                     <Card 
-                      className={`transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border ${job.featured ? 'border-primary/40 bg-primary/[0.03] shadow-md' : 'border-border/60'}`}
-                      glass={job.featured}
-                      hover
+                      className={`transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border-2 ${job.featured ? 'border-primary/40 bg-primary/[0.03] shadow-md' : 'border-border/60'} rounded-xl`}
                     >
-                      <CardContent className="p-6">
+                      <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex items-start">
                             <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center mr-4 text-primary font-semibold text-xl">
@@ -212,7 +208,7 @@ const Dashboard = () => {
                               {job.type}
                             </Badge>
                             {job.featured && (
-                              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/10 mt-1 animate-pulse-soft">
+                              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/10 mt-1">
                                 Featured
                               </Badge>
                             )}
@@ -288,7 +284,7 @@ const Dashboard = () => {
               variants={itemVariants}
             >
               {/* Premium Upgrade - Enhanced Look */}
-              <Card className="overflow-hidden border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent mb-6 hover:border-primary/40 transition-all duration-300">
+              <Card className="overflow-hidden border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent mb-6 hover:border-primary/40 transition-all duration-300 rounded-xl">
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
                     <Sparkles className="h-5 w-5 text-primary mr-2 animate-pulse" />
@@ -314,7 +310,7 @@ const Dashboard = () => {
                   <Button 
                     onClick={() => navigate('/pricing')} 
                     variant="gradient" 
-                    className="w-full touch-button"
+                    className="w-full touch-button bg-primary text-primary-foreground"
                   >
                     View Plans
                   </Button>
@@ -323,7 +319,7 @@ const Dashboard = () => {
               
               {/* Profile Summary - Only on Desktop */}
               <motion.div className="hidden md:block">
-                <Card className="backdrop-blur-xl border-primary/20 shadow-lg mb-6 hover:border-primary/40 transition-all duration-300">
+                <Card className="backdrop-blur-xl border-primary/20 shadow-lg mb-6 hover:border-primary/40 transition-all duration-300 rounded-xl">
                   <CardHeader>
                     <CardTitle>Profile Summary</CardTitle>
                   </CardHeader>
@@ -355,12 +351,12 @@ const Dashboard = () => {
               </motion.div>
               
               {/* Recent Activities */}
-              <Card className="backdrop-blur-xl border-primary/20 shadow-lg mt-6 hover:border-primary/40 transition-all duration-300">
+              <Card className="backdrop-blur-xl border-primary/20 shadow-lg mt-6 hover:border-primary/40 transition-all duration-300 rounded-xl">
                 <CardHeader>
                   <CardTitle>Recent Activity</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {recentActivities.slice(0, 4).map(activity => (
+                  {recentActivities.map(activity => (
                     <motion.div 
                       key={activity.id} 
                       className="flex items-start pb-4 border-b border-border/50 last:border-0 last:pb-0"
@@ -397,45 +393,6 @@ const Dashboard = () => {
                   </Button>
                 </CardContent>
               </Card>
-              
-              {/* Job Alerts */}
-              <Card className="backdrop-blur-xl border-primary/20 shadow-lg mt-6 hover:border-primary/40 transition-all duration-300">
-                <CardHeader>
-                  <CardTitle>Job Alerts</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {jobAlerts.map(alert => (
-                    <motion.div 
-                      key={alert.id} 
-                      className="p-3 border border-border/40 rounded-lg hover:bg-accent/50 transition-colors"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-medium">{alert.query}</div>
-                          <div className="text-sm text-muted-foreground flex items-center mt-1">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            {alert.location}
-                          </div>
-                        </div>
-                        <Badge variant="outline" className="bg-primary/5">
-                          {alert.frequency}
-                        </Badge>
-                      </div>
-                    </motion.div>
-                  ))}
-                  
-                  <Button 
-                    onClick={() => navigate('/jobs')} 
-                    variant="outline" 
-                    className="w-full justify-center mt-2 touch-button"
-                  >
-                    Manage alerts
-                  </Button>
-                </CardContent>
-              </Card>
             </motion.div>
           </motion.div>
         </div>
@@ -463,7 +420,7 @@ const MobileStatCard = ({
       whileHover={{ y: -5, transition: { duration: 0.2 } }}
     >
       <Card 
-        className="backdrop-blur-xl border-primary/20 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer group hover:border-primary/40"
+        className="backdrop-blur-xl border-primary/20 border-2 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer group hover:border-primary/40 rounded-xl"
         onClick={onClick}
       >
         <CardContent className="p-4 flex items-center">

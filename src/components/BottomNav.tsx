@@ -57,7 +57,7 @@ const BottomNav = () => {
 
   return (
     <div className={cn(
-      "bottom-nav-container md:hidden transition-transform duration-300",
+      "bottom-nav-container md:hidden transition-transform duration-300 glassmorphism",
       scrollDirection === 'down' ? 'translate-y-full' : 'translate-y-0'
     )}>
       <nav className="bottom-nav">

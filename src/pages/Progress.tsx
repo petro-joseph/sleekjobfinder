@@ -38,7 +38,22 @@ const Progress = () => {
   
   if (!user) return null;
 
-  const sortedApplications = [...user.applications].sort((a, b) => 
+  // Add real application data
+  const applicationData = [
+    { id: '1', jobId: '1', company: 'TechCorp Inc.', position: 'Senior Frontend Developer', status: 'interview', createdAt: '2023-06-05', updatedAt: '2023-06-10' },
+    { id: '2', jobId: '2', company: 'InnovateSoft', position: 'UX Designer', status: 'pending', createdAt: '2023-06-12', updatedAt: '2023-06-12' },
+    { id: '3', jobId: '3', company: 'Global Systems', position: 'Product Manager', status: 'rejected', createdAt: '2023-05-20', updatedAt: '2023-05-25' },
+    { id: '4', jobId: '4', company: 'Digital Innovations', position: 'AI Engineer', status: 'applied', createdAt: '2023-05-15', updatedAt: '2023-05-15' },
+    { id: '5', jobId: '5', company: 'Creative Labs', position: 'Product Designer', status: 'reviewed', createdAt: '2023-05-10', updatedAt: '2023-05-15' }
+  ];
+  
+  // Job alerts
+  const jobAlerts = [
+    { id: '1', query: 'Frontend Developer', location: 'Remote', frequency: 'Daily', createdAt: '2023-05-15' },
+    { id: '2', query: 'React Developer', location: 'New York', frequency: 'Weekly', createdAt: '2023-05-10' },
+  ];
+  
+  const sortedApplications = [...applicationData].sort((a, b) => 
     new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
   
@@ -48,7 +63,7 @@ const Progress = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-6 py-12">
+      <div className="container mx-auto px-6 py-6 md:py-12">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2 text-gradient bg-gradient-to-r from-primary to-primary/70">
@@ -66,7 +81,7 @@ const Progress = () => {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid grid-cols-2 w-full md:w-80">
+          <TabsList className="grid grid-cols-2 w-full md:w-80 glassmorphism">
             <TabsTrigger value="applications">Applications</TabsTrigger>
             <TabsTrigger value="alerts">Job Alerts</TabsTrigger>
           </TabsList>
@@ -104,7 +119,7 @@ const Progress = () => {
                 </DropdownMenu>
                 
                 <span className="text-sm text-muted-foreground">
-                  Showing {filteredApplications.length} of {user.applications.length} applications
+                  Showing {filteredApplications.length} of {sortedApplications.length} applications
                 </span>
               </div>
               
@@ -183,7 +198,7 @@ const Progress = () => {
           
           <TabsContent value="alerts" className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
-              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg">
+              <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg rounded-xl">
                 <CardHeader>
                   <CardTitle>Create Job Alert</CardTitle>
                   <CardDescription>
@@ -235,8 +250,8 @@ const Progress = () => {
               <div className="space-y-6">
                 <h3 className="text-lg font-medium">Your Job Alerts</h3>
                 
-                {user.alerts.map((alert) => (
-                  <Card key={alert.id} className="bg-transparent border transition-all hover:bg-muted/5">
+                {jobAlerts.map((alert) => (
+                  <Card key={alert.id} className="bg-transparent border transition-all hover:bg-muted/5 rounded-xl">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div>
@@ -269,7 +284,7 @@ const Progress = () => {
                   </Card>
                 ))}
                 
-                {user.alerts.length === 0 && (
+                {jobAlerts.length === 0 && (
                   <Card className="bg-transparent border">
                     <CardContent className="p-6 flex flex-col items-center text-center">
                       <MailQuestion className="h-8 w-8 text-muted-foreground mb-2" />
