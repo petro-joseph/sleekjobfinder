@@ -18,6 +18,9 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
   const location = useLocation();
   const { isAuthenticated } = useAuthStore();
   const isMobile = useIsMobile();
+  const isDashboardOrPreferences = 
+    location.pathname === '/dashboard' || 
+    location.pathname === '/user-preferences';
 
   // Scroll to top on route change
   useEffect(() => {
@@ -59,7 +62,11 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
       </div>
       <Navbar />
       {isAuthenticated && isMobile && <MobileProfileBar />}
-      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-12' : 'pt-14 mt-4'}`}>
+      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${
+        !isMobile ? 'pt-12' : 'pt-14 mt-4'
+      } ${
+        isDashboardOrPreferences && !isMobile ? 'pt-20' : ''
+      }`}>
         {children}
       </main>
       {!hideFooter && <Footer />}

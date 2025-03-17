@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -10,7 +11,7 @@ import { useAuthStore } from '@/lib/store';
 import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { User, Globe, MapPin, FileEdit, LogOut } from 'lucide-react';
+import { User, Globe, MapPin, FileEdit, LogOut, Settings } from 'lucide-react';
 
 const Profile = () => {
   const { user, updateUser, logout } = useAuthStore();
@@ -70,9 +71,21 @@ const Profile = () => {
   return (
     <Layout>
       <div className="container mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold mb-8 text-gradient bg-gradient-to-r from-primary to-primary/70">
+        <h1 className="text-3xl font-bold mb-6 text-gradient bg-gradient-to-r from-primary to-primary/70">
           Your Profile
         </h1>
+        
+        <div className="flex items-center justify-between mb-8">
+          <p className="text-muted-foreground">Manage your personal information and account settings</p>
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/user-preferences')}
+            className="flex items-center gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            Job Preferences
+          </Button>
+        </div>
         
         <div className="grid gap-6 md:grid-cols-12">
           {/* Profile Info */}
@@ -156,7 +169,7 @@ const Profile = () => {
                         <Input
                           id="location"
                           name="location"
-                          placeholder="City, Country"
+                          placeholder="Country"
                           value={formData.location}
                           onChange={handleInputChange}
                           className="pl-10 transition-all border-muted/30 focus:border-primary"
@@ -246,6 +259,17 @@ const Profile = () => {
                   />
                 </div>
               </CardContent>
+              
+              <CardFooter className="pt-2 pb-4 px-6">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-center"
+                  onClick={() => navigate('/user-preferences')}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Job Preferences
+                </Button>
+              </CardFooter>
             </Card>
             
             <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg">

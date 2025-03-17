@@ -112,7 +112,7 @@ const Dashboard = () => {
                         <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </Button>
                     ) : (
-                      <Button className="group w-full sm:w-auto bg-white text-primary hover:bg-white/90" onClick={() => navigate('/profile')}>
+                      <Button className="group w-full sm:w-auto bg-white text-primary hover:bg-white/90" onClick={() => navigate('/user-preferences')}>
                         Complete your profile
                         <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </Button>

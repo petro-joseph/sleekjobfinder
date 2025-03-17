@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,11 +10,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/lib/store';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { Check, X, Save, PlusCircle, MinusCircle, ArrowLeft } from 'lucide-react';
+import { Check, X, Save, PlusCircle, MinusCircle, ArrowLeft, Upload, FileText, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
 
-// Define possible job types, locations and industries
+// Define possible job types, industries, and countries
 const JOB_TYPES = [
   'Full-time',
   'Part-time',
@@ -43,18 +44,29 @@ const INDUSTRIES = [
   'Design'
 ];
 
-const LOCATIONS = [
-  'Remote',
-  'New York, NY',
-  'San Francisco, CA',
-  'Los Angeles, CA',
-  'Chicago, IL',
-  'Boston, MA',
-  'Seattle, WA',
-  'Austin, TX',
-  'Denver, CO',
-  'Atlanta, GA',
-  'Washington, DC'
+const COUNTRIES = [
+  'United States',
+  'Canada',
+  'United Kingdom',
+  'Australia',
+  'Germany',
+  'France',
+  'Spain',
+  'Italy',
+  'Japan',
+  'China',
+  'India',
+  'Brazil',
+  'Mexico',
+  'South Africa',
+  'Singapore',
+  'Netherlands',
+  'Sweden',
+  'Norway',
+  'Denmark',
+  'Ireland',
+  'New Zealand',
+  'Remote Only'
 ];
 
 const UserPreferences = () => {
@@ -64,12 +76,21 @@ const UserPreferences = () => {
   const [newLocation, setNewLocation] = useState('');
   const [newJobType, setNewJobType] = useState('');
   const [newIndustry, setNewIndustry] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
   
   // Local state for form
   const [preferences, setPreferences] = useState({
     locations: [] as string[],
     jobTypes: [] as string[],
     industries: [] as string[],
+    resumes: [] as Array<{
+      name: string;
+      filePath: string;
+      isPrimary: boolean;
+      uploadDate: Date;
+    }>,
     salaryRange: {
       min: 0,
       max: 0
@@ -90,14 +111,15 @@ const UserPreferences = () => {
     }
     
     // Initialize form with user data if available
-    if (user && user.jobPreferences) {
+    if (user) {
       setPreferences({
-        locations: user.jobPreferences.locations || [],
-        jobTypes: user.jobPreferences.jobTypes || [],
-        industries: user.jobPreferences.industries || [],
+        locations: user.jobPreferences?.locations || [],
+        jobTypes: user.jobPreferences?.jobTypes || [],
+        industries: user.jobPreferences?.industries || [],
+        resumes: user.resumes || [],
         salaryRange: {
-          min: user.jobPreferences.salaryRange?.min || 0,
-          max: user.jobPreferences.salaryRange?.max || 0
+          min: user.jobPreferences?.salaryRange?.min || 0,
+          max: user.jobPreferences?.salaryRange?.max || 0
         },
         notifications: {
           email: user.settings?.emailUpdates || false,
@@ -120,6 +142,7 @@ const UserPreferences = () => {
           industries: preferences.industries,
           salaryRange: preferences.salaryRange
         },
+        resumes: preferences.resumes,
         settings: {
           emailUpdates: preferences.notifications.email,
           notifications: preferences.notifications.app,
@@ -187,6 +210,97 @@ const UserPreferences = () => {
     }));
   };
 
+  const simulateUpload = (file: File) => {
+    setIsUploading(true);
+    setUploadProgress(0);
+    
+    // Simulate upload progress
+    const interval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setIsUploading(false);
+          
+          // Add the new resume to state
+          const newResume = {
+            name: file.name,
+            filePath: URL.createObjectURL(file), // In a real app, this would be the server path
+            isPrimary: preferences.resumes.length === 0, // Make primary if it's the first resume
+            uploadDate: new Date()
+          };
+          
+          setPreferences(prev => ({
+            ...prev,
+            resumes: [...prev.resumes, newResume]
+          }));
+          
+          return 0;
+        }
+        return prev + 10;
+      });
+    }, 300);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Maximum 3 resumes allowed
+    if (preferences.resumes.length >= 3) {
+      toast.error("Maximum 3 resumes allowed. Please delete one before uploading.");
+      return;
+    }
+    
+    // Check file type (PDF, DOCX)
+    const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Only PDF and DOCX files are allowed");
+      return;
+    }
+    
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size should not exceed 5MB");
+      return;
+    }
+    
+    simulateUpload(file);
+  };
+
+  const deleteResume = (index: number) => {
+    const updatedResumes = [...preferences.resumes];
+    const deletedResumePrimary = updatedResumes[index].isPrimary;
+    
+    // Remove the resume
+    updatedResumes.splice(index, 1);
+    
+    // If we deleted the primary resume and there are other resumes, make the first one primary
+    if (deletedResumePrimary && updatedResumes.length > 0) {
+      updatedResumes[0].isPrimary = true;
+    }
+    
+    setPreferences(prev => ({
+      ...prev,
+      resumes: updatedResumes
+    }));
+    
+    toast.success("Resume deleted");
+  };
+
+  const setPrimaryResume = (index: number) => {
+    const updatedResumes = preferences.resumes.map((resume, i) => ({
+      ...resume,
+      isPrimary: i === index
+    }));
+    
+    setPreferences(prev => ({
+      ...prev,
+      resumes: updatedResumes
+    }));
+    
+    toast.success("Primary resume updated");
+  };
+
   if (!user) {
     return null; // Will be redirected by useEffect
   }
@@ -216,11 +330,95 @@ const UserPreferences = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
+                  {/* CV Upload Section */}
+                  <Card className="backdrop-blur-xl border-primary/20 shadow-lg hover:border-primary/40 transition-all duration-300 rounded-xl">
+                    <CardHeader>
+                      <CardTitle>Resume / CV</CardTitle>
+                      <CardDescription>Upload your resume (PDF or DOCX, max 3 files, 5MB each)</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {preferences.resumes.length > 0 && (
+                        <div className="space-y-3 mb-4">
+                          {preferences.resumes.map((resume, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-background/50 rounded-lg border">
+                              <div className="flex items-center">
+                                <FileText className="h-5 w-5 text-primary mr-3" />
+                                <div>
+                                  <p className="font-medium text-sm">{resume.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Uploaded on {new Date(resume.uploadDate).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                {resume.isPrimary ? (
+                                  <Badge variant="secondary" className="bg-primary/10 text-primary">
+                                    Primary
+                                  </Badge>
+                                ) : (
+                                  <Button 
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-8 text-xs"
+                                    onClick={() => setPrimaryResume(index)}
+                                  >
+                                    Set as Primary
+                                  </Button>
+                                )}
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  onClick={() => deleteResume(index)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {isUploading && (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium">Uploading...</p>
+                            <p className="text-sm text-muted-foreground">{uploadProgress}%</p>
+                          </div>
+                          <Progress value={uploadProgress} className="h-2" />
+                        </div>
+                      )}
+
+                      {preferences.resumes.length < 3 && !isUploading && (
+                        <div className="flex justify-center">
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileUpload}
+                            accept=".pdf,.docx"
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full py-8 border-dashed border-2"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <Upload className="h-5 w-5 mr-2" />
+                            {preferences.resumes.length === 0 
+                              ? "Upload your resume" 
+                              : "Upload another resume"}
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
                   {/* Locations */}
                   <Card className="backdrop-blur-xl border-primary/20 shadow-lg hover:border-primary/40 transition-all duration-300 rounded-xl">
                     <CardHeader>
                       <CardTitle>Preferred Locations</CardTitle>
-                      <CardDescription>Select locations where you'd like to work</CardDescription>
+                      <CardDescription>Select countries where you'd like to work</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="flex flex-wrap gap-2 mb-4">
@@ -244,12 +442,12 @@ const UserPreferences = () => {
                           onValueChange={setNewLocation}
                         >
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select a location" />
+                            <SelectValue placeholder="Select a country" />
                           </SelectTrigger>
                           <SelectContent>
-                            {LOCATIONS.filter(loc => !preferences.locations.includes(loc)).map(location => (
-                              <SelectItem key={location} value={location}>
-                                {location}
+                            {COUNTRIES.filter(country => !preferences.locations.includes(country)).map(country => (
+                              <SelectItem key={country} value={country}>
+                                {country}
                               </SelectItem>
                             ))}
                           </SelectContent>
