@@ -48,7 +48,7 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="fixed bottom-6 right-6 z-50 md:bottom-6 mb-16 md:mb-0">
-        <DarkModeToggle className="w-12 h-12 scale-110" /> {/* Increased size */}
+        <DarkModeToggle className="w-12 h-12 scale-110" />
       </div>
       <Navbar />
       {isAuthenticated && isMobile && <MobileProfileBar />}

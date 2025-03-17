@@ -3,8 +3,13 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sun, Moon } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
-const DarkModeToggle = () => {
+interface DarkModeToggleProps {
+  className?: string;
+}
+
+const DarkModeToggle = ({ className }: DarkModeToggleProps) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
 
@@ -40,7 +45,7 @@ const DarkModeToggle = () => {
       variant="glass" 
       size="icon" 
       onClick={toggleDarkMode}
-      className="rounded-full shadow-lg backdrop-blur-md h-12 w-12"
+      className={cn("rounded-full shadow-lg backdrop-blur-md h-12 w-12", className)}
       aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
     >
       {isDarkMode ? (
