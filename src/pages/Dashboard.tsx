@@ -98,8 +98,8 @@ const Dashboard = () => {
               className="md:col-span-8"
               variants={itemVariants}
             >
-              {/* Welcome Banner */}
-              <Card className="bg-white text-foreground mb-6 overflow-hidden rounded-xl border-0 shadow-lg">
+             {/* Welcome Banner */}
+              <Card className="bg-white dark:bg-gray-800 text-foreground dark:text-gray-100 mb-6 overflow-hidden rounded-xl border-0 shadow-lg">
                 <CardContent className="p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
