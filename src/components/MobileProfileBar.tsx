@@ -20,14 +20,13 @@ const MobileProfileBar = () => {
   
   return (
     <div className={cn(
-      "sticky top-0 z-40 w-full md:hidden",
-      isAtTop ? 'py-4' : 'py-2',
-      "transition-all duration-300",
+      "fixed top-0 left-0 right-0 z-40 w-full md:hidden",
+      "transition-all duration-300 backdrop-blur-md bg-background/90 border-b border-border/40",
       scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
     )}>
-      <div className="backdrop-blur-md bg-background/80 border-b border-border/40 px-4">
+      <div className="px-4 py-2">
         <Link to="/profile" className="flex items-center space-x-3 py-2">
-          <Avatar className="h-10 w-10 border-2 border-primary/20">
+          <Avatar className="h-8 w-8 border-2 border-primary/20">
             <AvatarImage src={user.avatarUrl || undefined} />
             <AvatarFallback className="bg-primary/10 text-primary">
               {initials}
@@ -35,7 +34,7 @@ const MobileProfileBar = () => {
           </Avatar>
           
           <div className="flex-1 min-w-0">
-            <p className="font-medium truncate">{fullName}</p>
+            <p className="font-medium truncate text-sm">{fullName}</p>
           </div>
           
           <UserIcon className="h-5 w-5 text-muted-foreground" />

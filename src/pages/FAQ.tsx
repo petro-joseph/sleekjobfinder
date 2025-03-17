@@ -1,99 +1,51 @@
 
-import { useState } from 'react';
 import Layout from '@/components/Layout';
-import { Separator } from '@/components/ui/separator'; 
-import { Input } from '@/components/ui/input';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
 const FAQ = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  const categories = [
-    { id: 'general', name: 'General' },
-    { id: 'account', name: 'Account & Billing' },
-    { id: 'jobs', name: 'Job Search' },
-    { id: 'resumes', name: 'Resumes & Applications' },
-    { id: 'premium', name: 'Premium Features' }
-  ];
-  
   const faqs = [
     {
-      id: 1,
-      category: 'general',
-      question: 'What is SleekJobs?',
-      answer: 'SleekJobs is an AI-powered job platform designed to connect talent with opportunities seamlessly. We use advanced algorithms to match job seekers with positions that align with their skills, experience, and career goals.'
+      question: "How do I create an account?",
+      answer: "You can create an account by clicking the 'Sign Up' button in the top right corner of the homepage. Fill in your details, accept the terms and conditions, and you'll be ready to go."
     },
     {
-      id: 2,
-      category: 'general',
-      question: 'How does SleekJobs work?',
-      answer: 'Our platform analyzes your resume and preferences to find and recommend relevant job opportunities. We also provide tools to help you optimize your resume, prepare for interviews, and track your applications.'
+      question: "Is this service free to use?",
+      answer: "We offer both free and premium plans. The basic job search functionality is free, while advanced features like resume builder, personalized job alerts, and career coaching require a subscription. Check our Pricing page for more details."
     },
     {
-      id: 3,
-      category: 'account',
-      question: 'Is it free to create an account?',
-      answer: 'Yes, creating a basic account on SleekJobs is completely free. This gives you access to job listings, the ability to save jobs, and basic resume tools. We also offer premium plans with additional features.'
+      question: "How do I apply for a job?",
+      answer: "Once you've found a job you're interested in, click the 'Apply Now' button on the job details page. You'll be guided through our application process, which typically involves submitting your resume and answering any job-specific questions."
     },
     {
-      id: 4,
-      category: 'account',
-      question: 'How do I delete my account?',
-      answer: 'To delete your account, go to your Profile settings, scroll to the bottom, and click on "Delete Account". Please note that this action is permanent and will remove all your data from our system.'
+      question: "Can I save jobs for later?",
+      answer: "Yes, you can save jobs to review later. Simply click the bookmark icon on any job listing or job details page. You can access your saved jobs from your dashboard or the 'Saved Jobs' section."
     },
     {
-      id: 5,
-      category: 'jobs',
-      question: 'How often are new jobs added?',
-      answer: 'Our job database is updated in real-time. We continuously crawl various job boards, company websites, and other sources to bring you the most current opportunities available.'
+      question: "How do I create a resume?",
+      answer: "Navigate to the Resume Builder in your dashboard. Our tool will guide you through creating a professional resume step-by-step. You can choose from different templates, add your experience, education, and skills, and export your resume in multiple formats."
     },
     {
-      id: 6,
-      category: 'jobs',
-      question: 'Can I set up job alerts?',
-      answer: "Yes, you can create custom job alerts based on your preferences. You'll receive notifications when new positions matching your criteria are posted. You can set the frequency of these alerts to daily, weekly, or as they come in."
+      question: "How can I get notified about new job postings?",
+      answer: "Set up job alerts by specifying your job preferences, location, and keywords. You'll receive notifications when new jobs matching your criteria are posted. You can manage your alerts from your dashboard."
     },
     {
-      id: 7,
-      category: 'resumes',
-      question: 'Does SleekJobs offer resume templates?',
-      answer: 'Yes, we provide a variety of professionally designed resume templates suitable for different industries and career levels. You can easily customize these templates to create a resume that stands out.'
+      question: "What should I do if I forget my password?",
+      answer: "If you forget your password, click the 'Forgot Password' link on the login page. Enter your email address, and we'll send you instructions to reset your password."
     },
     {
-      id: 8,
-      category: 'resumes',
-      question: 'Can SleekJobs help tailor my resume for specific jobs?',
-      answer: 'Absolutely! Our AI-powered resume optimization tool can analyze job descriptions and suggest specific changes to your resume to increase your chances of getting noticed by recruiters and passing through Applicant Tracking Systems.'
+      question: "Can employers see my profile?",
+      answer: "Your public profile is only visible to employers when you apply for their jobs. You can control your privacy settings in your account to determine what information is shared with employers."
     },
     {
-      id: 9,
-      category: 'premium',
-      question: 'What additional features do premium plans offer?',
-      answer: 'Premium plans include advanced features such as priority application submissions, enhanced resume visibility to employers, detailed application analytics, direct messaging with recruiters, and personalized career coaching.'
+      question: "How can I contact support?",
+      answer: "You can reach our support team through the 'Contact' page or by emailing support@jobfinder.com. We typically respond within 24 hours during business days."
     },
     {
-      id: 10,
-      category: 'premium',
-      question: 'Can I cancel my premium subscription at any time?',
-      answer: 'Yes, you can cancel your premium subscription at any time. Your premium features will remain active until the end of your current billing period. No refunds are provided for partial months.'
-    },
+      question: "Can I delete my account?",
+      answer: "Yes, you can delete your account at any time from your account settings. Please note that this action is permanent and will remove all your data from our system."
+    }
   ];
-  
-  const [activeCategory, setActiveCategory] = useState('general');
-  
-  const filteredFaqs = searchQuery
-    ? faqs.filter(faq => 
-        faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : faqs.filter(faq => faq.category === activeCategory);
 
   return (
     <Layout>
@@ -103,103 +55,36 @@ const FAQ = () => {
             Frequently Asked Questions
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Find answers to common questions about our platform and services
+            Find answers to common questions about our platform, job applications, and account management
           </p>
         </div>
-        
-        {/* Search Bar */}
-        <div className="max-w-xl mx-auto mb-12">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
-            <Input
-              type="text"
-              placeholder="Search for a question..."
-              className="pl-10 py-6"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-        
-        {/* Category Tabs (Desktop) */}
-        <div className="hidden md:flex justify-center mb-8">
-          <div className="inline-flex rounded-lg p-1 bg-secondary/50">
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={activeCategory === category.id ? "default" : "ghost"}
-                className={`rounded-md ${activeCategory === category.id ? '' : 'hover:bg-secondary/80'}`}
-                onClick={() => {
-                  setActiveCategory(category.id);
-                  setSearchQuery('');
-                }}
-              >
-                {category.name}
-              </Button>
+
+        <div className="max-w-3xl mx-auto mb-12">
+          <Accordion type="single" collapsible className="w-full">
+            {faqs.map((faq, index) => (
+              <AccordionItem key={index} value={`item-${index}`}>
+                <AccordionTrigger className="text-lg font-medium">{faq.question}</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
             ))}
-          </div>
+          </Accordion>
         </div>
-        
-        {/* Category Dropdown (Mobile) */}
-        <div className="md:hidden mb-8">
-          <select
-            className="w-full p-3 bg-secondary/50 rounded-lg border border-input"
-            value={activeCategory}
-            onChange={(e) => {
-              setActiveCategory(e.target.value);
-              setSearchQuery('');
-            }}
-          >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        {/* FAQ Accordion */}
-        <div className="max-w-3xl mx-auto">
-          {filteredFaqs.length > 0 ? (
-            <Accordion type="single" collapsible className="w-full">
-              {filteredFaqs.map((faq) => (
-                <AccordionItem key={faq.id} value={`item-${faq.id}`}>
-                  <AccordionTrigger className="text-left font-medium py-4">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-lg text-muted-foreground">
-                No questions found matching your search. Try different keywords or browse by category.
-              </p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => setSearchQuery('')}
-              >
-                Clear search
-              </Button>
-            </div>
-          )}
-        </div>
-        
-        <Separator className="my-12" />
-        
-        {/* Contact Section */}
-        <div className="text-center max-w-2xl mx-auto">
+
+        <div className="bg-secondary/50 rounded-xl p-8 text-center max-w-3xl mx-auto">
           <h2 className="text-2xl font-bold mb-4">Still have questions?</h2>
           <p className="text-muted-foreground mb-6">
-            Our support team is ready to assist you with any other questions or concerns you might have.
+            Our support team is here to help. Contact us anytime and we'll get back to you as soon as possible.
           </p>
-          <Button className="mx-auto">
-            Contact Support
-          </Button>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button asChild variant="default">
+              <a href="/contact">Contact Support</a>
+            </Button>
+            <Button asChild variant="outline">
+              <a href="/support">Visit Help Center</a>
+            </Button>
+          </div>
         </div>
       </div>
     </Layout>

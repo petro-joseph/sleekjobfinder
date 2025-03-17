@@ -2,263 +2,183 @@
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Clock, MapPin, Briefcase } from 'lucide-react';
+import { MapPin, Briefcase } from 'lucide-react';
 
 const Careers = () => {
-  const departments = [
-    { id: "engineering", name: "Engineering" },
-    { id: "product", name: "Product" },
-    { id: "design", name: "Design" },
-    { id: "marketing", name: "Marketing" },
-    { id: "sales", name: "Sales" },
-    { id: "operations", name: "Operations" }
-  ];
-  
-  const openings = [
+  const openPositions = [
     {
-      id: 1,
       title: "Senior Frontend Developer",
-      department: "engineering",
-      location: "Remote (US)",
-      type: "Full-time",
-      postedDate: "2 weeks ago"
-    },
-    {
-      id: 2,
-      title: "Backend Engineer",
-      department: "engineering",
+      department: "Engineering",
       location: "San Francisco, CA",
       type: "Full-time",
-      postedDate: "3 days ago"
+      description: "We're looking for an experienced Frontend Developer to join our engineering team and help build the next generation of our platform."
     },
     {
-      id: 3,
-      title: "Product Manager",
-      department: "product",
+      title: "UX/UI Designer",
+      department: "Design",
+      location: "Remote",
+      type: "Full-time",
+      description: "Join our design team to create intuitive, engaging experiences for job seekers and employers using our platform."
+    },
+    {
+      title: "Content Marketing Manager",
+      department: "Marketing",
       location: "New York, NY",
       type: "Full-time",
-      postedDate: "1 week ago"
+      description: "Drive our content strategy to establish our brand as a thought leader in the career development space."
     },
     {
-      id: 4,
-      title: "UX/UI Designer",
-      department: "design",
-      location: "Remote (Global)",
+      title: "Customer Success Specialist",
+      department: "Customer Success",
+      location: "Remote",
       type: "Full-time",
-      postedDate: "4 days ago"
+      description: "Help our users get the most out of our platform by providing exceptional support and guidance."
     },
     {
-      id: 5,
-      title: "Growth Marketing Manager",
-      department: "marketing",
-      location: "Austin, TX",
-      type: "Full-time",
-      postedDate: "5 days ago"
-    },
-    {
-      id: 6,
-      title: "Account Executive",
-      department: "sales",
-      location: "Chicago, IL",
-      type: "Full-time",
-      postedDate: "Just now"
-    },
-    {
-      id: 7,
-      title: "Technical Recruiter",
-      department: "operations",
-      location: "Remote (US)",
-      type: "Full-time",
-      postedDate: "3 weeks ago"
-    },
-    {
-      id: 8,
       title: "Data Scientist",
-      department: "engineering",
+      department: "Data",
       location: "Boston, MA",
       type: "Full-time",
-      postedDate: "2 days ago"
+      description: "Use your expertise in machine learning and data analysis to improve our job matching algorithms and user experience."
+    },
+    {
+      title: "Product Manager",
+      department: "Product",
+      location: "San Francisco, CA",
+      type: "Full-time",
+      description: "Lead the development of new features and improvements to our platform, working closely with engineering, design, and other teams."
     }
   ];
-  
+
   const benefits = [
     {
-      title: "Flexible Work",
-      description: "Work from anywhere with flexible hours that fit your life"
+      title: "Comprehensive Health Benefits",
+      description: "Medical, dental, and vision coverage for you and your dependents"
     },
     {
-      title: "Competitive Compensation",
-      description: "Salary packages that recognize your skills and experience"
+      title: "Flexible Work Arrangements",
+      description: "Remote-friendly culture with flexible hours"
     },
     {
-      title: "Health & Wellness",
-      description: "Comprehensive health insurance and wellness programs"
+      title: "Professional Development",
+      description: "Learning stipend and dedicated time for growth"
     },
     {
-      title: "Professional Growth",
-      description: "Learning stipends and career development opportunities"
+      title: "Generous PTO",
+      description: "Unlimited vacation policy and paid company holidays"
     },
     {
-      title: "Company Equity",
-      description: "Share in our success with employee stock options"
+      title: "Equity Compensation",
+      description: "Share in the company's success with equity grants"
     },
     {
-      title: "Generous Time Off",
-      description: "Unlimited PTO policy that encourages work-life balance"
+      title: "Wellness Programs",
+      description: "Gym memberships, mental health resources, and more"
     }
   ];
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-b from-primary/5 to-background py-16">
-        <div className="container mx-auto px-4 text-center">
+      <div className="container mx-auto px-4 py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gradient bg-gradient-to-r from-primary to-primary/70">
             Join Our Team
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Help us build the future of career development and job searching
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            We're on a mission to transform how people find and build their careers. 
+            Join us and help create the future of work.
           </p>
-          <Button size="lg" className="group">
-            View Open Positions <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-          </Button>
         </div>
-      </div>
 
-      {/* Culture Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="order-2 md:order-1">
-            <h2 className="text-3xl font-bold mb-6">Our Culture</h2>
-            <p className="text-lg text-muted-foreground mb-6">
-              At SleekJobs, we've built a culture that celebrates innovation, diversity, and impact. We believe in giving our team the autonomy to do their best work while collaborating toward a shared mission of transforming how people find and advance in their careers.
-            </p>
-            <p className="text-lg text-muted-foreground mb-6">
-              Whether you're working remotely or from one of our global offices, you'll be part of a supportive community that values your unique perspective and encourages you to grow both personally and professionally.
-            </p>
-          </div>
-          <div className="order-1 md:order-2 relative rounded-xl overflow-hidden aspect-video">
+        {/* Culture Section */}
+        <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
+          <div className="rounded-xl overflow-hidden">
             <img 
-              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
-              alt="Team collaboration" 
+              src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+              alt="Team collaborating in office" 
               className="w-full h-full object-cover"
             />
           </div>
-        </div>
-      </div>
-
-      {/* Benefits Section */}
-      <div className="bg-secondary/30 py-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Why Work With Us</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              We offer benefits that support your well-being, growth, and success
-            </p>
+          <div>
+            <h2 className="text-3xl font-bold mb-4">Our Culture</h2>
+            <div className="space-y-4 text-muted-foreground">
+              <p>
+                We believe that great products come from teams that care deeply about the problems they're solving.
+              </p>
+              <p>
+                Our culture is built on collaboration, continuous learning, and a deep commitment to helping people find meaningful work.
+              </p>
+              <p>
+                We celebrate diversity of thought and background, knowing that different perspectives lead to better solutions.
+              </p>
+              <p>
+                While we work hard, we also value work-life balance and create an environment where everyone can thrive both professionally and personally.
+              </p>
+            </div>
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        </div>
+
+        {/* Benefits Section */}
+        <div className="mb-20">
+          <h2 className="text-3xl font-bold mb-10 text-center">Benefits & Perks</h2>
+          <div className="grid md:grid-cols-3 gap-6">
             {benefits.map((benefit, index) => (
-              <Card key={index} className="bg-card/50 hover:shadow-md transition-all duration-300">
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
-                  <p className="text-muted-foreground">{benefit.description}</p>
+              <div key={index} className="bg-card p-6 rounded-xl border">
+                <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
+                <p className="text-muted-foreground">{benefit.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Open Positions */}
+        <div className="mb-20">
+          <h2 className="text-3xl font-bold mb-10 text-center">Open Positions</h2>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            {openPositions.map((position, index) => (
+              <Card key={index} className="overflow-hidden hover:shadow-md transition-all duration-300">
+                <CardContent className="p-6">
+                  <Badge className="mb-2">{position.department}</Badge>
+                  <h3 className="text-xl font-bold mb-2">{position.title}</h3>
+                  
+                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
+                    <div className="flex items-center">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      {position.location}
+                    </div>
+                    <div className="flex items-center">
+                      <Briefcase className="h-4 w-4 mr-1" />
+                      {position.type}
+                    </div>
+                  </div>
+                  
+                  <p className="mb-6 text-muted-foreground">{position.description}</p>
+                  
+                  <Button variant="outline">
+                    View Position
+                  </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Open Positions */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Open Positions</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Find your place on our team and help shape the future of careers
-          </p>
-        </div>
-        
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid grid-cols-3 md:grid-cols-7 mb-8">
-            <TabsTrigger value="all">All</TabsTrigger>
-            {departments.map(dept => (
-              <TabsTrigger key={dept.id} value={dept.id}>{dept.name}</TabsTrigger>
-            ))}
-          </TabsList>
-          
-          <TabsContent value="all" className="mt-4">
-            <div className="space-y-4">
-              {openings.map(job => (
-                <JobCard key={job.id} job={job} />
-              ))}
-            </div>
-          </TabsContent>
-          
-          {departments.map(dept => (
-            <TabsContent key={dept.id} value={dept.id} className="mt-4">
-              <div className="space-y-4">
-                {openings
-                  .filter(job => job.department === dept.id)
-                  .map(job => (
-                    <JobCard key={job.id} job={job} />
-                  ))}
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-        
-        <div className="mt-12 text-center bg-secondary/50 p-8 rounded-xl">
-          <h3 className="text-2xl font-bold mb-4">Don't see a role that fits?</h3>
+        {/* CTA Section */}
+        <div className="bg-primary/5 rounded-xl p-8 text-center border border-primary/20">
+          <h2 className="text-2xl font-bold mb-4">Don't see the right position?</h2>
           <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-            We're always looking for talented individuals to join our team. Send us your resume and we'll keep you in mind for future opportunities.
+            We're always on the lookout for talented individuals who are passionate about our mission. 
+            Send us your resume and we'll keep you in mind for future opportunities.
           </p>
-          <Button>
+          <Button size="lg">
             Submit Your Resume
           </Button>
         </div>
       </div>
     </Layout>
-  );
-};
-
-// Job Card Component
-const JobCard = ({ job }: { job: any }) => {
-  return (
-    <Card className="hover:shadow-md transition-all duration-300">
-      <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-xl font-semibold">{job.title}</h3>
-              <Badge variant="outline" className="ml-2">{job.type}</Badge>
-              {job.postedDate === "Just now" && (
-                <Badge className="bg-green-500/10 text-green-500 hover:bg-green-500/20">New</Badge>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center">
-                <Briefcase className="mr-1 h-4 w-4" />
-                {job.department.charAt(0).toUpperCase() + job.department.slice(1)}
-              </div>
-              <div className="flex items-center">
-                <MapPin className="mr-1 h-4 w-4" />
-                {job.location}
-              </div>
-              <div className="flex items-center">
-                <Clock className="mr-1 h-4 w-4" />
-                Posted {job.postedDate}
-              </div>
-            </div>
-          </div>
-          <Button variant="outline" className="md:self-auto self-start">
-            View Role
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
   );
 };
 

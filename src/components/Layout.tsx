@@ -30,8 +30,8 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
         <DarkModeToggle />
       </div>
       <Navbar />
-      {isMobile && <MobileProfileBar />}
-      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-24' : 'pt-2'}`}>
+      {isAuthenticated && isMobile && <MobileProfileBar />}
+      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-24' : 'pt-14'}`}>
         {children}
       </main>
       {!hideFooter && <Footer />}

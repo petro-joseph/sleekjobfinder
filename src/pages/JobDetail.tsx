@@ -1,3 +1,4 @@
+
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
@@ -131,7 +132,7 @@ const JobDetail = () => {
   if (isLoading) {
     return (
       <Layout>
-        <div className="container mx-auto px-6 py-12">
+        <div className="container mx-auto px-4 py-4 md:py-8">
           <div className="flex flex-col items-center justify-center py-12">
             <div className="loader mb-4" />
             <p className="text-muted-foreground">Loading job details...</p>
@@ -144,8 +145,8 @@ const JobDetail = () => {
   if (!job) {
     return (
       <Layout>
-        <div className="container mx-auto px-6 py-12">
-          <div className="bg-secondary/50 rounded-lg p-8 text-center">
+        <div className="container mx-auto px-4 py-4 md:py-8">
+          <div className="bg-secondary/50 rounded-lg p-6 md:p-8 text-center">
             <h2 className="text-2xl font-semibold mb-4">Job Not Found</h2>
             <p className="text-muted-foreground mb-6">
               The job you're looking for doesn't exist or has been removed.
@@ -161,8 +162,8 @@ const JobDetail = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-6 py-12">
-        <div className="mb-8">
+      <div className="container mx-auto px-4 py-4 md:py-8">
+        <div className="mb-4 md:mb-6">
           <Button asChild variant="ghost" className="group" size="sm">
             <Link to="/jobs">
               <ChevronLeft className="mr-1 h-4 w-4 transition-transform group-hover:-translate-x-1" />
@@ -171,10 +172,10 @@ const JobDetail = () => {
           </Button>
         </div>
 
-        <div className="bg-card rounded-xl p-8 shadow-sm border mb-8">
-          <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between mb-6">
+        <div className="bg-card rounded-xl p-4 md:p-6 shadow-sm border mb-6">
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-4 md:mb-6">
             <div className="flex items-center">
-              <div className="w-16 h-16 rounded-lg bg-secondary flex items-center justify-center mr-6 text-primary font-semibold text-xl">
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg bg-secondary flex items-center justify-center mr-4 md:mr-6 text-primary font-semibold text-xl">
                 {job?.logo ? (
                   <img src={job.logo} alt={job?.company} className="w-full h-full object-contain rounded-lg" />
                 ) : (
@@ -182,10 +183,10 @@ const JobDetail = () => {
                 )}
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold mb-1">{job?.title}</h1>
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold mb-1">{job?.title}</h1>
                 <div className="flex items-center gap-2">
                   <Building className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-lg text-muted-foreground">{job?.company}</span>
+                  <span className="text-base md:text-lg text-muted-foreground">{job?.company}</span>
                   {job?.featured && (
                     <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
                       Featured
@@ -194,15 +195,15 @@ const JobDetail = () => {
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={handleSaveJob} variant={isSaved ? "secondary" : "outline"}>
+            <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
+              <Button onClick={handleSaveJob} variant={isSaved ? "secondary" : "outline"} size="sm" className="h-9">
                 <Bookmark className={`h-4 w-4 mr-2 ${isSaved ? "fill-current" : ""}`} />
                 {isSaved ? "Saved" : "Save Job"}
               </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
+                  <Button variant="outline" size="sm" className="h-9">
                     <Share2 className="h-4 w-4 mr-2" />
                     Share
                   </Button>
@@ -237,41 +238,41 @@ const JobDetail = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button onClick={handleApply}>
+              <Button onClick={handleApply} size="sm" className="h-9">
                 Apply Now
               </Button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 border-t pt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 border-t pt-4 md:pt-6">
             <div className="flex items-center">
-              <MapPin className="h-5 w-5 text-primary mr-3" />
+              <MapPin className="h-5 w-5 text-primary mr-2" />
               <div>
-                <p className="text-sm text-muted-foreground">Location</p>
-                <p className="font-medium">{job.location}</p>
+                <p className="text-xs text-muted-foreground">Location</p>
+                <p className="font-medium text-sm">{job.location}</p>
               </div>
             </div>
             <div className="flex items-center">
-              <Briefcase className="h-5 w-5 text-primary mr-3" />
+              <Briefcase className="h-5 w-5 text-primary mr-2" />
               <div>
-                <p className="text-sm text-muted-foreground">Job Type</p>
-                <p className="font-medium">{job.type}</p>
+                <p className="text-xs text-muted-foreground">Job Type</p>
+                <p className="font-medium text-sm">{job.type}</p>
               </div>
             </div>
             <div className="flex items-center">
-              <DollarSign className="h-5 w-5 text-primary mr-3" />
+              <DollarSign className="h-5 w-5 text-primary mr-2" />
               <div>
-                <p className="text-sm text-muted-foreground">Salary</p>
-                <p className="font-medium">{job.salary}</p>
+                <p className="text-xs text-muted-foreground">Salary</p>
+                <p className="font-medium text-sm">{job.salary}</p>
               </div>
             </div>
             <div className="flex items-center">
-              <Tag className="h-5 w-5 text-primary mr-3" />
+              <Tag className="h-5 w-5 text-primary mr-2" />
               <div>
-                <p className="text-sm text-muted-foreground">Industry</p>
+                <p className="text-xs text-muted-foreground">Industry</p>
                 <Badge 
                   variant="secondary" 
-                  className="cursor-pointer hover:bg-primary/20 mt-1"
+                  className="cursor-pointer hover:bg-primary/20 mt-1 text-xs"
                   onClick={navigateToIndustryJobs}
                 >
                   {job.industry}
@@ -281,26 +282,26 @@ const JobDetail = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            <div className="bg-card rounded-xl p-8 shadow-sm border">
-              <h2 className="text-xl font-semibold mb-4">Job Description</h2>
-              <p className="text-foreground/90 mb-6">{job.description}</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-card rounded-xl p-4 md:p-6 shadow-sm border">
+              <h2 className="text-xl font-semibold mb-3">Job Description</h2>
+              <p className="text-foreground/90 mb-5 text-sm md:text-base">{job.description}</p>
               
-              <h3 className="text-lg font-medium mt-6 mb-3">Requirements</h3>
-              <ul className="space-y-2">
+              <h3 className="text-lg font-medium mt-5 mb-2">Requirements</h3>
+              <ul className="space-y-1.5">
                 {job.requirements.map((requirement, index) => (
                   <li key={index} className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
-                    <span>{requirement}</span>
+                    <CheckCircle className="h-4 w-4 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm md:text-base">{requirement}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="bg-card rounded-xl p-8 shadow-sm border">
-              <h2 className="text-xl font-semibold mb-4">About {job.company}</h2>
-              <p className="text-foreground/90">
+            <div className="bg-card rounded-xl p-4 md:p-6 shadow-sm border">
+              <h2 className="text-xl font-semibold mb-3">About {job.company}</h2>
+              <p className="text-foreground/90 text-sm md:text-base">
                 {job.company} is a leading company in its field, committed to innovation and growth.
                 We offer competitive benefits, a collaborative work environment, and opportunities for
                 professional development. Join our team and be part of our mission to transform the industry.
@@ -308,68 +309,68 @@ const JobDetail = () => {
             </div>
           </div>
 
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-card rounded-xl p-6 shadow-sm border">
-              <h3 className="text-lg font-semibold mb-4">Job Overview</h3>
+          <div className="lg:col-span-1 space-y-4">
+            <div className="bg-card rounded-xl p-4 md:p-6 shadow-sm border">
+              <h3 className="text-lg font-semibold mb-3">Job Overview</h3>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="flex items-center">
-                  <Clock className="h-5 w-5 text-muted-foreground mr-3" />
+                  <Clock className="h-4 w-4 text-muted-foreground mr-2" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Posted</p>
-                    <p>{job.postedAt}</p>
+                    <p className="text-xs text-muted-foreground">Posted</p>
+                    <p className="text-sm">{job.postedAt}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center">
-                  <MapPin className="h-5 w-5 text-muted-foreground mr-3" />
+                  <MapPin className="h-4 w-4 text-muted-foreground mr-2" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Location</p>
-                    <p>{job.location}</p>
+                    <p className="text-xs text-muted-foreground">Location</p>
+                    <p className="text-sm">{job.location}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center">
-                  <Briefcase className="h-5 w-5 text-muted-foreground mr-3" />
+                  <Briefcase className="h-4 w-4 text-muted-foreground mr-2" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Employment Type</p>
-                    <p>{job.type}</p>
+                    <p className="text-xs text-muted-foreground">Employment Type</p>
+                    <p className="text-sm">{job.type}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center">
-                  <DollarSign className="h-5 w-5 text-muted-foreground mr-3" />
+                  <DollarSign className="h-4 w-4 text-muted-foreground mr-2" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Salary Range</p>
-                    <p>{job.salary}</p>
+                    <p className="text-xs text-muted-foreground">Salary Range</p>
+                    <p className="text-sm">{job.salary}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center">
-                  <Tag className="h-5 w-5 text-muted-foreground mr-3" />
+                  <Tag className="h-4 w-4 text-muted-foreground mr-2" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Industry</p>
-                    <p>{job.industry}</p>
+                    <p className="text-xs text-muted-foreground">Industry</p>
+                    <p className="text-sm">{job.industry}</p>
                   </div>
                 </div>
               </div>
               
-              <div className="mt-6 pt-6 border-t">
-                <Button onClick={handleApply} className="w-full mb-2">
+              <div className="mt-4 pt-4 border-t">
+                <Button onClick={handleApply} className="w-full mb-2 h-9">
                   Apply for this position
                 </Button>
-                <Button variant="outline" onClick={handleTailorResume} className="w-full">
+                <Button variant="outline" onClick={handleTailorResume} className="w-full h-9">
                   Tailor Resume for This Job
                 </Button>
               </div>
             </div>
             
-            <div className="bg-primary/5 rounded-xl p-6 border border-primary/20">
+            <div className="bg-primary/5 rounded-xl p-4 border border-primary/20">
               <h3 className="text-lg font-semibold mb-2">Need Help?</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-xs md:text-sm text-muted-foreground mb-3">
                 Our career advisors can help you with your application and prepare for interviews.
               </p>
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" size="sm" className="w-full h-8">
                 Get Career Advice
               </Button>
             </div>
