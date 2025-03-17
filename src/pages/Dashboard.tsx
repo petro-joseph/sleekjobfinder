@@ -99,27 +99,27 @@ const Dashboard = () => {
               variants={itemVariants}
             >
               {/* Welcome Banner */}
-                <Card className="bg-gray-900 dark:bg-gray-900 text-white dark:text-white mb-6 overflow-hidden rounded-xl border-0 shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div>
-                        <h2 className="text-2xl font-bold">Welcome back, {user.firstName}</h2>
-                        <p className="text-base opacity-90">
-                          Here's what's happening with your job search today
-                        </p>
-                      </div>
-                      {isOnboardingComplete ? (
-                        <Button className="group w-full sm:w-auto bg-primary text-white hover:bg-primary/90 rounded-lg" onClick={() => navigate('/jobs')}>
-                          Find Jobs <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </Button>
-                      ) : (
-                        <Button className="group w-full sm:w-auto bg-primary text-white hover:bg-primary/90 rounded-lg" onClick={() => navigate('/preferences')}>
-                          Complete your profile <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </Button>
-                      )}
+              <Card className="bg-gray-900 text-white mb-6 overflow-hidden rounded-xl border-0 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <h2 className="text-2xl font-bold">Welcome back, {user.firstName}</h2>
+                      <p className="text-base opacity-90">
+                        Here's what's happening with your job search today
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
+                    {isOnboardingComplete ? (
+                      <Button className="group w-full sm:w-auto bg-primary text-white hover:bg-primary/90 rounded-lg" onClick={() => navigate('/jobs')}>
+                        Find Jobs <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    ) : (
+                      <Button className="group w-full sm:w-auto bg-primary text-white hover:bg-primary/90 rounded-lg" onClick={() => navigate('/preferences')}>
+                        Complete your profile <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
               
               {/* Stats Cards - 2x2 on mobile, 4-column on desktop */}
               <motion.div 
