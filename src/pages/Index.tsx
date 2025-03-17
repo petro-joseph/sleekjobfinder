@@ -6,7 +6,7 @@ import FeatureCard from '@/components/FeatureCard';
 import TestimonialCard from '@/components/TestimonialCard';
 import { testimonials } from '@/data/testimonials';
 import Layout from '@/components/Layout';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, CarouselDots } from '@/components/ui/carousel'; // Added CarouselDots
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, CarouselDots } from '@/components/ui/carousel';
 import { useIsMobile } from '@/hooks/use-mobile';
 import JobCardCompact from '@/components/JobCardCompact';
 import { jobs } from '@/data/jobs';
@@ -75,7 +75,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Jobs Section (Updated with Testimonials Carousel Style and CarouselDots) */}
+      {/* Featured Jobs Section (Adjusted for Larger Cards) */}
       <section className="py-12 bg-background">
         <div className="container mx-auto px-6">
           <SectionHeading
@@ -87,18 +87,18 @@ const Index = () => {
           <div className="mt-8">
             <Carousel
               opts={{
-                align: "center", // Match Testimonials carousel
+                align: "center",
                 loop: true,
               }}
               className="w-full"
             >
               <CarouselContent>
                 {featuredJobs.map((job) => (
-                  <CarouselItem key={job.id} className={isMobile ? "basis-[90%]" : "md:basis-1/2"}> {/* Match Testimonials basis */}
-                    <div className="p-1">
+                  <CarouselItem key={job.id} className={isMobile ? "basis-[90%]" : "md:basis-1/3 lg:basis-1/4"}> {/* Increased size */}
+                    <div className="p-3"> {/* Increased padding from p-1 to p-3 */}
                       <JobCardCompact
                         job={job}
-                        className="h-full backdrop-blur-xl border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300 shadow-lg"
+                        className="h-full backdrop-blur-xl border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300 shadow-md" {/* Added shadow-md */}
                       />
                     </div>
                   </CarouselItem>
@@ -106,7 +106,7 @@ const Index = () => {
               </CarouselContent>
               <CarouselPrevious className={isMobile ? "left-2" : "-left-12"} />
               <CarouselNext className={isMobile ? "right-2" : "-right-12"} />
-              <CarouselDots className="mt-4" /> {/* Added CarouselDots */}
+              <CarouselDots className="mt-4" />
             </Carousel>
           </div>
 
@@ -209,7 +209,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Testimonials Section (Updated with CarouselDots) */}
+      {/* Testimonials Section (Original Design with CarouselDots) */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
           <SectionHeading
@@ -244,7 +244,7 @@ const Index = () => {
               </CarouselContent>
               <CarouselPrevious className={isMobile ? "left-2" : "-left-12"} />
               <CarouselNext className={isMobile ? "right-2" : "-right-12"} />
-              <CarouselDots className="mt-4" /> {/* Added CarouselDots */}
+              <CarouselDots className="mt-4" />
             </Carousel>
           </div>
         </div>
