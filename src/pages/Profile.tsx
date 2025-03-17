@@ -79,7 +79,7 @@ const Profile = () => {
           <p className="text-muted-foreground">Manage your personal information and account settings</p>
           <Button 
             variant="outline" 
-            onClick={() => navigate('/user-preferences')}
+            onClick={() => navigate('/preferences')}
             className="flex items-center gap-2"
           >
             <Settings className="h-4 w-4" />

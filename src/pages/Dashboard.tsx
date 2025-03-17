@@ -101,22 +101,16 @@ const Dashboard = () => {
               {/* Welcome Banner */}
               <Card className="bg-primary text-primary-foreground mb-6 overflow-hidden rounded-xl border-0 shadow-lg">
                 <CardContent className="p-6">
-                  <div className="flex flex-col gap-4">
-                    <h2 className="text-2xl font-bold">Welcome back, {user.firstName}</h2>
-                    <p className="text-base opacity-90">
-                      Here's what's happening with your job search today
-                    </p>
-                    {isOnboardingComplete ? (
-                      <Button className="group w-full sm:w-auto bg-white text-primary hover:bg-white/90" onClick={() => navigate('/jobs')}>
-                        Find Jobs
-                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      </Button>
-                    ) : (
-                      <Button className="group w-full sm:w-auto bg-white text-primary hover:bg-white/90" onClick={() => navigate('/user-preferences')}>
-                        Complete your profile
-                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      </Button>
-                    )}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <h2 className="text-2xl font-bold">Welcome back, {user.firstName}</h2>
+                      <p className="text-base opacity-90">
+                        Here's what's happening with your job search today
+                      </p>
+                    </div>
+                    <Button className="group w-full sm:w-auto bg-white text-primary hover:bg-white/90 rounded-lg" onClick={() => navigate('/jobs')}>
+                      Find Jobs <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -323,7 +317,7 @@ const Dashboard = () => {
               </Card>
               
               {/* Profile Summary - Only on Desktop */}
-              <motion.div className="hidden md:block">
+              {/* <motion.div className="hidden md:block">
                 <Card className="backdrop-blur-xl border-primary/20 shadow-lg mb-6 hover:border-primary/40 transition-all duration-300 rounded-xl">
                   <CardHeader>
                     <CardTitle>Profile Summary</CardTitle>
@@ -353,7 +347,7 @@ const Dashboard = () => {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </motion.div> */}
               
               {/* Recent Activities */}
               <Card className="backdrop-blur-xl border-primary/20 shadow-lg mt-6 hover:border-primary/40 transition-all duration-300 rounded-xl">
