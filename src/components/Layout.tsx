@@ -26,12 +26,12 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="fixed bottom-6 right-6 z-50 md:bottom-6">
+      <div className="fixed bottom-6 right-6 z-50 md:bottom-6 mb-16 md:mb-0">
         <DarkModeToggle />
       </div>
       <Navbar />
       {isAuthenticated && isMobile && <MobileProfileBar />}
-      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-24' : 'pt-14'}`}>
+      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-20' : 'pt-12'}`}>
         {children}
       </main>
       {!hideFooter && <Footer />}

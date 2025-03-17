@@ -1,19 +1,37 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart, Rocket, Clock, MapPin, Building } from 'lucide-react';
+import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart, Rocket, Clock, MapPin, Building, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import JobCardCompact from '@/components/JobCardCompact';
 import { toast } from "sonner";
 import { jobs } from '@/data/jobs';
 import { Badge } from '@/components/ui/badge';
+import { motion } from 'framer-motion';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 const Dashboard = () => {
   const { user, isAuthenticated, saveJob, removeJob } = useAuthStore();
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const jobsPerPage = 3;
+
+  // Mock data for recent activities
+  const recentActivities = [
+    { id: '1', type: 'application', company: 'Tech Solutions Inc.', position: 'Frontend Developer', date: '2023-06-15', status: 'interview' },
+    { id: '2', type: 'saved', company: 'Global Systems', position: 'UX Designer', date: '2023-06-14', status: 'applied' },
+    { id: '3', type: 'viewed', company: 'Creative Labs', position: 'Product Manager', date: '2023-06-12', status: 'rejected' },
+    { id: '4', type: 'application', company: 'Digital Innovations', position: 'AI Engineer', date: '2023-06-10', status: 'applied' },
+  ];
+
+  // Job alerts
+  const jobAlerts = [
+    { id: '1', query: 'Frontend Developer', location: 'Remote', frequency: 'Daily' },
+    { id: '2', query: 'React Developer', location: 'New York', frequency: 'Weekly' },
+  ];
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -24,11 +42,18 @@ const Dashboard = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Recommended jobs - use actual job data from our jobs array
-  const recommendedJobs = [
-    jobs[0], // First job from our jobs array
-    jobs[3]  // Fourth job from our jobs array
-  ];
+  // Featured and recommended jobs - use actual job data from our jobs array
+  const featuredJobs = jobs.filter(job => job.featured).slice(0, 2);
+  const recommendedJobs = jobs.filter(job => !job.featured).slice(0, 5);
+  
+  // Combine and paginate
+  const allDisplayedJobs = [...featuredJobs, ...recommendedJobs];
+  const totalPages = Math.ceil(allDisplayedJobs.length / jobsPerPage);
+  
+  // Get current jobs for pagination
+  const indexOfLastJob = currentPage * jobsPerPage;
+  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
+  const currentJobs = allDisplayedJobs.slice(indexOfFirstJob, indexOfLastJob);
 
   const handleBookmarkToggle = (jobId: string) => {
     const job = jobs.find(j => j.id === jobId);
@@ -49,14 +74,38 @@ const Dashboard = () => {
     return null; // Will be redirected by useEffect
   }
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   return (
     <Layout>
       <div className="min-h-[calc(100vh-160px)] bg-gradient-mesh">
-        <div className="container mx-auto px-4 py-6 md:px-6 md:py-8">
-          <div className="grid gap-6 md:grid-cols-12">
-            <div className="md:col-span-8">
+        <div className="container mx-auto px-4 py-3 md:px-6 md:py-6">
+          <motion.div 
+            className="grid gap-6 md:grid-cols-12"
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+          >
+            <motion.div 
+              className="md:col-span-8"
+              variants={itemVariants}
+            >
               {/* Welcome Banner */}
-              <Card className="glass backdrop-blur-xl border-primary/20 shadow-lg mb-6 overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10">
+              <Card className="glass backdrop-blur-xl border-primary/20 shadow-lg mb-4 overflow-hidden bg-gradient-to-br from-primary/5 to-primary/10 hover:border-primary/40 transition-all duration-300">
                 <CardContent className="p-6">
                   <div className="flex flex-col gap-4">
                     <h2 className="text-2xl font-bold">Welcome back, {user.firstName}</h2>
@@ -72,7 +121,10 @@ const Dashboard = () => {
               </Card>
               
               {/* Stats Cards - 2x2 on mobile, 4-column on desktop */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <motion.div 
+                className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
+                variants={containerVariants}
+              >
                 <MobileStatCard 
                   icon={<Briefcase className="h-5 w-5 text-blue-500" />}
                   value={user.applications.length}
@@ -87,7 +139,7 @@ const Dashboard = () => {
                 />
                 <MobileStatCard 
                   icon={<Bell className="h-5 w-5 text-yellow-500" />}
-                  value={user.alerts.length}
+                  value={jobAlerts.length}
                   label="Job Alerts"
                   onClick={() => navigate('/progress')}
                 />
@@ -97,7 +149,7 @@ const Dashboard = () => {
                   label="Resumes"
                   onClick={() => navigate('/resume-builder')}
                 />
-              </div>
+              </motion.div>
               
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">Recommended for you</h2>
@@ -106,115 +158,140 @@ const Dashboard = () => {
                 </Button>
               </div>
               
-              <div className="grid gap-4">
-                {recommendedJobs.map(job => (
-                  <Card 
-                    key={job.id} 
-                    className="transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border border-border/60"
+              <motion.div 
+                className="grid gap-4"
+                variants={containerVariants}
+              >
+                {currentJobs.map((job, index) => (
+                  <motion.div
+                    key={job.id}
+                    variants={itemVariants}
+                    initial="hidden"
+                    animate="show"
+                    transition={{ delay: index * 0.1 }}
                   >
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start">
-                          <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center mr-4 text-primary font-semibold text-xl">
-                            {job.logo ? (
-                              <img src={job.logo} alt={job.company} className="w-full h-full object-contain rounded-lg" />
-                            ) : (
-                              job.company.substring(0, 2)
-                            )}
-                          </div>
-                          <div className="pt-1">
-                            <h3 className="font-semibold text-lg mb-1" onClick={() => navigate(`/jobs/${job.id}`)} style={{ cursor: 'pointer' }}>{job.title}</h3>
-                            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                              <div className="flex items-center">
-                                <Building className="h-3.5 w-3.5 mr-1" />
-                                {job.company}
-                              </div>
-                              <div className="flex items-center">
-                                <MapPin className="h-3.5 w-3.5 mr-1" />
-                                {job.location}
-                              </div>
-                              <div className="flex items-center">
-                                <Clock className="h-3.5 w-3.5 mr-1" />
-                                {job.postedAt}
+                    <Card 
+                      className={`transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border ${job.featured ? 'border-primary/40 bg-primary/[0.03] shadow-md' : 'border-border/60'}`}
+                      glass={job.featured}
+                      hover
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start">
+                            <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center mr-4 text-primary font-semibold text-xl">
+                              {job.logo ? (
+                                <img src={job.logo} alt={job.company} className="w-full h-full object-contain rounded-lg" />
+                              ) : (
+                                job.company.substring(0, 2)
+                              )}
+                            </div>
+                            <div className="pt-1">
+                              <h3 className="font-semibold text-lg mb-1" onClick={() => navigate(`/jobs/${job.id}`)} style={{ cursor: 'pointer' }}>{job.title}</h3>
+                              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                                <div className="flex items-center">
+                                  <Building className="h-3.5 w-3.5 mr-1" />
+                                  {job.company}
+                                </div>
+                                <div className="flex items-center">
+                                  <MapPin className="h-3.5 w-3.5 mr-1" />
+                                  {job.location}
+                                </div>
+                                <div className="flex items-center">
+                                  <Clock className="h-3.5 w-3.5 mr-1" />
+                                  {job.postedAt}
+                                </div>
                               </div>
                             </div>
                           </div>
+                          <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                            <BookmarkCheck 
+                              className={`h-5 w-5 cursor-pointer ${user.savedJobs.some(j => j.id === job.id) ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
+                              onClick={() => handleBookmarkToggle(job.id)}
+                            />
+                            <Badge variant="outline" className="mt-2">
+                              {job.type}
+                            </Badge>
+                            {job.featured && (
+                              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/10 mt-1 animate-pulse-soft">
+                                Featured
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex-shrink-0 flex flex-col items-end gap-2">
-                          <BookmarkCheck 
-                            className={`h-5 w-5 cursor-pointer ${user.savedJobs.some(j => j.id === job.id) ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
-                            onClick={() => handleBookmarkToggle(job.id)}
-                          />
-                          <Badge variant="outline" className="mt-2">
-                            {job.type}
-                          </Badge>
+                        <div className="mt-4">
+                          <Button 
+                            onClick={() => navigate(`/jobs/${job.id}`)} 
+                            variant="outline"
+                            className="mr-2"
+                          >
+                            View Details
+                          </Button>
+                          <Button 
+                            onClick={() => navigate(`/apply/${job.id}`)}
+                          >
+                            Apply Now
+                          </Button>
                         </div>
-                      </div>
-                      <div className="mt-4">
-                        <Button 
-                          onClick={() => navigate(`/jobs/${job.id}`)} 
-                          variant="outline"
-                          className="mr-2"
-                        >
-                          View Details
-                        </Button>
-                        <Button 
-                          onClick={() => navigate(`/apply/${job.id}`)}
-                        >
-                          Apply Now
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
               
-              {/* Recent Activity */}
-              <Card className="backdrop-blur-xl border-primary/20 shadow-lg mt-6">
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {user.applications.slice(0, 3).map(app => (
-                    <div key={app.id} className="flex items-start pb-4 border-b border-border/50 last:border-0 last:pb-0">
-                      <div className="w-2 h-2 mt-2 rounded-full bg-primary flex-shrink-0"></div>
-                      <div className="ml-3">
-                        <div className="font-medium">{app.position}</div>
-                        <div className="text-sm text-muted-foreground">{app.company}</div>
-                        <div className="text-xs text-muted-foreground/70 mt-1">
-                          {new Date(app.updatedAt).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <div className="ml-auto">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          app.status === 'interview' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                          app.status === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
-                          'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-                        }`}>
-                          {app.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  <Button 
-                    onClick={() => navigate('/progress')} 
-                    variant="ghost" 
-                    className="w-full text-primary justify-center mt-2 touch-button"
-                  >
-                    View all activity
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+              {totalPages > 1 && (
+                <Pagination className="mt-4">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(prev => Math.max(prev - 1, 1));
+                        }} 
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }).map((_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink 
+                          href="#" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(i + 1);
+                          }}
+                          isActive={currentPage === i + 1}
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                        }}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </motion.div>
             
             {/* Right Sidebar - Full Width on Mobile */}
-            <div className="md:col-span-4">
+            <motion.div 
+              className="md:col-span-4"
+              variants={itemVariants}
+            >
               {/* Premium Upgrade - Enhanced Look */}
-              <Card className="overflow-hidden border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent mb-6">
+              <Card className="overflow-hidden border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent mb-6 hover:border-primary/40 transition-all duration-300">
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
-                    <Sparkles className="h-5 w-5 text-primary mr-2" />
+                    <Sparkles className="h-5 w-5 text-primary mr-2 animate-pulse" />
                     <h3 className="font-bold">Upgrade to Premium</h3>
                   </div>
                   <p className="text-sm text-muted-foreground mb-4">
@@ -245,8 +322,8 @@ const Dashboard = () => {
               </Card>
               
               {/* Profile Summary - Only on Desktop */}
-              <div className="hidden md:block">
-                <Card className="backdrop-blur-xl border-primary/20 shadow-lg mb-6">
+              <motion.div className="hidden md:block">
+                <Card className="backdrop-blur-xl border-primary/20 shadow-lg mb-6 hover:border-primary/40 transition-all duration-300">
                   <CardHeader>
                     <CardTitle>Profile Summary</CardTitle>
                   </CardHeader>
@@ -275,9 +352,92 @@ const Dashboard = () => {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-            </div>
-          </div>
+              </motion.div>
+              
+              {/* Recent Activities */}
+              <Card className="backdrop-blur-xl border-primary/20 shadow-lg mt-6 hover:border-primary/40 transition-all duration-300">
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {recentActivities.slice(0, 4).map(activity => (
+                    <motion.div 
+                      key={activity.id} 
+                      className="flex items-start pb-4 border-b border-border/50 last:border-0 last:pb-0"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="w-2 h-2 mt-2 rounded-full bg-primary flex-shrink-0"></div>
+                      <div className="ml-3">
+                        <div className="font-medium">{activity.position}</div>
+                        <div className="text-sm text-muted-foreground">{activity.company}</div>
+                        <div className="text-xs text-muted-foreground/70 mt-1">
+                          {new Date(activity.date).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="ml-auto">
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          activity.status === 'interview' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                          activity.status === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                          'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                        }`}>
+                          {activity.status}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                  
+                  <Button 
+                    onClick={() => navigate('/progress')} 
+                    variant="ghost" 
+                    className="w-full text-primary justify-center mt-2 touch-button"
+                  >
+                    View all activity
+                  </Button>
+                </CardContent>
+              </Card>
+              
+              {/* Job Alerts */}
+              <Card className="backdrop-blur-xl border-primary/20 shadow-lg mt-6 hover:border-primary/40 transition-all duration-300">
+                <CardHeader>
+                  <CardTitle>Job Alerts</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {jobAlerts.map(alert => (
+                    <motion.div 
+                      key={alert.id} 
+                      className="p-3 border border-border/40 rounded-lg hover:bg-accent/50 transition-colors"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-medium">{alert.query}</div>
+                          <div className="text-sm text-muted-foreground flex items-center mt-1">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {alert.location}
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="bg-primary/5">
+                          {alert.frequency}
+                        </Badge>
+                      </div>
+                    </motion.div>
+                  ))}
+                  
+                  <Button 
+                    onClick={() => navigate('/jobs')} 
+                    variant="outline" 
+                    className="w-full justify-center mt-2 touch-button"
+                  >
+                    Manage alerts
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </Layout>
@@ -297,20 +457,26 @@ const MobileStatCard = ({
   onClick: () => void;
 }) => {
   return (
-    <Card 
-      className="backdrop-blur-xl border-primary/20 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer group"
-      onClick={onClick}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5, transition: { duration: 0.2 } }}
     >
-      <CardContent className="p-4 flex items-center">
-        <div className="mr-3 p-2 rounded-full bg-background/50 transition-all group-hover:scale-110">
-          {icon}
-        </div>
-        <div>
-          <div className="text-2xl font-bold">{value}</div>
-          <div className="text-xs text-muted-foreground">{label}</div>
-        </div>
-      </CardContent>
-    </Card>
+      <Card 
+        className="backdrop-blur-xl border-primary/20 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer group hover:border-primary/40"
+        onClick={onClick}
+      >
+        <CardContent className="p-4 flex items-center">
+          <div className="mr-3 p-2 rounded-full bg-background/50 transition-all group-hover:scale-110">
+            {icon}
+          </div>
+          <div>
+            <div className="text-2xl font-bold">{value}</div>
+            <div className="text-xs text-muted-foreground">{label}</div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 

@@ -21,7 +21,7 @@ const DarkModeToggle = () => {
       setIsDarkMode(false);
       document.documentElement.classList.remove('dark');
     }
-  }, [location.pathname]); // Re-run when pathname changes to ensure it works on all pages
+  }, [location.pathname]); 
 
   const toggleDarkMode = () => {
     if (isDarkMode) {
@@ -40,13 +40,13 @@ const DarkModeToggle = () => {
       variant="glass" 
       size="icon" 
       onClick={toggleDarkMode}
-      className="rounded-full shadow-lg backdrop-blur-md"
+      className="rounded-full shadow-lg backdrop-blur-md h-12 w-12"
       aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
     >
       {isDarkMode ? (
-        <Sun className="h-5 w-5 animate-in" />
+        <Sun className="h-6 w-6 animate-in" />
       ) : (
-        <Moon className="h-5 w-5 animate-in" />
+        <Moon className="h-6 w-6 animate-in" />
       )}
     </Button>
   );

@@ -21,12 +21,13 @@ const MobileProfileBar = () => {
   return (
     <div className={cn(
       "fixed top-0 left-0 right-0 z-40 w-full md:hidden",
-      "transition-all duration-300 backdrop-blur-md bg-background/90 border-b border-border/40",
+      "transition-all duration-300 backdrop-blur-lg bg-background/80 border-b border-border/40 shadow-sm",
+      "glassmorphism animate-in",
       scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
     )}>
       <div className="px-4 py-2">
         <Link to="/profile" className="flex items-center space-x-3 py-2">
-          <Avatar className="h-8 w-8 border-2 border-primary/20">
+          <Avatar className="h-8 w-8 border-2 border-primary/20 animate-pulse-soft">
             <AvatarImage src={user.avatarUrl || undefined} />
             <AvatarFallback className="bg-primary/10 text-primary">
               {initials}
