@@ -1,4 +1,5 @@
-import { ArrowRight, Briefcase, LightbulbIcon, Rocket, Sparkles, Target, ChevronRight } from 'lucide-react';
+
+import { ArrowRight, Briefcase, LightbulbIcon, Rocket, Sparkles, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SectionHeading } from '@/components/ui/section-heading';
@@ -6,7 +7,7 @@ import FeatureCard from '@/components/FeatureCard';
 import TestimonialCard from '@/components/TestimonialCard';
 import { testimonials } from '@/data/testimonials';
 import Layout from '@/components/Layout';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, CarouselDots } from '@/components/ui/carousel';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useIsMobile } from '@/hooks/use-mobile';
 import JobCardCompact from '@/components/JobCardCompact';
 import { jobs } from '@/data/jobs';
@@ -14,68 +15,59 @@ import { jobs } from '@/data/jobs';
 const Index = () => {
   const isMobile = useIsMobile();
   const featuredJobs = jobs.slice(0, 5);
-
+  
   return (
     <Layout>
-      {/* Hero Section (Updated to Match Screenshot) */}
+      {/* Hero Section */}
       <section className="pt-20 pb-16 md:pt-32 md:pb-28 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent"></div>
         <div className="container mx-auto px-6 relative">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center px-3 py-1 mb-6 text-sm rounded-full bg-primary/10 text-primary animate-fade-in">
               <Sparkles className="w-4 h-4 mr-2" />
-              <span>AI-Powered Job Search</span>
+              <span>AI-Powered Job Search Platform</span>
             </div>
-
+            
             <h1 className="heading-xl mb-6 animate-fade-in">
-              Discover Your Dream Job with AI
+              Find Your Dream Job with the Power of AI
             </h1>
-
+            
             <p className="paragraph text-lg mb-8 max-w-xl mx-auto animate-fade-in">
-              SleekJobs uses AI to match you with perfect jobs, optimize your resume, and streamline applications.
+              SleekJobs uses advanced AI to find perfect job matches, optimize your resume, and automate applications so you can focus on landing interviews.
             </p>
-
+            
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in">
               <Button asChild size="lg" className="rounded-full touch-button">
-                <Link to="/signup">Start for Free</Link>
+                <Link to="/signup">Get Started for Free</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="rounded-full group touch-button">
                 <Link to="/jobs" className="flex items-center">
-                  Browse Jobs
+                  Explore Jobs
                   <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
             </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto mt-16 animate-fade-in">
-              <div className="text-center p-4 rounded-xl border-2 border-primary/20 hover:border-primary/40 transition-all duration-300">
-                <div className="flex justify-center mb-2">
-                  <Briefcase className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-                </div>
-                <p className="text-3xl font-bold text-primary mb-1">20,000+</p>
-                <p className="text-muted-foreground">Available Jobs</p>
-              </div>
-              <div className="text-center p-4 rounded-xl border-2 border-primary/20 hover:border-primary/40 transition-all duration-300">
-                <div className="flex justify-center mb-2">
-                  <Target className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-                </div>
-                <p className="text-3xl font-bold text-primary mb-1">93%</p>
-                <p className="text-muted-foreground">Interview Success</p>
-              </div>
-              <div className="text-center p-4 rounded-xl border-2 border-primary/20 hover:border-primary/40 transition-all duration-300">
-                <div className="flex justify-center mb-2">
-                  <Rocket className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-                </div>
-                <p className="text-3xl font-bold text-primary mb-1">15 Days</p>
-                <p className="text-muted-foreground">Avg. Hire Time</p>
-              </div>
+          </div>
+          
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto mt-16 animate-fade-in">
+            <div className="text-center p-4">
+              <p className="text-3xl font-bold text-primary mb-1">20,000+</p>
+              <p className="text-muted-foreground">Available Jobs</p>
+            </div>
+            <div className="text-center p-4">
+              <p className="text-3xl font-bold text-primary mb-1">93%</p>
+              <p className="text-muted-foreground">Interview Success</p>
+            </div>
+            <div className="text-center p-4">
+              <p className="text-3xl font-bold text-primary mb-1">15 Days</p>
+              <p className="text-muted-foreground">Average Hiring Time</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Jobs Section (Adjusted for Larger Cards) */}
+      {/* Featured Jobs Section */}
       <section className="py-12 bg-background">
         <div className="container mx-auto px-6">
           <SectionHeading
@@ -83,33 +75,29 @@ const Index = () => {
             subtitle="Explore our latest opportunities handpicked for you"
             centered
           />
-
+          
           <div className="mt-8">
             <Carousel
               opts={{
-                align: "center",
+                align: "start",
                 loop: true,
               }}
               className="w-full"
             >
-              <CarouselContent>
+              <CarouselContent className="-ml-2 md:-ml-4">
                 {featuredJobs.map((job) => (
-                  <CarouselItem key={job.id} className={isMobile ? "basis-[90%]" : "md:basis-1/3 lg:basis-1/4"}> {/* Increased size */}
-                    <div className="p-3"> {/* Increased padding from p-1 to p-3 */}
-                      <JobCardCompact
-                        job={job}
-                        className="h-full backdrop-blur-xl border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300 shadow-md" {/* Added shadow-md */}
-                      />
+                  <CarouselItem key={job.id} className={isMobile ? "pl-2 basis-[90%]" : "pl-4 md:basis-1/2 lg:basis-1/3"}>
+                    <div className="p-1">
+                      <JobCardCompact job={job} className="h-full" />
                     </div>
                   </CarouselItem>
                 ))}
               </CarouselContent>
               <CarouselPrevious className={isMobile ? "left-2" : "-left-12"} />
               <CarouselNext className={isMobile ? "right-2" : "-right-12"} />
-              <CarouselDots className="mt-4" />
             </Carousel>
           </div>
-
+          
           <div className="mt-8 text-center">
             <Button asChild size="lg" className="rounded-full touch-button">
               <Link to="/jobs">
@@ -121,7 +109,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features Section (Original Design) */}
+      {/* Features Section */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
           <SectionHeading
@@ -129,7 +117,7 @@ const Index = () => {
             subtitle="Our AI-powered platform streamlines every aspect of your job hunt, from finding the right opportunities to landing interviews."
             centered
           />
-
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <FeatureCard
               icon={<Target className="w-6 h-6" />}
@@ -162,7 +150,7 @@ const Index = () => {
               description="Never lose track of your applications with our automated tracking and follow-up reminders."
             />
           </div>
-
+          
           <div className="mt-10 text-center">
             <Button asChild size="lg" className="rounded-full touch-button">
               <Link to="/resume-builder">
@@ -174,7 +162,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* How It Works Section (Original Design) */}
+      {/* How It Works Section */}
       <section className="py-20 bg-secondary">
         <div className="container mx-auto px-6">
           <SectionHeading
@@ -182,7 +170,7 @@ const Index = () => {
             subtitle="Our streamlined process helps you land your dream job faster than traditional methods."
             centered
           />
-
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="text-center">
               <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-primary font-bold">1</div>
@@ -200,7 +188,7 @@ const Index = () => {
               <p className="text-muted-foreground">Apply with optimized materials or use our auto-apply feature to maximize your chances.</p>
             </div>
           </div>
-
+          
           <div className="mt-12 text-center">
             <Button asChild size="lg" className="rounded-full touch-button">
               <Link to="/signup">Get Started</Link>
@@ -209,7 +197,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Testimonials Section (Original Design with CarouselDots) */}
+      {/* Testimonials Section */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
           <SectionHeading
@@ -217,7 +205,7 @@ const Index = () => {
             subtitle="Hear from job seekers who have transformed their careers with SleekJobs."
             centered
           />
-
+          
           <div className="mt-8">
             <Carousel
               opts={{
@@ -236,7 +224,7 @@ const Index = () => {
                         role={testimonial.role}
                         company={testimonial.company}
                         avatar={testimonial.avatar}
-                        className="h-full backdrop-blur-xl border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300 shadow-lg"
+                        className="h-full"
                       />
                     </div>
                   </CarouselItem>
@@ -244,13 +232,12 @@ const Index = () => {
               </CarouselContent>
               <CarouselPrevious className={isMobile ? "left-2" : "-left-12"} />
               <CarouselNext className={isMobile ? "right-2" : "-right-12"} />
-              <CarouselDots className="mt-4" />
             </Carousel>
           </div>
         </div>
       </section>
 
-      {/* CTA Section (Original Design) */}
+      {/* CTA Section */}
       <section className="py-20 bg-primary text-white">
         <div className="container mx-auto px-6 text-center">
           <h2 className="heading-lg mb-6 max-w-2xl mx-auto">Ready to Transform Your Job Search?</h2>
