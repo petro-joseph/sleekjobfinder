@@ -23,6 +23,7 @@ const Dashboard = () => {
     { id: '1', type: 'application', company: 'TechCorp Inc.', position: 'Senior Frontend Developer', date: '2023-06-05', status: 'interview' },
     { id: '2', type: 'application', company: 'InnovateSoft', position: 'UX Designer', date: '2023-06-12', status: 'pending' },
     { id: '3', type: 'application', company: 'Global Systems', position: 'Product Manager', date: '2023-05-25', status: 'rejected' },
+    { id: '4', type: 'application', company: 'Global Systems', position: 'Product Manager', date: '2023-05-25', status: 'rejected' },
   ];
 
   useEffect(() => {
@@ -98,7 +99,7 @@ const Dashboard = () => {
               className="md:col-span-8"
               variants={itemVariants}
             >
-              
+
               {/* Welcome Banner */}
               <Card className="backdrop-blur-xl border-2 border-primary/20 shadow-lg mb-6 overflow-hidden rounded-xl hover:border-primary/40 transition-all duration-300">
                 <CardContent className="p-6">
