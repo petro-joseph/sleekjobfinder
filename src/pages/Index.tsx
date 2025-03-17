@@ -35,14 +35,14 @@ const Index = () => {
 
   return (
     <Layout>
-      {/* Hero Section */}
+      {/* Hero Section (Updated to Match Screenshot) */}
       <motion.section
-        className="pt-16 pb-12 md:pt-24 md:pb-20 relative overflow-hidden bg-background dark:bg-gray-900"
+        className="pt-16 pb-12 md:pt-24 md:pb-20 relative overflow-hidden bg-gray-900"
         variants={sectionVariants}
         initial="hidden"
         animate="show"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-background dark:via-gray-900 to-background dark:to-gray-900"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-gray-900 to-gray-900"></div>
         <div className="container mx-auto px-4 md:px-6 relative">
           <div className="max-w-3xl mx-auto text-center">
             <motion.div
@@ -56,7 +56,7 @@ const Index = () => {
             </motion.div>
 
             <motion.h1
-              className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-foreground leading-tight"
+              className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-white leading-tight"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
@@ -65,7 +65,7 @@ const Index = () => {
             </motion.h1>
 
             <motion.p
-              className="text-base md:text-lg mb-6 md:mb-8 max-w-xl mx-auto text-muted-foreground leading-relaxed"
+              className="text-base md:text-lg mb-6 md:mb-8 max-w-xl mx-auto text-gray-300 leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
@@ -82,7 +82,7 @@ const Index = () => {
               <Button asChild size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 touch-button w-full sm:w-auto">
                 <Link to="/signup">Start for Free</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-full group text-foreground border-primary/20 hover:bg-primary/10 touch-button w-full sm:w-auto">
+              <Button asChild size="lg" variant="outline" className="rounded-full group text-white border-primary/20 hover:bg-primary/10 touch-button w-full sm:w-auto">
                 <Link to="/jobs" className="flex items-center">
                   Browse Jobs
                   <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -110,7 +110,7 @@ const Index = () => {
                 >
                   <div className="flex justify-center mb-1 md:mb-2">{stat.icon}</div>
                   <p className="text-lg md:text-2xl font-bold text-primary mb-1">{stat.value}</p>
-                  <p className="text-xs md:text-sm text-muted-foreground">{stat.label}</p>
+                  <p className="text-xs md:text-sm text-gray-300">{stat.label}</p>
                 </motion.div>
               ))}
             </motion.div>
@@ -118,32 +118,32 @@ const Index = () => {
         </div>
       </motion.section>
 
-      {/* Featured Jobs Section */}
+      {/* Featured Jobs Section (Updated to Match Testimonials Carousel) */}
       <motion.section
-        className="py-10 bg-background dark:bg-gray-900"
+        className="py-12 bg-gray-900"
         variants={sectionVariants}
         initial="hidden"
         animate="show"
       >
-        <div className="container mx-auto px-4 md:px-6">
+        <div className="container mx-auto px-6">
           <SectionHeading
             title="Featured Jobs"
-            subtitle="Discover opportunities tailored for you"
+            subtitle="Explore our latest opportunities handpicked for you"
             centered
-            className="text-foreground"
+            className="text-white"
           />
 
-          <motion.div className="mt-6" variants={sectionVariants}>
+          <motion.div className="mt-8" variants={sectionVariants}>
             <Carousel
               opts={{
-                align: "start",
+                align: "center", // Match Testimonials carousel
                 loop: true,
               }}
               className="w-full"
             >
-              <CarouselContent className="-ml-2 md:-ml-4">
+              <CarouselContent>
                 {featuredJobs.map((job) => (
-                  <CarouselItem key={job.id} className={isMobile ? "pl-2 basis-[85%]" : "pl-4 md:basis-1/2 lg:basis-1/3"}>
+                  <CarouselItem key={job.id} className={isMobile ? "basis-[90%]" : "md:basis-1/2"}> {/* Match Testimonials basis */}
                     <motion.div
                       className="p-1"
                       whileHover={{ scale: 1.02 }}
@@ -151,25 +151,25 @@ const Index = () => {
                     >
                       <JobCardCompact
                         job={job}
-                        className="h-full border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300"
+                        className="h-full backdrop-blur-xl border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300 text-white shadow-lg"
                       />
                     </motion.div>
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className={isMobile ? "left-1" : "-left-12"} />
-              <CarouselNext className={isMobile ? "right-1" : "-right-12"} />
-              <CarouselDots className="mt-4" />
+              <CarouselPrevious className={isMobile ? "left-2" : "-left-12"} />
+              <CarouselNext className={isMobile ? "right-2" : "-right-12"} />
+              <CarouselDots className="mt-4" /> {/* Keep CarouselDots as liked */}
             </Carousel>
           </motion.div>
 
           <motion.div
-            className="mt-6 text-center"
+            className="mt-8 text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <Button asChild size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 touch-button w-full sm:w-auto">
+            <Button asChild size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 touch-button">
               <Link to="/jobs">
                 View All Jobs
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -179,53 +179,53 @@ const Index = () => {
         </div>
       </motion.section>
 
-      {/* Features Section */}
+      {/* Features Section (Original Design) */}
       <motion.section
-        className="py-10 bg-background dark:bg-gray-900"
+        className="py-20 bg-gray-900"
         variants={sectionVariants}
         initial="hidden"
         animate="show"
       >
-        <div className="container mx-auto px-4 md:px-6">
+        <div className="container mx-auto px-6">
           <SectionHeading
-            title="Supercharge Your Job Hunt"
-            subtitle="Leverage AI to find jobs, optimize resumes, and land interviews faster."
+            title="Revolutionize Your Job Search"
+            subtitle="Our AI-powered platform streamlines every aspect of your job hunt, from finding the right opportunities to landing interviews."
             centered
-            className="text-foreground"
+            className="text-white"
           />
 
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mt-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             variants={sectionVariants}
           >
             {[
-              { icon: <Target className="w-5 h-5 md:w-6 md:h-6" />, title: "Smart Job Matching", description: "AI finds jobs that align with your skills and goals." },
-              { icon: <Briefcase className="w-5 h-5 md:w-6 md:h-6" />, title: "AI Resume Tailoring", description: "Optimize your resume for ATS and hiring managers." },
-              { icon: <Rocket className="w-5 h-5 md:w-6 md:h-6" />, title: "One-Click Apply", description: "Apply to jobs effortlessly with a single click." },
-              { icon: <LightbulbIcon className="w-5 h-5 md:w-6 md:h-6" />, title: "Interview Prep", description: "Personalized tips and practice for your interviews." },
-              { icon: <Sparkles className="w-5 h-5 md:w-6 md:h-6" />, title: "Career Insights", description: "Access salary data, reviews, and industry trends." },
-              { icon: <ArrowRight className="w-5 h-5 md:w-6 md:h-6" />, title: "Application Tracking", description: "Track applications with automated reminders." },
+              { icon: <Target className="w-6 h-6" />, title: "Smart Job Matching", description: "Our AI analyzes your skills and preferences to find jobs that are the perfect fit for your career goals." },
+              { icon: <Briefcase className="w-6 h-6" />, title: "AI Resume Tailoring", description: "Automatically optimize your resume for each job application to pass ATS systems and impress hiring managers." },
+              { icon: <Rocket className="w-6 h-6" />, title: "One-Click Apply", description: "Apply to multiple jobs with a single click, saving you hours of repetitive form filling and application tracking." },
+              { icon: <LightbulbIcon className="w-6 h-6" />, title: "Interview Preparation", description: "Get personalized interview tips and practice questions based on the specific job and company." },
+              { icon: <Sparkles className="w-6 h-6" />, title: "Career Insights", description: "Access salary data, company reviews, and industry trends to make informed career decisions." },
+              { icon: <ArrowRight className="w-6 h-6" />, title: "Auto Application Tracking", description: "Never lose track of your applications with our automated tracking and follow-up reminders." },
             ].map((feature, index) => (
               <motion.div key={feature.title} variants={cardVariants} whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}>
                 <FeatureCard
                   icon={<div className="p-2 rounded-full bg-gradient-to-br from-primary to-primary/50">{feature.icon}</div>}
                   title={feature.title}
                   description={feature.description}
-                  className="backdrop-blur-xl border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300 text-foreground h-full"
+                  className="backdrop-blur-xl border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300 text-white"
                 />
               </motion.div>
             ))}
           </motion.div>
 
           <motion.div
-            className="mt-6 text-center"
+            className="mt-10 text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <Button asChild size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 touch-button w-full sm:w-auto">
+            <Button asChild size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 touch-button">
               <Link to="/resume-builder">
-                Build Your Resume Now
+                Try Our Resume Builder
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -233,38 +233,38 @@ const Index = () => {
         </div>
       </motion.section>
 
-      {/* How It Works Section */}
+      {/* How It Works Section (Original Design) */}
       <motion.section
-        className="py-10 bg-gradient-to-br from-background dark:from-gray-900 to-background dark:to-gray-800 relative"
+        className="py-20 bg-gradient-to-br from-gray-900 to-gray-800 relative"
         variants={sectionVariants}
         initial="hidden"
         animate="show"
       >
-        <div className="container mx-auto px-4 md:px-6">
+        <div className="container mx-auto px-6">
           <SectionHeading
-            title="How It Works"
-            subtitle="A simple process to get you hired faster."
+            title="How SleekJobs Works"
+            subtitle="Our streamlined process helps you land your dream job faster than traditional methods."
             centered
-            className="text-foreground"
+            className="text-white"
           />
 
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 max-w-4xl mx-auto relative mt-6"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto relative"
             variants={sectionVariants}
           >
             {[
-              { step: "1", title: "Create Profile", description: "Upload or build your resume with AI tools." },
-              { step: "2", title: "Get Matched", description: "AI finds jobs tailored to your skills." },
-              { step: "3", title: "Apply Easily", description: "Use optimized resumes to apply with confidence." },
+              { step: "1", title: "Create Your Profile", description: "Upload your resume or build one from scratch using our AI-powered tools." },
+              { step: "2", title: "Get Matched Jobs", description: "Our AI finds and prioritizes jobs that match your skills, experience, and preferences." },
+              { step: "3", title: "Apply with Confidence", description: "Apply with optimized materials or use our auto-apply feature to maximize your chances." },
             ].map((step, index) => (
               <motion.div
                 key={step.step}
                 className="text-center relative"
                 variants={cardVariants}
               >
-                <div className="bg-primary/10 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-primary font-bold text-sm md:text-base">{step.step}</div>
-                <h3 className="text-lg md:text-xl font-semibold mb-2 text-foreground">{step.title}</h3>
-                <p className="text-sm md:text-base text-muted-foreground">{step.description}</p>
+                <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-primary font-bold">{step.step}</div>
+                <h3 className="text-xl font-semibold mb-2 text-white">{step.title}</h3>
+                <p className="text-muted-foreground">{step.description}</p>
                 {index < 2 && !isMobile && (
                   <ChevronRight className="absolute top-6 -right-4 text-primary/50 hidden md:block" size={24} />
                 )}
@@ -273,34 +273,34 @@ const Index = () => {
           </motion.div>
 
           <motion.div
-            className="mt-6 text-center"
+            className="mt-12 text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <Button asChild size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 touch-button w-full sm:w-auto">
+            <Button asChild size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 touch-button">
               <Link to="/signup">Get Started</Link>
             </Button>
           </motion.div>
         </div>
       </motion.section>
 
-      {/* Testimonials Section */}
+      {/* Testimonials Section (Original Design with Liked Carousel) */}
       <motion.section
-        className="py-10 bg-background dark:bg-gray-900 relative"
+        className="py-20 bg-gray-900 relative"
         variants={sectionVariants}
         initial="hidden"
         animate="show"
       >
-        <div className="container mx-auto px-4 md:px-6">
+        <div className="container mx-auto px-6">
           <SectionHeading
             title="Success Stories"
-            subtitle="See how SleekJobs has transformed careers."
+            subtitle="Hear from job seekers who have transformed their careers with SleekJobs."
             centered
-            className="text-foreground"
+            className="text-white"
           />
 
-          <motion.div className="mt-6" variants={sectionVariants}>
+          <motion.div className="mt-8" variants={sectionVariants}>
             <Carousel
               opts={{
                 align: "center",
@@ -310,7 +310,7 @@ const Index = () => {
             >
               <CarouselContent>
                 {testimonials.map((testimonial) => (
-                  <CarouselItem key={testimonial.id} className={isMobile ? "basis-[85%]" : "md:basis-1/2"}>
+                  <CarouselItem key={testimonial.id} className={isMobile ? "basis-[90%]" : "md:basis-1/2"}>
                     <motion.div
                       className="p-1"
                       whileHover={{ scale: 1.02 }}
@@ -322,55 +322,55 @@ const Index = () => {
                         role={testimonial.role}
                         company={testimonial.company}
                         avatar={testimonial.avatar}
-                        className="h-full backdrop-blur-xl border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300 text-foreground shadow-lg"
+                        className="h-full backdrop-blur-xl border-2 border-primary/20 rounded-xl hover:border-primary/40 transition-all duration-300 text-white shadow-lg"
                       />
                     </motion.div>
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className={isMobile ? "left-1" : "-left-12"} />
-              <CarouselNext className={isMobile ? "right-1" : "-right-12"} />
-              <CarouselDots className="mt-4" />
+              <CarouselPrevious className={isMobile ? "left-2" : "-left-12"} />
+              <CarouselNext className={isMobile ? "right-2" : "-right-12"} />
+              <CarouselDots className="mt-4" /> {/* Liked CarouselDots */}
             </Carousel>
           </motion.div>
         </div>
       </motion.section>
 
-      {/* CTA Section */}
+      {/* CTA Section (Original Design) */}
       <motion.section
-        className="py-12 bg-primary/90 text-foreground relative"
+        className="py-20 bg-gradient-to-br from-primary to-primary/50 text-white relative"
         variants={sectionVariants}
         initial="hidden"
         animate="show"
       >
-        <div className="container mx-auto px-4 md:px-6 text-center">
+        <div className="container mx-auto px-6 text-center">
           <motion.h2
-            className="text-2xl md:text-4xl font-bold mb-4 md:mb-6 max-w-2xl mx-auto leading-tight"
+            className="heading-lg mb-6 max-w-2xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            Start Your Job Search Today
+            Ready to Transform Your Job Search?
           </motion.h2>
           <motion.p
-            className="text-base md:text-lg mb-6 md:mb-8 max-w-xl mx-auto text-muted-foreground leading-relaxed"
+            className="text-white/80 mb-8 max-w-xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            Join thousands who’ve landed their dream jobs with SleekJobs’ AI tools.
+            Join thousands of job seekers who have found their dream jobs faster with SleekJobs.
           </motion.p>
           <motion.div
-            className="flex flex-col sm:flex-row gap-3 justify-center"
+            className="flex flex-col sm:flex-row gap-4 justify-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
           >
-            <Button asChild size="lg" variant="secondary" className="rounded-full bg-white text-primary hover:bg-white/90 touch-button w-full sm:w-auto">
+            <Button asChild size="lg" variant="secondary" className="rounded-full bg-white text-primary hover:bg-white/90 touch-button animate-pulse">
               <Link to="/signup">Create Free Account</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="rounded-full text-foreground border-foreground/20 hover:bg-foreground/10 touch-button w-full sm:w-auto">
-              <Link to="/resume-builder">Optimize Your Resume</Link>
+            <Button asChild size="lg" variant="outline" className="rounded-full text-white border-white/20 hover:bg-white/10 touch-button">
+              <Link to="/resume-builder">Build Your Resume</Link>
             </Button>
           </motion.div>
         </div>
