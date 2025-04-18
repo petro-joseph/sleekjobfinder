@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './pages/Index';
@@ -17,6 +16,9 @@ import Progress from './pages/Progress';
 import ResumeBuilder from './pages/ResumeBuilder';
 import NotFound from './pages/NotFound';
 import CareerGuides from './pages/CareerGuides';
+import ResumeGuide from './pages/guides/ResumeGuide';
+import InterviewGuide from './pages/guides/InterviewGuide';
+import SalaryGuide from './pages/guides/SalaryGuide';
 import FAQ from './pages/FAQ';
 import About from './pages/About';
 import Careers from './pages/Careers';
@@ -44,6 +46,9 @@ function App() {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogDetail />} />
         <Route path="/career-guides" element={<CareerGuides />} />
+        <Route path="/guides/resume" element={<ResumeGuide />} />
+        <Route path="/guides/interview" element={<InterviewGuide />} />
+        <Route path="/guides/salary" element={<SalaryGuide />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/support" element={<Support />} />
         
