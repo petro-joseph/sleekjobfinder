@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Check, Download, Edit, Save, X, ThumbsUp, ThumbsDown, CheckCircle } from 'lucide-react';
+import { Check, Download, Edit, Save, X, ThumbsUp, ThumbsDown, CheckCircle, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';

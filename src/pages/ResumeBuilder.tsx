@@ -44,7 +44,7 @@ const ResumeBuilder = () => {
     summary: true,
     skills: true,
     experience: true,
-    editMode: 'quick' // 'quick' or 'full'
+    editMode: 'quick' as 'quick' | 'full' // Fixed type by using 'as' type assertion
   });
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [tailoredResume, setTailoredResume] = useState<Resume | null>(null);
