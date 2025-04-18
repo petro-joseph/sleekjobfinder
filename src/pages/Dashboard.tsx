@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -87,7 +86,7 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="min-h-[calc(100vh-160px)] bg-gradient-mesh">
+      <div className="min-h-[calc(100vh-160px)] bg-white dark:bg-background">
         <div className="container mx-auto px-4 py-6 md:py-6">
           <motion.div 
             className="grid gap-6 md:grid-cols-12"

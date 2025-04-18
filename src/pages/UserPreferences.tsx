@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,7 +34,6 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-// List of countries for dropdown
 const countries = [
   { value: 'US', label: 'United States' },
   { value: 'CA', label: 'Canada' },
@@ -49,7 +47,6 @@ const countries = [
   { value: 'BR', label: 'Brazil' },
 ].sort((a, b) => a.label.localeCompare(b.label));
 
-// Job types
 const jobTypes = [
   { id: 'full-time', label: 'Full-time' },
   { id: 'part-time', label: 'Part-time' },
@@ -60,7 +57,6 @@ const jobTypes = [
   { id: 'hybrid', label: 'Hybrid' },
 ];
 
-// Industries list
 const industries = [
   { value: 'technology', label: 'Technology' },
   { value: 'healthcare', label: 'Healthcare' },
@@ -74,7 +70,6 @@ const industries = [
   { value: 'construction', label: 'Construction' },
 ].sort((a, b) => a.label.localeCompare(b.label));
 
-// Validation schema for the form
 const formSchema = z.object({
   locations: z.array(z.string()).min(1, 'Select at least one location'),
   jobTypes: z.array(z.string()).min(1, 'Select at least one job type'),
@@ -113,22 +108,18 @@ const UserPreferences = () => {
     }
 
     if (user) {
-      // Set selected locations
       if (user.jobPreferences?.locations) {
         setSelectedLocations(user.jobPreferences.locations);
       }
       
-      // Set selected industries
       if (user.jobPreferences?.industries) {
         setSelectedIndustries(user.jobPreferences.industries);
       }
       
-      // Set resume files
       if (user.resumes) {
         setResumeFiles(user.resumes);
       }
       
-      // Set form values
       form.reset({
         locations: user.jobPreferences?.locations || [],
         jobTypes: user.jobPreferences?.jobTypes || [],
@@ -169,7 +160,6 @@ const UserPreferences = () => {
     
     const file = files[0];
     
-    // Check file size (limit to 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error("File size limit exceeded", {
         description: "Please upload a file smaller than 5MB"
@@ -177,7 +167,6 @@ const UserPreferences = () => {
       return;
     }
     
-    // Check file type (PDF only)
     if (file.type !== 'application/pdf') {
       toast.error("Invalid file type", {
         description: "Please upload a PDF file"
@@ -185,7 +174,6 @@ const UserPreferences = () => {
       return;
     }
     
-    // Check max number of resumes (limit to 3)
     if (resumeFiles.length >= 3) {
       toast.error("Maximum resume limit reached", {
         description: "You can only upload up to 3 resumes. Delete one to upload another."
@@ -195,13 +183,12 @@ const UserPreferences = () => {
     
     setUploading(true);
     
-    // Simulate file upload with a timeout
     setTimeout(() => {
       const newResume: Resume = {
         id: Date.now().toString(),
         name: file.name,
         filePath: URL.createObjectURL(file),
-        isPrimary: resumeFiles.length === 0, // First resume is primary by default
+        isPrimary: resumeFiles.length === 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         uploadDate: new Date()
@@ -210,7 +197,6 @@ const UserPreferences = () => {
       const updatedResumes = [...resumeFiles, newResume];
       setResumeFiles(updatedResumes);
       
-      // Update user with new resumes
       if (user) {
         updateUser({
           ...user,
@@ -226,14 +212,12 @@ const UserPreferences = () => {
   const handleDeleteResume = (id: string) => {
     const updatedResumes = resumeFiles.filter(resume => resume.id !== id);
     
-    // If the deleted resume was primary, set the first resume as primary
     if (resumeFiles.find(r => r.id === id)?.isPrimary && updatedResumes.length > 0) {
       updatedResumes[0].isPrimary = true;
     }
     
     setResumeFiles(updatedResumes);
     
-    // Update user with updated resumes
     if (user) {
       updateUser({
         ...user,
@@ -252,7 +236,6 @@ const UserPreferences = () => {
     
     setResumeFiles(updatedResumes);
     
-    // Update user with updated resumes
     if (user) {
       updateUser({
         ...user,
@@ -264,18 +247,17 @@ const UserPreferences = () => {
   };
 
   if (!user) {
-    return null; // Will be redirected by useEffect
+    return null;
   }
   
   return (
     <Layout>
-      <div className="min-h-[calc(100vh-160px)] bg-gradient-mesh">
+      <div className="min-h-[calc(100vh-160px)] bg-white dark:bg-background">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl font-bold mb-6">Job Preferences</h1>
             
             <div className="grid gap-6">
-              {/* Locations Section */}
               <Card className="backdrop-blur-xl border border-primary/20 shadow-lg overflow-hidden rounded-xl">
                 <CardHeader>
                   <CardTitle>Preferred Locations</CardTitle>
@@ -330,7 +312,6 @@ const UserPreferences = () => {
                         </PopoverContent>
                       </Popover>
                       
-                      {/* Display selected locations */}
                       <div className="flex flex-wrap gap-2 mt-2">
                         {selectedLocations.map((location) => (
                           <Badge key={location} variant="secondary" className="px-3 py-1">
@@ -351,7 +332,6 @@ const UserPreferences = () => {
                 </CardContent>
               </Card>
               
-              {/* Job Types and Industries */}
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                   <Card className="backdrop-blur-xl border border-primary/20 shadow-lg overflow-hidden rounded-xl">
@@ -446,7 +426,6 @@ const UserPreferences = () => {
                                 </PopoverContent>
                               </Popover>
                               
-                              {/* Display selected industries */}
                               <div className="flex flex-wrap gap-2 mt-2">
                                 {selectedIndustries.map((industry) => (
                                   <Badge key={industry} variant="secondary" className="px-3 py-1">
@@ -470,7 +449,6 @@ const UserPreferences = () => {
                     </CardContent>
                   </Card>
                   
-                  {/* Salary Range */}
                   <Card className="backdrop-blur-xl border border-primary/20 shadow-lg overflow-hidden rounded-xl mt-6">
                     <CardHeader>
                       <CardTitle>Salary Range</CardTitle>
@@ -518,7 +496,6 @@ const UserPreferences = () => {
                     </CardContent>
                   </Card>
                   
-                  {/* Resume Upload */}
                   <Card className="backdrop-blur-xl border border-primary/20 shadow-lg overflow-hidden rounded-xl mt-6">
                     <CardHeader>
                       <CardTitle>Resume Management</CardTitle>
@@ -548,7 +525,6 @@ const UserPreferences = () => {
                           </Label>
                         </div>
                         
-                        {/* Resume list */}
                         <div className="space-y-2">
                           {resumeFiles.map((resume) => (
                             <div
@@ -597,7 +573,6 @@ const UserPreferences = () => {
                     </CardContent>
                   </Card>
                   
-                  {/* Notification Preferences */}
                   <Card className="backdrop-blur-xl border border-primary/20 shadow-lg overflow-hidden rounded-xl mt-6">
                     <CardHeader>
                       <CardTitle>Notification Preferences</CardTitle>
@@ -655,7 +630,6 @@ const UserPreferences = () => {
                     </CardContent>
                   </Card>
                   
-                  {/* Submit Button */}
                   <div className="mt-6 flex justify-end">
                     <Button type="submit" size="lg" className="w-full md:w-auto">
                       Save Preferences

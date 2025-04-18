@@ -250,7 +250,7 @@ const CareerAssistant = () => {
 
   return (
     <Layout>
-      <div className="min-h-[calc(100vh-160px)] bg-gradient-mesh">
+      <div className="min-h-[calc(100vh-160px)] bg-white dark:bg-background">
         <div className="container mx-auto px-4 py-8">
           <div className="grid gap-6 grid-cols-1 lg:grid-cols-12">
             {/* Main chat section */}
