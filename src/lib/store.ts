@@ -92,6 +92,7 @@ export interface Resume {
   updatedAt: string;
   filePath?: string;
   isPrimary?: boolean;
+  uploadDate?: Date;
 }
 
 export interface UserRegistration {

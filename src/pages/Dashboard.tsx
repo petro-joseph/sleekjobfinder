@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart, Rocket, Clock, MapPin, Building, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart, Rocket, Clock, MapPin, Building, ChevronLeft, ChevronRight, Bot } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { toast } from "sonner";
 import { jobs } from '@/data/jobs';
@@ -290,6 +290,26 @@ const Dashboard = () => {
               className="md:col-span-4"
               variants={itemVariants}
             >
+              {/* Career Assistant Card */}
+              <Card className="overflow-hidden border-primary/20 shadow-lg bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent mb-6 hover:border-primary/40 transition-all duration-300 rounded-xl">
+                <CardContent className="p-6">
+                  <div className="flex items-center mb-4">
+                    <Bot className="h-5 w-5 text-blue-500 mr-2" />
+                    <h3 className="font-bold">Career Assistant</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Get personalized career advice, interview preparation, and salary negotiation tips from our AI assistant.
+                  </p>
+                  <Button 
+                    onClick={() => navigate('/career-assistant')} 
+                    variant="outline" 
+                    className="w-full touch-button"
+                  >
+                    Chat with Career Assistant
+                  </Button>
+                </CardContent>
+              </Card>
+              
               {/* Premium Upgrade - Enhanced Look */}
               <Card className="overflow-hidden border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent mb-6 hover:border-primary/40 transition-all duration-300 rounded-xl">
                 <CardContent className="p-6">
@@ -323,39 +343,6 @@ const Dashboard = () => {
                   </Button>
                 </CardContent>
               </Card>
-              
-              {/* Profile Summary - Only on Desktop */}
-              {/* <motion.div className="hidden md:block">
-                <Card className="backdrop-blur-xl border-primary/20 shadow-lg mb-6 hover:border-primary/40 transition-all duration-300 rounded-xl">
-                  <CardHeader>
-                    <CardTitle>Profile Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white font-bold">
-                          {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-                        </div>
-                        <div className="ml-3">
-                          <div className="font-medium">{user.firstName} {user.lastName}</div>
-                          <div className="text-sm text-muted-foreground">{user.email}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="pt-4">
-                        <Button 
-                          onClick={() => navigate('/profile')} 
-                          variant="outline" 
-                          className="w-full justify-between touch-button"
-                        >
-                          Complete your profile
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div> */}
               
               {/* Recent Activities */}
               <Card className="backdrop-blur-xl border-primary/20 shadow-lg mt-6 hover:border-primary/40 transition-all duration-300 rounded-xl">
