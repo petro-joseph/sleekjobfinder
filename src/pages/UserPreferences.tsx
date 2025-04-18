@@ -5,13 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import { 
   Form,
   FormControl,
   FormDescription,
@@ -30,7 +23,7 @@ import { useAuthStore, Resume } from '@/lib/store';
 import { Check, ChevronsUpDown, Trash2, Upload, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -82,6 +75,7 @@ const UserPreferences = () => {
   const { user, updateUser, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
   const [openCountry, setOpenCountry] = useState(false);
+  const [openIndustry, setOpenIndustry] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [resumeFiles, setResumeFiles] = useState<Resume[]>([]);
@@ -283,31 +277,33 @@ const UserPreferences = () => {
                         <PopoverContent className="w-full p-0">
                           <Command>
                             <CommandInput placeholder="Search countries..." />
-                            <CommandEmpty>No country found.</CommandEmpty>
-                            <CommandGroup className="max-h-64 overflow-y-auto">
-                              {countries.map((country) => (
-                                <CommandItem
-                                  key={country.value}
-                                  value={country.label}
-                                  onSelect={() => {
-                                    const updatedLocations = selectedLocations.includes(country.label)
-                                      ? selectedLocations.filter((l) => l !== country.label)
-                                      : [...selectedLocations, country.label];
-                                    
-                                    setSelectedLocations(updatedLocations);
-                                    form.setValue('locations', updatedLocations);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      selectedLocations.includes(country.label) ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  {country.label}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
+                            <CommandList>
+                              <CommandEmpty>No country found.</CommandEmpty>
+                              <CommandGroup className="max-h-64 overflow-y-auto">
+                                {countries.map((country) => (
+                                  <CommandItem
+                                    key={country.value}
+                                    value={country.label}
+                                    onSelect={() => {
+                                      const updatedLocations = selectedLocations.includes(country.label)
+                                        ? selectedLocations.filter((l) => l !== country.label)
+                                        : [...selectedLocations, country.label];
+                                      
+                                      setSelectedLocations(updatedLocations);
+                                      form.setValue('locations', updatedLocations);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        selectedLocations.includes(country.label) ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {country.label}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
                           </Command>
                         </PopoverContent>
                       </Popover>
@@ -381,7 +377,7 @@ const UserPreferences = () => {
                           render={() => (
                             <FormItem>
                               <FormLabel>Industries</FormLabel>
-                              <Popover>
+                              <Popover open={openIndustry} onOpenChange={setOpenIndustry}>
                                 <PopoverTrigger asChild>
                                   <Button
                                     variant="outline"
@@ -397,31 +393,33 @@ const UserPreferences = () => {
                                 <PopoverContent className="w-full p-0">
                                   <Command>
                                     <CommandInput placeholder="Search industries..." />
-                                    <CommandEmpty>No industry found.</CommandEmpty>
-                                    <CommandGroup className="max-h-64 overflow-y-auto">
-                                      {industries.map((industry) => (
-                                        <CommandItem
-                                          key={industry.value}
-                                          value={industry.label}
-                                          onSelect={() => {
-                                            const updatedIndustries = selectedIndustries.includes(industry.label)
-                                              ? selectedIndustries.filter((i) => i !== industry.label)
-                                              : [...selectedIndustries, industry.label];
-                                            
-                                            setSelectedIndustries(updatedIndustries);
-                                            form.setValue('industries', updatedIndustries);
-                                          }}
-                                        >
-                                          <Check
-                                            className={cn(
-                                              "mr-2 h-4 w-4",
-                                              selectedIndustries.includes(industry.label) ? "opacity-100" : "opacity-0"
-                                            )}
-                                          />
-                                          {industry.label}
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
+                                    <CommandList>
+                                      <CommandEmpty>No industry found.</CommandEmpty>
+                                      <CommandGroup className="max-h-64 overflow-y-auto">
+                                        {industries.map((industry) => (
+                                          <CommandItem
+                                            key={industry.value}
+                                            value={industry.label}
+                                            onSelect={() => {
+                                              const updatedIndustries = selectedIndustries.includes(industry.label)
+                                                ? selectedIndustries.filter((i) => i !== industry.label)
+                                                : [...selectedIndustries, industry.label];
+                                              
+                                              setSelectedIndustries(updatedIndustries);
+                                              form.setValue('industries', updatedIndustries);
+                                            }}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                "mr-2 h-4 w-4",
+                                                selectedIndustries.includes(industry.label) ? "opacity-100" : "opacity-0"
+                                              )}
+                                            />
+                                            {industry.label}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
                                   </Command>
                                 </PopoverContent>
                               </Popover>
