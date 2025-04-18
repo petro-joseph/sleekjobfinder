@@ -10,6 +10,11 @@
   animation: spin 0.8s linear infinite;
 }
 
+.dark .loader {
+  border-color: rgba(255, 255, 255, 0.1);
+  border-top-color: #10b981;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -31,10 +36,30 @@
 .score-gauge-inner {
   width: 100px;
   height: 100px;
-  background: white;
+  background: hsl(var(--background));
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
 }
+
+/* Dark mode specific styles */
+.dark .score-gauge-inner {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .score-gauge {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .score-gauge-inner {
+    width: 80px;
+    height: 80px;
+  }
+}
+

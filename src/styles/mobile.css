@@ -1,10 +1,4 @@
 
-/* Mobile-first base styles */
-html, body {
-  overscroll-behavior-y: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
 /* Bottom Navigation Styles */
 .bottom-nav-container {
   position: fixed;
@@ -181,3 +175,4 @@ html, body {
   background-color: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
