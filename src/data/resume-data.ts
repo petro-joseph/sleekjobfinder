@@ -1,4 +1,3 @@
-
 import { Resume, JobPosting } from '@/types/resume';
 
 export const defaultResume: Resume = {
@@ -89,6 +88,9 @@ export const defaultResume: Resume = {
 export const defaultJobPosting: JobPosting = {
   title: "Senior Frontend Engineer",
   company: "NextTech Solutions",
+  location: "San Francisco, CA",
+  salaryRange: "$120,000 - $150,000",
+  employmentType: "Full-time",
   requiredYearsOfExperience: 5,
   industries: ["Technology", "SaaS", "Fintech"],
   requiredSkills: [
