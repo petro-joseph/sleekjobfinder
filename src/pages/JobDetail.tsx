@@ -122,7 +122,7 @@ const JobDetail = () => {
       toast.warning("Please create a resume first", {
         description: "You'll be redirected to the preference page to create a resume.",
       });
-      navigate('/preference');
+      navigate('/preferences');
       return;
     }
     
