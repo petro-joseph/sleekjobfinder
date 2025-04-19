@@ -30,7 +30,7 @@ const STEPS = [
 export const ResumeCreationFlow: React.FC<ResumeCreationFlowProps> = ({ onBack, onComplete }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<Resume>>({});
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("standard");
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("professional");
 
   const handleNext = (stepData: Partial<Resume>) => {
     setFormData(prev => ({ ...prev, ...stepData }));
@@ -51,37 +51,36 @@ export const ResumeCreationFlow: React.FC<ResumeCreationFlowProps> = ({ onBack, 
 
   const handleTemplateSelect = (template: string) => {
     setSelectedTemplate(template);
-    // Move to next step or finalize resume
-    if (currentStep < STEPS.length) {
-      setCurrentStep(prev => prev + 1);
-    } else {
-      onComplete(formData as Resume);
-    }
   };
 
   const CurrentStepComponent = STEPS[currentStep - 1].component;
 
-  // Special props for the preview and template steps
+  // Custom props for each step component type
   const getStepProps = () => {
-    if (currentStep === 6) { // Review step
+    const commonProps = {
+      data: formData,
+      onNext: handleNext,
+    };
+
+    // For Resume Preview Step
+    if (currentStep === 6) {
       return {
-        data: formData,
-        onNext: handleNext,
+        ...commonProps,
         resumeData: formData as Resume,
       };
-    } else if (currentStep === 7) { // Template step
+    } 
+    // For Template Step
+    else if (currentStep === 7) {
       return {
-        data: formData,
-        onNext: handleNext,
+        ...commonProps,
         resumeData: formData as Resume,
         onSelectTemplate: handleTemplateSelect,
-        selectedTemplate: selectedTemplate,
+        selectedTemplate, // Always pass this prop
       };
-    } else {
-      return {
-        data: formData,
-        onNext: handleNext,
-      };
+    } 
+    // For all other steps
+    else {
+      return commonProps;
     }
   };
 

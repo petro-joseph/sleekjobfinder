@@ -11,6 +11,7 @@ interface ResumeTemplateStepProps {
   selectedTemplate: string;
   onSelectTemplate: (template: string) => void;
   onNext: (data: Partial<Resume>) => void;
+  data?: Partial<Resume>; // Added to match other steps
 }
 
 const TEMPLATES = [
