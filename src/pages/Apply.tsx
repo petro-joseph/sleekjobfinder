@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { jobs, Job } from '@/data/jobs';
@@ -55,7 +56,7 @@ const Apply = () => {
   const [selectedResumeId, setSelectedResumeId] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(isSubmitting);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Corrected initialization
   const [isSuccess, setIsSuccess] = useState(false);
   const [tailorModalOpen, setTailorModalOpen] = useState(false);
   
