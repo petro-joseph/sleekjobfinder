@@ -23,9 +23,6 @@ const TailorResumeModal = ({ job, jobPosting, isOpen, onClose }: TailorResumeMod
     industries: [job.industry], // Convert single industry to array
     requiredSkills: job.requirements, // Use requirements as skills
     description: job.description,
-    location: job.location || 'Not specified',
-    salaryRange: job.salary || 'Not specified',
-    employmentType: job.type || 'Full-time'
   } : undefined);
 
   // Don't render if we don't have a jobPosting or couldn't create one from job
