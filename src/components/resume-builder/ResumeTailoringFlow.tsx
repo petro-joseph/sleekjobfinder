@@ -32,7 +32,7 @@ const calculateMatchData = (resume: Resume | null, jobPosting: JobPosting | null
     return null;
   }
   const titleMatch = resume.jobTitle.toLowerCase().includes(jobPosting.title.toLowerCase()) ||
-                    jobPosting.title.toLowerCase().includes(resume.jobTitle.toLowerCase());
+    jobPosting.title.toLowerCase().includes(resume.jobTitle.toLowerCase());
   const experienceMatch = resume.yearsOfExperience >= jobPosting.requiredYearsOfExperience;
   const industryMatches = resume.industries.filter(ind =>
     jobPosting.industries.some(jobInd => jobInd.toLowerCase() === ind.toLowerCase())
@@ -66,26 +66,26 @@ const calculateTailoredScore = (
   addedSkillsCount: number,
   jobPosting: JobPosting
 ): number => {
-    if (!jobPosting || !baseMatchData) return 0;
-    const newSkillMatchesCount = baseMatchData.skillMatches.length + addedSkillsCount;
-    const totalRequiredSkills = jobPosting.requiredSkills.length;
-    const newSkillScore = totalRequiredSkills > 0 ? (newSkillMatchesCount / totalRequiredSkills) * 5 : 5;
-    const titleScore = baseMatchData.titleMatch ? 2 : 0;
-    const industryScore = jobPosting.industries.length > 0 ? (baseMatchData.industryMatches.length / jobPosting.industries.length) * 1 : 1;
-    const summaryScoreBoost = selectedSections.summary ? 1 : 0;
-    const experienceScoreBoost = selectedSections.experience ? 1 : 0;
-    const baseExperienceScore = baseMatchData.experienceMatch ? 1 : 0;
-    const finalScore = Math.min(10, newSkillScore + titleScore + industryScore + baseExperienceScore + summaryScoreBoost + experienceScoreBoost);
-    return parseFloat(finalScore.toFixed(1));
+  if (!jobPosting || !baseMatchData) return 0;
+  const newSkillMatchesCount = baseMatchData.skillMatches.length + addedSkillsCount;
+  const totalRequiredSkills = jobPosting.requiredSkills.length;
+  const newSkillScore = totalRequiredSkills > 0 ? (newSkillMatchesCount / totalRequiredSkills) * 5 : 5;
+  const titleScore = baseMatchData.titleMatch ? 2 : 0;
+  const industryScore = jobPosting.industries.length > 0 ? (baseMatchData.industryMatches.length / jobPosting.industries.length) * 1 : 1;
+  const summaryScoreBoost = selectedSections.summary ? 1 : 0;
+  const experienceScoreBoost = selectedSections.experience ? 1 : 0;
+  const baseExperienceScore = baseMatchData.experienceMatch ? 1 : 0;
+  const finalScore = Math.min(10, newSkillScore + titleScore + industryScore + baseExperienceScore + summaryScoreBoost + experienceScoreBoost);
+  return parseFloat(finalScore.toFixed(1));
 };
 // --- End Helper Functions ---
 
 
 interface ResumeTailoringFlowProps {
-    jobPosting: JobPosting;
-    onClose: () => void;
-    // Potentially add a prop for the user's selected base resume if multiple exist
-    // baseResume?: Resume;
+  jobPosting: JobPosting;
+  onClose: () => void;
+  // Potentially add a prop for the user's selected base resume if multiple exist
+  // baseResume?: Resume;
 }
 
 export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPosting, onClose }) => {
@@ -119,13 +119,13 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
   // Generate tailored resume
   const generateTailoredResume = useCallback(() => {
     if (!matchData) {
-        toast({ title: "Analysis data missing", description: "Cannot generate resume without analysis.", variant: "destructive" }); return;
+      toast({ title: "Analysis data missing", description: "Cannot generate resume without analysis.", variant: "destructive" }); return;
     }
     if (!selectedSections.summary && !selectedSections.skills && !selectedSections.experience) {
       toast({ title: "No sections selected", description: "Please select at least one section to enhance.", variant: "destructive" }); return;
     }
     if (credits <= 0) {
-        toast({ title: "Insufficient Credits", description: "You need credits to tailor your resume.", variant: "destructive" }); return;
+      toast({ title: "Insufficient Credits", description: "You need credits to tailor your resume.", variant: "destructive" }); return;
     }
 
     setIsProcessing(true);
@@ -152,7 +152,7 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
                 } return resp;
               });
               if (jobPosting.requiredSkills.length > 0 && Math.random() > 0.5) {
-                 enhancedResponsibilities.push(`Implemented solutions using ${jobPosting.requiredSkills[Math.floor(Math.random() * jobPosting.requiredSkills.length)]} to solve complex business challenges.`);
+                enhancedResponsibilities.push(`Implemented solutions using ${jobPosting.requiredSkills[Math.floor(Math.random() * jobPosting.requiredSkills.length)]} to solve complex business challenges.`);
               }
               tailored.workExperiences[i].responsibilities = enhancedResponsibilities;
             }
@@ -169,22 +169,22 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
         toast({ title: "Resume tailored successfully!", description: `Customized for ${jobPosting.title} at ${jobPosting.company}.` });
 
       } catch (error) {
-          console.error("Error generating tailored resume:", error);
-          setIsProcessing(false);
-          toast({ title: "Generation Failed", description: "An error occurred. Please try again.", variant: "destructive" });
+        console.error("Error generating tailored resume:", error);
+        setIsProcessing(false);
+        toast({ title: "Generation Failed", description: "An error occurred. Please try again.", variant: "destructive" });
       }
     }, 1500);
   }, [resume, jobPosting, selectedSections, selectedSkills, credits, matchData, toast]);
 
   // Reset the internal state of the flow (e.g., when restarting within the modal)
-   const resetInternalState = useCallback(() => {
+  const resetInternalState = useCallback(() => {
     setCurrentStep(STEPS.ANALYZE);
     setSelectedSkills([]);
     setTailoredResume(null);
     setMatchData(initialMatchData);
     setSelectedSections({ summary: true, skills: true, experience: true, editMode: 'quick' });
     // Note: We don't call onClose here, that's handled by the modal's explicit close button
-    toast({ title: "Restarted Tailoring", description: "You can customize again."});
+    toast({ title: "Restarted Tailoring", description: "You can customize again." });
   }, [initialMatchData, toast]);
 
 
@@ -202,8 +202,8 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
   const handleDownload = useCallback((format: 'pdf' | 'docx') => {
     // In a real implementation, this would generate and download the file
     toast({ // Correct toast usage
-        title: "Downloading Resume",
-        description: `Preparing your resume as a ${format.toUpperCase()} file...`
+      title: "Downloading Resume",
+      description: `Preparing your resume as a ${format.toUpperCase()} file...`
     });
     // TODO: Implement actual download logic based on tailoredResume and template
   }, [tailoredResume, template, toast]); // Add dependencies
@@ -211,17 +211,17 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
 
   // Render Steps
   const StepComponent = useMemo(() => {
-     switch (currentStep) {
+    switch (currentStep) {
       case STEPS.ANALYZE:
         return <ResumeAnalysisStep resume={resume} jobPosting={jobPosting} matchData={matchData} onContinue={goToNextStep} userResumes={user?.resumes || []} />;
       case STEPS.CUSTOMIZE:
         return <ResumeCustomizationStep matchData={matchData} selectedSections={selectedSections} setSelectedSections={setSelectedSections} selectedSkills={selectedSkills} setSelectedSkills={setSelectedSkills} onGenerate={generateTailoredResume} isGenerating={isProcessing} />;
       case STEPS.PREVIEW:
         if (isProcessing) {
-             return <div className="text-center p-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div><p className="mt-4">Generating...</p></div>;
+          return <div className="text-center p-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div><p className="mt-4">Generating...</p></div>;
         }
         if (tailoredResume && matchData) {
-            return <ResumePreviewStep originalResume={resume} tailoredResume={tailoredResume} setTailoredResume={setTailoredResume} matchData={matchData} selectedSkills={selectedSkills} template={template} setTemplate={setTemplate} onFeedback={handleFeedback} credits={credits} />;
+          return <ResumePreviewStep originalResume={resume} tailoredResume={tailoredResume} setTailoredResume={setTailoredResume} matchData={matchData} selectedSkills={selectedSkills} template={template} setTemplate={setTemplate} onFeedback={handleFeedback} credits={credits} />;
         }
         // Fallback if tailored resume isn't ready (should ideally be handled by loader)
         return <div className="text-center p-12"><h3 className="text-destructive">Error Loading Preview</h3><p className="text-muted-foreground">There was an issue generating the preview.</p><Button onClick={resetInternalState} variant="outline">Start Over</Button></div>;
@@ -234,97 +234,97 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
     // Removed Layout wrapper
     // Use flex column and overflow-y-auto for modal content scrolling
     <div className="flex flex-col h-full bg-background"> {/* Ensure background color */}
-        {/* Header */}
-         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border">
-             {/* Title and Credits */}
-             <div className="flex items-center gap-3">
-                 <h2 className="text-lg font-semibold text-foreground">
-                    Generate Your Custom Resume
-                 </h2>
-                 <div className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full text-xs font-medium">
-                     <span>{credits} credits available today</span>
-                     <Info className="h-3 w-3" />
-                 </div>
-             </div>
-             {/* Default X button from DialogContent will be here */}
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border">
+        {/* Title and Credits */}
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-foreground">
+            Generate Your Custom Resume
+          </h2>
+          <div className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full text-xs font-medium">
+            <span>{credits} credits available today</span>
+            <Info className="h-3 w-3" />
+          </div>
         </div>
+        {/* Default X button from DialogContent will be here */}
+      </div>
 
-        {/* Progress Steps - Updated Styling */}
+      {/* Progress Steps - Updated Styling */}
         <div className="relative flex justify-center items-center my-6 px-4 w-full">
-          {STEP_CONFIG.map((step, index) => (
-            <React.Fragment key={step.num}>
-              {/* Connecting Line (before step, except first) */}
-              {index > 0 && (
+        {STEP_CONFIG.map((step, index) => (
+          <React.Fragment key={step.num}>
+            {/* Connecting Line (before step, except first) */}
+            {index > 0 && (
                 <div className={`flex-1 h-0.5 mx-2 ${currentStep >= step.num ? 'bg-primary' : 'bg-border'}`}></div>
-              )}
+            )}
 
-              {/* Step Button */}
-              <button
-                onClick={() => !isProcessing && step.num <= currentStep && setCurrentStep(step.num)}
+            {/* Step Button */}
+            <button
+              onClick={() => !isProcessing && step.num <= currentStep && setCurrentStep(step.num)}
                 disabled={isProcessing || step.num > currentStep} // Disable future steps
                 className={`flex items-center gap-2 text-sm ${
                   step.num > currentStep ? 'text-muted-foreground cursor-default' : 'cursor-pointer hover:text-primary'
                 } ${step.num === currentStep ? 'text-primary font-semibold' : ''}`}
-                aria-current={step.num === currentStep ? 'step' : undefined}
-              >
+              aria-current={step.num === currentStep ? 'step' : undefined}
+            >
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium border-2 ${
                     step.num === currentStep
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : step.num < currentStep
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : step.num < currentStep
                       ? 'border-primary bg-primary text-primary-foreground' // Use primary for completed
-                      : 'border-border bg-background text-muted-foreground'
+                    : 'border-border bg-background text-muted-foreground'
                   }`}
-                >
+              >
                   {step.num < currentStep ? <Check className="h-3.5 w-3.5" /> : step.num}
-                </div>
+              </div>
                 <span>{step.title}</span>
-              </button>
-            </React.Fragment>
-          ))}
+            </button>
+          </React.Fragment>
+        ))}
+      </div>
+
+
+      {/* Main Content Area - Takes remaining space and scrolls */}
+      {/* Added bg-muted/30 for slight background contrast like screenshots */}
+      <div className="flex-1 overflow-y-auto px-6 pb-6 bg-muted/30 dark:bg-muted/10">
+        {/* Render the current step component */}
+        <div className="mt-6"> {/* Add margin top for spacing */}
+          {StepComponent}
         </div>
+      </div>
 
-
-        {/* Main Content Area - Takes remaining space and scrolls */}
-        {/* Added bg-muted/30 for slight background contrast like screenshots */}
-        <div className="flex-1 overflow-y-auto px-6 pb-6 bg-muted/30 dark:bg-muted/10">
-             {/* Render the current step component */}
-             <div className="mt-6"> {/* Add margin top for spacing */}
-                {StepComponent}
-             </div>
-        </div>
-
-         {/* Footer Navigation */}
-         <div className="flex items-center justify-center px-6 py-4 border-t border-border bg-background">
-            {currentStep === STEPS.ANALYZE && (
-                <Button onClick={goToNextStep} disabled={isProcessing || !matchData} size="lg">
-                    Begin Improvements Now <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-            )}
-            {currentStep === STEPS.CUSTOMIZE && (
-                 <div className="flex items-center gap-3">
-                     <Button onClick={goToPrevStep} disabled={isProcessing} variant="outline" size="lg">
-                         <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                     </Button>
-                    <Button onClick={generateTailoredResume} disabled={isProcessing} size="lg">
-                        {isProcessing ? "Generating..." : "Generate My New Resume"}
-                        {!isProcessing && <ArrowRight className="ml-2 h-4 w-4" />}
-                    </Button>
-                 </div>
-            )}
-             {currentStep === STEPS.PREVIEW && (
-                 <div className="flex items-center gap-3">
-                     <Button onClick={goToPrevStep} disabled={isProcessing} variant="outline" size="lg">
-                         <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                     </Button>
-                     <Button onClick={() => handleDownload('pdf')} disabled={isProcessing || !tailoredResume} size="lg">
-                         <Download className="mr-2 h-4 w-4" /> Download by PDF
-                     </Button>
-                     <Button onClick={() => handleDownload('docx')} disabled={isProcessing || !tailoredResume} size="lg">
-                         <Download className="mr-2 h-4 w-4" /> Download by Word(.docx)
-                     </Button>
-                 </div>
-            )}
-         </div>
+      {/* Footer Navigation */}
+      <div className="flex items-center justify-center px-6 py-4 border-t border-border bg-background">
+        {currentStep === STEPS.ANALYZE && (
+          <Button onClick={goToNextStep} disabled={isProcessing || !matchData} size="lg">
+            Begin Improvements Now <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        )}
+        {currentStep === STEPS.CUSTOMIZE && (
+          <div className="flex items-center gap-3">
+            <Button onClick={goToPrevStep} disabled={isProcessing} variant="outline" size="lg">
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back
+            </Button>
+            <Button onClick={generateTailoredResume} disabled={isProcessing} size="lg">
+              {isProcessing ? "Generating..." : "Generate My New Resume"}
+              {!isProcessing && <ArrowRight className="ml-2 h-4 w-4" />}
+            </Button>
+          </div>
+        )}
+        {currentStep === STEPS.PREVIEW && (
+          <div className="flex items-center gap-3">
+            <Button onClick={goToPrevStep} disabled={isProcessing} variant="outline" size="lg">
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back
+            </Button>
+            <Button onClick={() => handleDownload('pdf')} disabled={isProcessing || !tailoredResume} size="lg">
+              <Download className="mr-2 h-4 w-4" /> Download by PDF
+            </Button>
+            <Button onClick={() => handleDownload('docx')} disabled={isProcessing || !tailoredResume} size="lg">
+              <Download className="mr-2 h-4 w-4" /> Download by Word(.docx)
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

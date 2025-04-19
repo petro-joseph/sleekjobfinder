@@ -1,15 +1,13 @@
 
 import React, { useState } from 'react';
-// Import necessary icons
-import { Check, AlertTriangle, ArrowRight, FileText, ChevronDown, Building, CheckCircle, XCircle, AlertCircle, Info } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card'; // Keep Card for potential future use if needed
+// Import necessary icons and components
+import { Check, AlertTriangle, ArrowRight, FileText, Building, CheckCircle, XCircle, AlertCircle, Info } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Resume, JobPosting, MatchData } from '@/types/resume';
-// Remove Collapsible imports
 import { Resume as StoreResume } from '@/lib/store';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge'; // Import Badge for skills
-// Import Tooltip components
+import { Badge } from '@/components/ui/badge';
 import {
   Tooltip,
   TooltipContent,
@@ -25,10 +23,10 @@ interface ResumeAnalysisStepProps {
   userResumes: StoreResume[];
 }
 
-export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({ 
-  resume, 
-  jobPosting, 
-  matchData, 
+export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
+  resume,
+  jobPosting,
+  matchData,
   onContinue,
   userResumes
 }) => {
@@ -100,16 +98,16 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
             </div>
             <div className="col-span-4 text-sm">
               <div className="flex items-center gap-2 mb-1">
-                 {/* Add placeholder for job logo if available */}
-                 <Building className="h-4 w-4 text-muted-foreground" />
-                 <span className="font-medium">{jobPosting.company}</span>
+                {/* Add placeholder for job logo if available */}
+                <Building className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">{jobPosting.company}</span>
               </div>
               <p className="text-muted-foreground">{jobPosting.title}</p>
               {/* Add location if available */}
               {/* <p className="text-xs text-muted-foreground">{jobPosting.location}</p> */}
             </div>
             <div className="col-span-5 text-sm">
-               <Select
+              <Select
                 value={selectedResumeId}
                 onValueChange={setSelectedResumeId}
               >
@@ -129,7 +127,7 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
                 </SelectContent>
               </Select>
               {selectedUserResume && (
-                 <p className="text-xs text-muted-foreground mt-1">Using: {selectedUserResume.name}</p>
+                <p className="text-xs text-muted-foreground mt-1">Using: {selectedUserResume.name}</p>
               )}
             </div>
           </div>
@@ -147,7 +145,7 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
           {/* Years of Experience Row */}
           <div className="grid grid-cols-12 gap-4 p-4 items-center border-b border-border">
             <div className="col-span-3 text-sm font-medium text-foreground flex items-center gap-2">
-               {getMatchIcon(matchData.experienceMatch)}
+              {getMatchIcon(matchData.experienceMatch)}
               Years of Experience
             </div>
             <div className="col-span-4 text-sm text-muted-foreground">{jobPosting.requiredYearsOfExperience}+ years exp</div>
@@ -157,25 +155,25 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
           {/* Industry Experience Row */}
           <div className="grid grid-cols-12 gap-4 p-4 items-start border-b border-border">
             <div className="col-span-3 text-sm font-medium text-foreground flex items-center gap-2">
-               {getMatchIcon(null, matchData.industryMatches.length > 0)}
+              {getMatchIcon(null, matchData.industryMatches.length > 0)}
               Industry Experience
             </div>
             <div className="col-span-4 text-sm text-muted-foreground">
-                {jobPosting.industries.join(', ')}
+              {jobPosting.industries.join(', ')}
             </div>
             <div className="col-span-5 text-sm text-muted-foreground">
-                {resume.industries.join(', ')}
+              {resume.industries.join(', ')}
             </div>
           </div>
 
           {/* Skills Row */}
           <div className="grid grid-cols-12 gap-4 p-4 items-start border-b border-border">
             <div className="col-span-3 text-sm font-medium text-foreground flex items-center gap-2">
-               {getMatchIcon(null, matchData.skillMatches.length / jobPosting.requiredSkills.length >= 0.5)} {/* Example threshold */}
+              {getMatchIcon(null, matchData.skillMatches.length / jobPosting.requiredSkills.length >= 0.5)} {/* Example threshold */}
               Skills ({matchData.skillMatches.length}/{jobPosting.requiredSkills.length})
             </div>
             <div className="col-span-9 text-sm text-muted-foreground flex flex-wrap gap-1.5">
-               {jobPosting.requiredSkills.map((skill, index) => {
+              {jobPosting.requiredSkills.map((skill, index) => {
                 const isMatch = matchData.skillMatches.some(s => s.toLowerCase() === skill.toLowerCase());
                 return (
                   <Badge
@@ -188,17 +186,17 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
                 );
               })}
             </div>
-             {/* Optionally show user's skills below or indicate missing ones */}
+            {/* Optionally show user's skills below or indicate missing ones */}
           </div>
 
-           {/* Summary Row */}
+          {/* Summary Row */}
           <div className="grid grid-cols-12 gap-4 p-4 items-start"> {/* No bottom border on last row */}
             <div className="col-span-3 text-sm font-medium text-foreground flex items-center gap-2">
-               {getMatchIcon(matchData.summaryMatch)} {/* Assuming summaryMatch indicates if it needs work */}
+              {getMatchIcon(matchData.summaryMatch)} {/* Assuming summaryMatch indicates if it needs work */}
               Summary
             </div>
             <div className="col-span-9 text-sm text-yellow-600 dark:text-yellow-400">
-               Your current summary does not effectively showcase your qualifications and alignment with this job.
+              Your current summary does not effectively showcase your qualifications and alignment with this job.
             </div>
           </div>
 
@@ -206,41 +204,40 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
       </div>
 
       {/* Right Column (Score Gauge) */}
-      <div className="md:col-span-1 flex flex-col items-center md:items-end">
-         <div className="bg-card border border-border rounded-lg p-4 flex flex-col items-center w-full max-w-xs">
-             <div className="relative w-32 h-32 mb-3"> {/* Adjusted size */}
-              <div
-                className="w-full h-full rounded-full"
-                style={getGaugeStyle(matchData.initialScore)}
-              ></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                 {/* Use theme-aware background */}
-                <div className="w-24 h-24 bg-card rounded-full flex flex-col items-center justify-center shadow-inner"> {/* Adjusted size */}
-                  <span className="text-3xl font-bold text-foreground">{matchData.initialScore}</span>
-                   <span className="text-xs text-muted-foreground">/ 10</span>
-                </div>
+      <div className="md:col-span-1 pt-12 flex-col items-center md:items-end">
+        <div className="bg-card border border-border rounded-lg p-4 flex flex-col items-center w-full max-w-xs">
+          <div className="relative w-32 h-32 mb-3"> {/* Adjusted size */}
+            <div
+              className="w-full h-full rounded-full"
+              style={getGaugeStyle(matchData.initialScore)}
+            ></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              {/* Use theme-aware background */}
+              <div className="w-24 h-24 bg-card rounded-full flex flex-col items-center justify-center shadow-inner"> {/* Adjusted size */}
+                <span className="text-3xl font-bold text-foreground">{matchData.initialScore}</span>
+                <span className="text-xs text-muted-foreground">/ 10</span>
               </div>
             </div>
-            <div className="flex items-center gap-1">
-                <p className={`text-lg font-medium ${getScoreColor(matchData.initialScore)}`}>
-                  {getScoreLabel(matchData.initialScore)}
-                </p>
-                {/* Wrap Info icon with Tooltip */}
-                <TooltipProvider delayDuration={100}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                       <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs">
-                      <p>This score indicates the initial match based on your selected resume.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-            </div>
-         </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <p className={`text-lg font-medium ${getScoreColor(matchData.initialScore)}`}>
+              {getScoreLabel(matchData.initialScore)}
+            </p>
+            {/* Wrap Info icon with Tooltip */}
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  <p>This score indicates the initial match based on your selected resume.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
       </div>
 
-      {/* Action Button is removed - handled by parent */}
     </div>
   );
 };

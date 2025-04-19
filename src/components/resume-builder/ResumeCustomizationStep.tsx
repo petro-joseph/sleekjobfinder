@@ -196,27 +196,6 @@ export const ResumeCustomizationStep: React.FC<ResumeCustomizationStepProps> = (
         </div>
       </div>
       
-      {/* Action Button */}
-      <div className="flex justify-center mt-8">
-        <Button 
-          onClick={onGenerate} 
-          disabled={isGenerating || (!selectedSections.summary && !selectedSections.skills && !selectedSections.experience)}
-          size="lg"
-          className="relative"
-        >
-          {isGenerating ? (
-            <>
-              <div className="loader mr-2" />
-              Generating...
-            </>
-          ) : (
-            <>
-              Generate My New Resume
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </>
-          )}
-        </Button>
-      </div>
     </div>
   );
 };

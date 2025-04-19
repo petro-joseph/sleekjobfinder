@@ -42,6 +42,9 @@ export interface Project {
 export interface JobPosting {
   title: string;
   company: string;
+  location: string;
+  salaryRange: string;
+  employmentType: string;
   requiredYearsOfExperience: number;
   industries: string[];
   requiredSkills: string[];

@@ -121,9 +121,9 @@ const JobDetail = () => {
     
     if (user.resumes.length === 0) {
       toast.warning("Please create a resume first", {
-        description: "You'll be redirected to the resume builder"
+        description: "You'll be redirected to the preference page to create a resume.",
       });
-      navigate('/resume-builder');
+      navigate('/preference');
       return;
     }
     

@@ -505,17 +505,7 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
           </div>
         </div>
         
-        {/* Download Buttons */}
-        <div className="flex justify-center gap-4">
-          <Button onClick={() => handleDownload('pdf')}>
-            <Download className="mr-2 h-4 w-4" />
-            Download as PDF
-          </Button>
-          <Button onClick={() => handleDownload('docx')}>
-            <Download className="mr-2 h-4 w-4" />
-            Download as Word (.docx)
-          </Button>
-        </div>
+      
       </div>
       
       {/* Sidebar (30%) */}
@@ -631,7 +621,7 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
         </div>
         
         {/* Feedback */}
-        <div className="bg-card text-card-foreground rounded-lg border p-4"> {/* Use theme-aware background */}
+        <div className="bg-card text-card-foreground rounded-lg border p-4"> 
           <h3 className="text-lg font-bold mb-3">How's Your Resume?</h3>
 
           {showFeedbackInput ? (
