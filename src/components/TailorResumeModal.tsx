@@ -16,6 +16,9 @@ const TailorResumeModal = ({ job, jobPosting, isOpen, onClose }: TailorResumeMod
   const effectiveJobPosting: JobPosting | undefined = jobPosting || (job ? {
     title: job.title,
     company: job.company,
+    location: job.location,
+    salaryRange: job.salary,
+    employmentType: job.type,
     requiredYearsOfExperience: 1, // Default value
     industries: [job.industry], // Convert single industry to array
     requiredSkills: job.requirements, // Use requirements as skills
