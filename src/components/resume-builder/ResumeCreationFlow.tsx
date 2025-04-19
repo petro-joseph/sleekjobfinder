@@ -55,32 +55,37 @@ export const ResumeCreationFlow: React.FC<ResumeCreationFlowProps> = ({ onBack, 
 
   const CurrentStepComponent = STEPS[currentStep - 1].component;
 
-  // Custom props for each step component type
-  const getStepProps = () => {
+  // Render the appropriate component based on the current step
+  const renderStepComponent = () => {
+    // For all step components we need to provide at least these common props
     const commonProps = {
       data: formData,
       onNext: handleNext,
     };
 
-    // For Resume Preview Step
+    // For Resume Preview Step (step 6)
     if (currentStep === 6) {
-      return {
-        ...commonProps,
-        resumeData: formData as Resume,
-      };
+      return (
+        <ResumePreviewStep
+          {...commonProps}
+          resumeData={formData as Resume}
+        />
+      );
     } 
-    // For Template Step
+    // For Template Step (step 7)
     else if (currentStep === 7) {
-      return {
-        ...commonProps,
-        resumeData: formData as Resume,
-        onSelectTemplate: handleTemplateSelect,
-        selectedTemplate, // Always pass this prop
-      };
+      return (
+        <ResumeTemplateStep
+          {...commonProps}
+          resumeData={formData as Resume}
+          onSelectTemplate={handleTemplateSelect}
+          selectedTemplate={selectedTemplate}
+        />
+      );
     } 
-    // For all other steps
+    // For all other steps (1-5)
     else {
-      return commonProps;
+      return <CurrentStepComponent {...commonProps} />;
     }
   };
 
@@ -113,9 +118,7 @@ export const ResumeCreationFlow: React.FC<ResumeCreationFlowProps> = ({ onBack, 
 
       {/* Current Step Content */}
       <Card className="p-6">
-        <CurrentStepComponent
-          {...getStepProps()}
-        />
+        {renderStepComponent()}
       </Card>
 
       {/* Navigation */}
