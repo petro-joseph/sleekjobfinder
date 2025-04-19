@@ -1,8 +1,8 @@
-
 import Layout from '@/components/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, BookOpen, Target, Award, TrendingUp, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const CareerGuides = () => {
   const guides = [
@@ -12,7 +12,8 @@ const CareerGuides = () => {
       description: "Learn how to craft a professional resume that highlights your skills and experience.",
       icon: FileText,
       color: "bg-blue-500/10 text-blue-500",
-      categories: ["Entry Level", "Mid-Career", "Executive"]
+      categories: ["Entry Level", "Mid-Career", "Executive"],
+      link: "/guides/resume"
     },
     {
       id: 2,
@@ -20,7 +21,8 @@ const CareerGuides = () => {
       description: "Prepare for common interview questions and develop strategies to impress your potential employers.",
       icon: BookOpen,
       color: "bg-green-500/10 text-green-500",
-      categories: ["Behavioral", "Technical", "Case Study"]
+      categories: ["Behavioral", "Technical", "Case Study"],
+      link: "/guides/interview"
     },
     {
       id: 3,
@@ -28,7 +30,8 @@ const CareerGuides = () => {
       description: "Understand how to negotiate compensation packages that reflect your true value and potential.",
       icon: Target,
       color: "bg-purple-500/10 text-purple-500",
-      categories: ["Research", "Technique", "Benefits"]
+      categories: ["Research", "Technique", "Benefits"],
+      link: "/guides/salary"
     },
     {
       id: 4,
@@ -86,8 +89,12 @@ const CareerGuides = () => {
                   ))}
                 </div>
                 
-                <Button variant="outline" className="w-full mt-2">
-                  View Guide
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-2"
+                  asChild
+                >
+                  <Link to={guide.link}>View Guide</Link>
                 </Button>
               </CardContent>
             </Card>

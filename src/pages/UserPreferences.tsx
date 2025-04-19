@@ -1,375 +1,565 @@
-
-import { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '@/lib/store';
-import { toast } from 'sonner';
-import { motion } from 'framer-motion';
-import { Check, X, Save, PlusCircle, MinusCircle, ArrowLeft, Upload, FileText, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { 
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Switch } from '@/components/ui/switch';
-import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore, Resume } from '@/lib/store';
+import { Check, ChevronsUpDown, Trash2, Upload, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
-// Define possible job types, industries, and countries
-const JOB_TYPES = [
-  'Full-time',
-  'Part-time',
-  'Contract',
-  'Temporary',
-  'Internship',
-  'Remote',
-  'Freelance'
+const countries = [
+  { value: 'US', label: 'United States' },
+  { value: 'CA', label: 'Canada' },
+  { value: 'UK', label: 'United Kingdom' },
+  { value: 'AU', label: 'Australia' },
+  { value: 'DE', label: 'Germany' },
+  { value: 'FR', label: 'France' },
+  { value: 'JP', label: 'Japan' },
+  { value: 'CN', label: 'China' },
+  { value: 'IN', label: 'India' },
+  { value: 'BR', label: 'Brazil' },
+].sort((a, b) => a.label.localeCompare(b.label));
+
+const jobTypes = [
+  { id: 'full-time', label: 'Full-time' },
+  { id: 'part-time', label: 'Part-time' },
+  { id: 'contract', label: 'Contract' },
+  { id: 'freelance', label: 'Freelance' },
+  { id: 'internship', label: 'Internship' },
+  { id: 'remote', label: 'Remote' },
+  { id: 'hybrid', label: 'Hybrid' },
 ];
 
-const INDUSTRIES = [
-  'Technology',
-  'Healthcare',
-  'Finance',
-  'Education',
-  'Marketing',
-  'Sales',
-  'Customer Service',
-  'Manufacturing',
-  'Retail',
-  'Construction',
-  'Legal',
-  'Hospitality',
-  'Non-profit',
-  'Media',
-  'Design'
-];
+const industries = [
+  { value: 'technology', label: 'Technology' },
+  { value: 'healthcare', label: 'Healthcare' },
+  { value: 'finance', label: 'Finance & Banking' },
+  { value: 'education', label: 'Education' },
+  { value: 'retail', label: 'Retail' },
+  { value: 'manufacturing', label: 'Manufacturing' },
+  { value: 'marketing', label: 'Marketing & Advertising' },
+  { value: 'hospitality', label: 'Hospitality & Tourism' },
+  { value: 'media', label: 'Media & Entertainment' },
+  { value: 'construction', label: 'Construction' },
+].sort((a, b) => a.label.localeCompare(b.label));
 
-const COUNTRIES = [
-  'United States',
-  'Canada',
-  'United Kingdom',
-  'Australia',
-  'Germany',
-  'France',
-  'Spain',
-  'Italy',
-  'Japan',
-  'China',
-  'India',
-  'Brazil',
-  'Mexico',
-  'South Africa',
-  'Singapore',
-  'Netherlands',
-  'Sweden',
-  'Norway',
-  'Denmark',
-  'Ireland',
-  'New Zealand',
-  'Remote Only'
-];
+const formSchema = z.object({
+  locations: z.array(z.string()).min(1, 'Select at least one location'),
+  jobTypes: z.array(z.string()).min(1, 'Select at least one job type'),
+  industries: z.array(z.string()).min(1, 'Select at least one industry'),
+  salaryMin: z.string().min(1, 'Minimum salary is required'),
+  salaryMax: z.string().min(1, 'Maximum salary is required')
+});
 
 const UserPreferences = () => {
   const { user, updateUser, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [newLocation, setNewLocation] = useState('');
-  const [newJobType, setNewJobType] = useState('');
-  const [newIndustry, setNewIndustry] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-  
-  // Local state for form
-  const [preferences, setPreferences] = useState({
-    locations: [] as string[],
-    jobTypes: [] as string[],
-    industries: [] as string[],
-    resumes: [] as Array<{
-      name: string;
-      filePath: string;
-      isPrimary: boolean;
-      uploadDate: Date;
-    }>,
-    salaryRange: {
-      min: 0,
-      max: 0
-    },
-    notifications: {
-      email: false,
-      app: true,
-      jobAlerts: true
+  const [openCountry, setOpenCountry] = useState(false);
+  const [openIndustry, setOpenIndustry] = useState(false);
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
+  const [resumeFiles, setResumeFiles] = useState<Resume[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      locations: user?.jobPreferences?.locations || [],
+      jobTypes: user?.jobPreferences?.jobTypes || [],
+      industries: user?.jobPreferences?.industries || [],
+      salaryMin: user?.jobPreferences?.salaryRange?.min.toString() || '50000',
+      salaryMax: user?.jobPreferences?.salaryRange?.max.toString() || '100000'
     }
   });
-  
+
   useEffect(() => {
     if (!isAuthenticated) {
-      toast.error("Please log in to access your preferences", {
+      toast.error("Please log in to access preferences", {
         description: "You've been redirected to the login page"
       });
       navigate('/login');
+      return;
     }
-    
-    // Initialize form with user data if available
+
     if (user) {
-      setPreferences({
+      if (user.jobPreferences?.locations) {
+        setSelectedLocations(user.jobPreferences.locations);
+      }
+      
+      if (user.jobPreferences?.industries) {
+        setSelectedIndustries(user.jobPreferences.industries);
+      }
+      
+      if (user.resumes) {
+        setResumeFiles(user.resumes);
+      }
+      
+      form.reset({
         locations: user.jobPreferences?.locations || [],
         jobTypes: user.jobPreferences?.jobTypes || [],
         industries: user.jobPreferences?.industries || [],
-        resumes: user.resumes || [],
+        salaryMin: user.jobPreferences?.salaryRange?.min.toString() || '50000',
+        salaryMax: user.jobPreferences?.salaryRange?.max.toString() || '100000'
+      });
+    }
+  }, [user, isAuthenticated, navigate, form]);
+
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
+    if (!user) return;
+
+    const updatedUser = {
+      ...user,
+      jobPreferences: {
+        locations: data.locations,
+        jobTypes: data.jobTypes,
+        industries: data.industries,
         salaryRange: {
-          min: user.jobPreferences?.salaryRange?.min || 0,
-          max: user.jobPreferences?.salaryRange?.max || 0
-        },
-        notifications: {
-          email: user.settings?.emailUpdates || false,
-          app: user.settings?.notifications || true,
-          jobAlerts: true
+          min: parseInt(data.salaryMin),
+          max: parseInt(data.salaryMax)
         }
-      });
-    }
-  }, [isAuthenticated, navigate, user]);
+      },
+      onboardingStep: 3,
+      isOnboardingComplete: true
+    };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    updateUser(updatedUser);
     
-    try {
-      await updateUser({
-        jobPreferences: {
-          locations: preferences.locations,
-          jobTypes: preferences.jobTypes,
-          industries: preferences.industries,
-          salaryRange: preferences.salaryRange
-        },
-        resumes: preferences.resumes,
-        settings: {
-          emailUpdates: preferences.notifications.email,
-          notifications: preferences.notifications.app,
-          darkMode: user?.settings?.darkMode || false
-        }
-      });
-      
-      toast.success("Preferences updated successfully");
-    } catch (error) {
-      toast.error("Failed to update preferences");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const addLocation = () => {
-    if (newLocation && !preferences.locations.includes(newLocation)) {
-      setPreferences(prev => ({
-        ...prev,
-        locations: [...prev.locations, newLocation]
-      }));
-      setNewLocation('');
-    }
-  };
-  
-  const removeLocation = (location: string) => {
-    setPreferences(prev => ({
-      ...prev,
-      locations: prev.locations.filter(loc => loc !== location)
-    }));
-  };
-  
-  const addJobType = () => {
-    if (newJobType && !preferences.jobTypes.includes(newJobType)) {
-      setPreferences(prev => ({
-        ...prev,
-        jobTypes: [...prev.jobTypes, newJobType]
-      }));
-      setNewJobType('');
-    }
-  };
-  
-  const removeJobType = (type: string) => {
-    setPreferences(prev => ({
-      ...prev,
-      jobTypes: prev.jobTypes.filter(t => t !== type)
-    }));
-  };
-  
-  const addIndustry = () => {
-    if (newIndustry && !preferences.industries.includes(newIndustry)) {
-      setPreferences(prev => ({
-        ...prev,
-        industries: [...prev.industries, newIndustry]
-      }));
-      setNewIndustry('');
-    }
-  };
-  
-  const removeIndustry = (industry: string) => {
-    setPreferences(prev => ({
-      ...prev,
-      industries: prev.industries.filter(i => i !== industry)
-    }));
-  };
-
-  const simulateUpload = (file: File) => {
-    setIsUploading(true);
-    setUploadProgress(0);
-    
-    // Simulate upload progress
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsUploading(false);
-          
-          // Add the new resume to state
-          const newResume = {
-            name: file.name,
-            filePath: URL.createObjectURL(file), // In a real app, this would be the server path
-            isPrimary: preferences.resumes.length === 0, // Make primary if it's the first resume
-            uploadDate: new Date()
-          };
-          
-          setPreferences(prev => ({
-            ...prev,
-            resumes: [...prev.resumes, newResume]
-          }));
-          
-          return 0;
-        }
-        return prev + 10;
-      });
-    }, 300);
+    toast.success("Preferences updated successfully");
+    navigate('/dashboard');
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
     
-    // Maximum 3 resumes allowed
-    if (preferences.resumes.length >= 3) {
-      toast.error("Maximum 3 resumes allowed. Please delete one before uploading.");
-      return;
-    }
+    const file = files[0];
     
-    // Check file type (PDF, DOCX)
-    const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (!validTypes.includes(file.type)) {
-      toast.error("Only PDF and DOCX files are allowed");
-      return;
-    }
-    
-    // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size should not exceed 5MB");
+      toast.error("File size limit exceeded", {
+        description: "Please upload a file smaller than 5MB"
+      });
       return;
     }
     
-    simulateUpload(file);
+    if (file.type !== 'application/pdf') {
+      toast.error("Invalid file type", {
+        description: "Please upload a PDF file"
+      });
+      return;
+    }
+    
+    if (resumeFiles.length >= 3) {
+      toast.error("Maximum resume limit reached", {
+        description: "You can only upload up to 3 resumes. Delete one to upload another."
+      });
+      return;
+    }
+    
+    setUploading(true);
+    
+    setTimeout(() => {
+      const newResume: Resume = {
+        id: Date.now().toString(),
+        name: file.name,
+        filePath: URL.createObjectURL(file),
+        isPrimary: resumeFiles.length === 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        uploadDate: new Date()
+      };
+      
+      const updatedResumes = [...resumeFiles, newResume];
+      setResumeFiles(updatedResumes);
+      
+      if (user) {
+        updateUser({
+          ...user,
+          resumes: updatedResumes
+        });
+      }
+      
+      setUploading(false);
+      toast.success("Resume uploaded successfully");
+    }, 1500);
   };
 
-  const deleteResume = (index: number) => {
-    const updatedResumes = [...preferences.resumes];
-    const deletedResumePrimary = updatedResumes[index].isPrimary;
+  const handleDeleteResume = (id: string) => {
+    const updatedResumes = resumeFiles.filter(resume => resume.id !== id);
     
-    // Remove the resume
-    updatedResumes.splice(index, 1);
-    
-    // If we deleted the primary resume and there are other resumes, make the first one primary
-    if (deletedResumePrimary && updatedResumes.length > 0) {
+    if (resumeFiles.find(r => r.id === id)?.isPrimary && updatedResumes.length > 0) {
       updatedResumes[0].isPrimary = true;
     }
     
-    setPreferences(prev => ({
-      ...prev,
-      resumes: updatedResumes
-    }));
+    setResumeFiles(updatedResumes);
     
-    toast.success("Resume deleted");
+    if (user) {
+      updateUser({
+        ...user,
+        resumes: updatedResumes
+      });
+    }
+    
+    toast.success("Resume deleted successfully");
   };
 
-  const setPrimaryResume = (index: number) => {
-    const updatedResumes = preferences.resumes.map((resume, i) => ({
+  const handleSetPrimaryResume = (id: string) => {
+    const updatedResumes = resumeFiles.map(resume => ({
       ...resume,
-      isPrimary: i === index
+      isPrimary: resume.id === id
     }));
     
-    setPreferences(prev => ({
-      ...prev,
-      resumes: updatedResumes
-    }));
+    setResumeFiles(updatedResumes);
+    
+    if (user) {
+      updateUser({
+        ...user,
+        resumes: updatedResumes
+      });
+    }
     
     toast.success("Primary resume updated");
   };
 
   if (!user) {
-    return null; // Will be redirected by useEffect
+    return null;
   }
-
+  
   return (
     <Layout>
-      <div className="min-h-[calc(100vh-160px)] bg-gradient-mesh">
-        <div className="container mx-auto px-4 py-6 md:px-6">
-          <div className="mb-6 flex items-center">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => navigate(-1)}
-              className="mr-2"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-2xl font-bold">Job Preferences</h1>
-          </div>
-          
-          <div className="grid gap-6 md:grid-cols-12">
-            <div className="md:col-span-8">
-              <form onSubmit={handleSubmit}>
-                <motion.div 
-                  className="space-y-6"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {/* CV Upload Section */}
-                  <Card className="backdrop-blur-xl border-primary/20 shadow-lg hover:border-primary/40 transition-all duration-300 rounded-xl">
+      <div className="min-h-[calc(100vh-160px)] bg-white dark:bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl font-bold mb-6">Job Preferences</h1>
+            
+            <div className="grid gap-6">
+              <Card className="backdrop-blur-xl border border-primary/20 shadow-lg overflow-hidden rounded-xl">
+                <CardHeader>
+                  <CardTitle>Preferred Locations</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Countries</Label>
+                      <Popover open={openCountry} onOpenChange={setOpenCountry}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openCountry}
+                            className="w-full justify-between"
+                          >
+                            {selectedLocations.length > 0
+                              ? `${selectedLocations.length} selected`
+                              : "Select countries..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <Command>
+                            <CommandInput placeholder="Search countries..." />
+                            <CommandList>
+                              <CommandEmpty>No country found.</CommandEmpty>
+                              <CommandGroup className="max-h-64 overflow-y-auto">
+                                {countries.map((country) => (
+                                  <CommandItem
+                                    key={country.value}
+                                    value={country.label}
+                                    onSelect={() => {
+                                      const updatedLocations = selectedLocations.includes(country.label)
+                                        ? selectedLocations.filter((l) => l !== country.label)
+                                        : [...selectedLocations, country.label];
+                                      
+                                      setSelectedLocations(updatedLocations);
+                                      form.setValue('locations', updatedLocations);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        selectedLocations.includes(country.label) ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {country.label}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {selectedLocations.map((location) => (
+                          <Badge key={location} variant="secondary" className="px-3 py-1">
+                            {location}
+                            <X
+                              className="ml-1 h-3 w-3 cursor-pointer"
+                              onClick={() => {
+                                const updatedLocations = selectedLocations.filter(l => l !== location);
+                                setSelectedLocations(updatedLocations);
+                                form.setValue('locations', updatedLocations);
+                              }}
+                            />
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)}>
+                  <Card className="backdrop-blur-xl border border-primary/20 shadow-lg overflow-hidden rounded-xl">
                     <CardHeader>
-                      <CardTitle>Resume / CV</CardTitle>
-                      <CardDescription>Upload your resume (PDF or DOCX, max 3 files, 5MB each)</CardDescription>
+                      <CardTitle>Job Types & Industries</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      {preferences.resumes.length > 0 && (
-                        <div className="space-y-3 mb-4">
-                          {preferences.resumes.map((resume, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-background/50 rounded-lg border">
+                    <CardContent>
+                      <div className="space-y-6">
+                        <FormField
+                          control={form.control}
+                          name="jobTypes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Job Types</FormLabel>
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                {jobTypes.map((type) => (
+                                  <FormItem
+                                    key={type.id}
+                                    className="flex items-center space-x-2 space-y-0"
+                                  >
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value?.includes(type.id)}
+                                        onCheckedChange={(checked) => {
+                                          if (checked) {
+                                            field.onChange([...field.value, type.id]);
+                                          } else {
+                                            field.onChange(field.value?.filter((value) => value !== type.id));
+                                          }
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="font-normal cursor-pointer">
+                                      {type.label}
+                                    </FormLabel>
+                                  </FormItem>
+                                ))}
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="industries"
+                          render={() => (
+                            <FormItem>
+                              <FormLabel>Industries</FormLabel>
+                              <Popover open={openIndustry} onOpenChange={setOpenIndustry}>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className="w-full justify-between"
+                                  >
+                                    {selectedIndustries.length > 0
+                                      ? `${selectedIndustries.length} selected`
+                                      : "Select industries..."}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-full p-0">
+                                  <Command>
+                                    <CommandInput placeholder="Search industries..." />
+                                    <CommandList>
+                                      <CommandEmpty>No industry found.</CommandEmpty>
+                                      <CommandGroup className="max-h-64 overflow-y-auto">
+                                        {industries.map((industry) => (
+                                          <CommandItem
+                                            key={industry.value}
+                                            value={industry.label}
+                                            onSelect={() => {
+                                              const updatedIndustries = selectedIndustries.includes(industry.label)
+                                                ? selectedIndustries.filter((i) => i !== industry.label)
+                                                : [...selectedIndustries, industry.label];
+                                              
+                                              setSelectedIndustries(updatedIndustries);
+                                              form.setValue('industries', updatedIndustries);
+                                            }}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                "mr-2 h-4 w-4",
+                                                selectedIndustries.includes(industry.label) ? "opacity-100" : "opacity-0"
+                                              )}
+                                            />
+                                            {industry.label}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                              
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {selectedIndustries.map((industry) => (
+                                  <Badge key={industry} variant="secondary" className="px-3 py-1">
+                                    {industry}
+                                    <X
+                                      className="ml-1 h-3 w-3 cursor-pointer"
+                                      onClick={() => {
+                                        const updatedIndustries = selectedIndustries.filter(i => i !== industry);
+                                        setSelectedIndustries(updatedIndustries);
+                                        form.setValue('industries', updatedIndustries);
+                                      }}
+                                    />
+                                  </Badge>
+                                ))}
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="backdrop-blur-xl border border-primary/20 shadow-lg overflow-hidden rounded-xl mt-6">
+                    <CardHeader>
+                      <CardTitle>Salary Range</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="salaryMin"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Minimum Salary (USD)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  placeholder="e.g. 50000"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="salaryMax"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Maximum Salary (USD)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  placeholder="e.g. 100000"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="backdrop-blur-xl border border-primary/20 shadow-lg overflow-hidden rounded-xl mt-6">
+                    <CardHeader>
+                      <CardTitle>Resume Management</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                          <Input
+                            type="file"
+                            accept=".pdf"
+                            id="resume-upload"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            disabled={uploading || resumeFiles.length >= 3}
+                          />
+                          <Label
+                            htmlFor="resume-upload"
+                            className="flex flex-col items-center cursor-pointer"
+                          >
+                            <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
+                            <span className="text-sm font-medium">
+                              {uploading ? 'Uploading...' : 'Click to upload your resume (PDF only)'}
+                            </span>
+                            <span className="text-xs text-muted-foreground mt-1">
+                              Maximum 3 resumes, 5MB each
+                            </span>
+                          </Label>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          {resumeFiles.map((resume) => (
+                            <div
+                              key={resume.id}
+                              className="flex items-center justify-between p-3 border rounded-lg bg-background/50"
+                            >
                               <div className="flex items-center">
-                                <FileText className="h-5 w-5 text-primary mr-3" />
+                                <div className="mr-3">
+                                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                    PDF
+                                  </div>
+                                </div>
                                 <div>
-                                  <p className="font-medium text-sm">{resume.name}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Uploaded on {new Date(resume.uploadDate).toLocaleDateString()}
-                                  </p>
+                                  <div className="font-medium">{resume.name}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    Uploaded {resume.uploadDate ? new Date(resume.uploadDate).toLocaleDateString() : new Date(resume.createdAt).toLocaleDateString()}
+                                  </div>
                                 </div>
                               </div>
-                              <div className="flex items-center space-x-2">
+                              <div className="flex items-center">
                                 {resume.isPrimary ? (
-                                  <Badge variant="secondary" className="bg-primary/10 text-primary">
-                                    Primary
-                                  </Badge>
+                                  <Badge className="mr-2" variant="secondary">Primary</Badge>
                                 ) : (
-                                  <Button 
+                                  <Button
+                                    variant="ghost"
                                     size="sm"
-                                    variant="outline"
-                                    className="h-8 text-xs"
-                                    onClick={() => setPrimaryResume(index)}
+                                    className="mr-2 text-xs h-8"
+                                    onClick={() => handleSetPrimaryResume(resume.id)}
                                   >
                                     Set as Primary
                                   </Button>
                                 )}
                                 <Button
-                                  size="icon"
                                   variant="ghost"
-                                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  onClick={() => deleteResume(index)}
+                                  size="icon"
+                                  className="h-8 w-8 text-destructive"
+                                  onClick={() => handleDeleteResume(resume.id)}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -377,375 +567,74 @@ const UserPreferences = () => {
                             </div>
                           ))}
                         </div>
-                      )}
-                      
-                      {isUploading && (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium">Uploading...</p>
-                            <p className="text-sm text-muted-foreground">{uploadProgress}%</p>
-                          </div>
-                          <Progress value={uploadProgress} className="h-2" />
-                        </div>
-                      )}
-
-                      {preferences.resumes.length < 3 && !isUploading && (
-                        <div className="flex justify-center">
-                          <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileUpload}
-                            accept=".pdf,.docx"
-                            className="hidden"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full py-8 border-dashed border-2"
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                            <Upload className="h-5 w-5 mr-2" />
-                            {preferences.resumes.length === 0 
-                              ? "Upload your resume" 
-                              : "Upload another resume"}
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Locations */}
-                  <Card className="backdrop-blur-xl border-primary/20 shadow-lg hover:border-primary/40 transition-all duration-300 rounded-xl">
-                    <CardHeader>
-                      <CardTitle>Preferred Locations</CardTitle>
-                      <CardDescription>Select countries where you'd like to work</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {preferences.locations.map(location => (
-                          <Badge key={location} variant="secondary" className="py-2 px-3 hover:bg-muted">
-                            {location}
-                            <button 
-                              type="button" 
-                              onClick={() => removeLocation(location)}
-                              className="ml-2 text-muted-foreground hover:text-destructive"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Select 
-                          value={newLocation} 
-                          onValueChange={setNewLocation}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select a country" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {COUNTRIES.filter(country => !preferences.locations.includes(country)).map(country => (
-                              <SelectItem key={country} value={country}>
-                                {country}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button 
-                          type="button" 
-                          onClick={addLocation}
-                          variant="outline"
-                          className="flex-shrink-0"
-                          disabled={!newLocation}
-                        >
-                          <PlusCircle className="h-4 w-4 mr-2" />
-                          Add
-                        </Button>
                       </div>
                     </CardContent>
                   </Card>
                   
-                  {/* Job Types */}
-                  <Card className="backdrop-blur-xl border-primary/20 shadow-lg hover:border-primary/40 transition-all duration-300 rounded-xl">
-                    <CardHeader>
-                      <CardTitle>Job Types</CardTitle>
-                      <CardDescription>Select the types of employment you're looking for</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {preferences.jobTypes.map(type => (
-                          <Badge key={type} variant="secondary" className="py-2 px-3 hover:bg-muted">
-                            {type}
-                            <button 
-                              type="button" 
-                              onClick={() => removeJobType(type)}
-                              className="ml-2 text-muted-foreground hover:text-destructive"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Select 
-                          value={newJobType} 
-                          onValueChange={setNewJobType}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select a job type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {JOB_TYPES.filter(type => !preferences.jobTypes.includes(type)).map(type => (
-                              <SelectItem key={type} value={type}>
-                                {type}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button 
-                          type="button" 
-                          onClick={addJobType}
-                          variant="outline"
-                          className="flex-shrink-0"
-                          disabled={!newJobType}
-                        >
-                          <PlusCircle className="h-4 w-4 mr-2" />
-                          Add
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Industries */}
-                  <Card className="backdrop-blur-xl border-primary/20 shadow-lg hover:border-primary/40 transition-all duration-300 rounded-xl">
-                    <CardHeader>
-                      <CardTitle>Industries</CardTitle>
-                      <CardDescription>Select industries you're interested in</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {preferences.industries.map(industry => (
-                          <Badge key={industry} variant="secondary" className="py-2 px-3 hover:bg-muted">
-                            {industry}
-                            <button 
-                              type="button" 
-                              onClick={() => removeIndustry(industry)}
-                              className="ml-2 text-muted-foreground hover:text-destructive"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Select 
-                          value={newIndustry} 
-                          onValueChange={setNewIndustry}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select an industry" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {INDUSTRIES.filter(ind => !preferences.industries.includes(ind)).map(industry => (
-                              <SelectItem key={industry} value={industry}>
-                                {industry}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button 
-                          type="button" 
-                          onClick={addIndustry}
-                          variant="outline"
-                          className="flex-shrink-0"
-                          disabled={!newIndustry}
-                        >
-                          <PlusCircle className="h-4 w-4 mr-2" />
-                          Add
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Salary Range */}
-                  <Card className="backdrop-blur-xl border-primary/20 shadow-lg hover:border-primary/40 transition-all duration-300 rounded-xl">
-                    <CardHeader>
-                      <CardTitle>Salary Range</CardTitle>
-                      <CardDescription>Set your expected salary range</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="minSalary">Minimum ($)</Label>
-                          <Input 
-                            id="minSalary"
-                            type="number"
-                            value={preferences.salaryRange.min}
-                            onChange={(e) => setPreferences({
-                              ...preferences,
-                              salaryRange: {
-                                ...preferences.salaryRange,
-                                min: parseInt(e.target.value) || 0
-                              }
-                            })}
-                            placeholder="Minimum salary"
-                            className="mt-1"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="maxSalary">Maximum ($)</Label>
-                          <Input 
-                            id="maxSalary"
-                            type="number"
-                            value={preferences.salaryRange.max}
-                            onChange={(e) => setPreferences({
-                              ...preferences,
-                              salaryRange: {
-                                ...preferences.salaryRange,
-                                max: parseInt(e.target.value) || 0
-                              }
-                            })}
-                            placeholder="Maximum salary"
-                            className="mt-1"
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Notification Settings */}
-                  <Card className="backdrop-blur-xl border-primary/20 shadow-lg hover:border-primary/40 transition-all duration-300 rounded-xl">
+                  <Card className="backdrop-blur-xl border border-primary/20 shadow-lg overflow-hidden rounded-xl mt-6">
                     <CardHeader>
                       <CardTitle>Notification Preferences</CardTitle>
-                      <CardDescription>Manage how you receive notifications</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center justify-between py-2">
-                        <div>
-                          <p className="font-medium">Email Notifications</p>
-                          <p className="text-sm text-muted-foreground">Receive job updates via email</p>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label htmlFor="notifications" className="font-medium">
+                              App Notifications
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              Receive notifications about job matches and application updates
+                            </p>
+                          </div>
+                          <Switch 
+                            id="notifications" 
+                            checked={user.settings?.notifications} 
+                            onCheckedChange={(checked) => {
+                              updateUser({
+                                ...user,
+                                settings: {
+                                  ...user.settings,
+                                  notifications: checked
+                                }
+                              });
+                            }}
+                          />
                         </div>
-                        <Switch
-                          checked={preferences.notifications.email}
-                          onCheckedChange={(checked) => setPreferences({
-                            ...preferences,
-                            notifications: {
-                              ...preferences.notifications,
-                              email: checked
-                            }
-                          })}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between py-2">
-                        <div>
-                          <p className="font-medium">App Notifications</p>
-                          <p className="text-sm text-muted-foreground">In-app notifications and alerts</p>
+                        
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label htmlFor="email-updates" className="font-medium">
+                              Email Updates
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              Receive emails about new job opportunities and career tips
+                            </p>
+                          </div>
+                          <Switch 
+                            id="email-updates" 
+                            checked={user.settings?.emailUpdates} 
+                            onCheckedChange={(checked) => {
+                              updateUser({
+                                ...user,
+                                settings: {
+                                  ...user.settings,
+                                  emailUpdates: checked
+                                }
+                              });
+                            }}
+                          />
                         </div>
-                        <Switch
-                          checked={preferences.notifications.app}
-                          onCheckedChange={(checked) => setPreferences({
-                            ...preferences,
-                            notifications: {
-                              ...preferences.notifications,
-                              app: checked
-                            }
-                          })}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between py-2">
-                        <div>
-                          <p className="font-medium">Job Alert Notifications</p>
-                          <p className="text-sm text-muted-foreground">Get notified about new job matches</p>
-                        </div>
-                        <Switch
-                          checked={preferences.notifications.jobAlerts}
-                          onCheckedChange={(checked) => setPreferences({
-                            ...preferences,
-                            notifications: {
-                              ...preferences.notifications,
-                              jobAlerts: checked
-                            }
-                          })}
-                        />
                       </div>
                     </CardContent>
                   </Card>
                   
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => navigate('/dashboard')}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit"
-                      disabled={loading}
-                      className="bg-primary text-primary-foreground hover:bg-primary/90"
-                    >
-                      {loading ? 
-                        <span className="flex items-center">
-                          <div className="loader mr-2" />
-                          Saving...
-                        </span> : 
-                        <span className="flex items-center">
-                          <Save className="h-4 w-4 mr-2" />
-                          Save Preferences
-                        </span>
-                      }
+                  <div className="mt-6 flex justify-end">
+                    <Button type="submit" size="lg" className="w-full md:w-auto">
+                      Save Preferences
                     </Button>
                   </div>
-                </motion.div>
-              </form>
-            </div>
-            
-            <div className="md:col-span-4">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-              >
-                <Card className="backdrop-blur-xl border-primary/20 shadow-lg hover:border-primary/40 transition-all duration-300 rounded-xl sticky top-20">
-                  <CardHeader>
-                    <CardTitle>Why Set Preferences?</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-start">
-                      <div className="mr-3 p-2 rounded-full bg-primary/10 flex-shrink-0">
-                        <Check className="h-4 w-4 text-primary" />
-                      </div>
-                      <p className="text-sm">Get more relevant job recommendations</p>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <div className="mr-3 p-2 rounded-full bg-primary/10 flex-shrink-0">
-                        <Check className="h-4 w-4 text-primary" />
-                      </div>
-                      <p className="text-sm">Receive notifications for jobs that match your criteria</p>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <div className="mr-3 p-2 rounded-full bg-primary/10 flex-shrink-0">
-                        <Check className="h-4 w-4 text-primary" />
-                      </div>
-                      <p className="text-sm">Increase your chances of finding the perfect job faster</p>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <div className="mr-3 p-2 rounded-full bg-primary/10 flex-shrink-0">
-                        <Check className="h-4 w-4 text-primary" />
-                      </div>
-                      <p className="text-sm">Control how and when you receive notifications</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                </form>
+              </Form>
             </div>
           </div>
         </div>

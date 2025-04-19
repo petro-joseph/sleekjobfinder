@@ -16,6 +16,9 @@ import Progress from './pages/Progress';
 import ResumeBuilder from './pages/ResumeBuilder';
 import NotFound from './pages/NotFound';
 import CareerGuides from './pages/CareerGuides';
+import ResumeGuide from './pages/guides/ResumeGuide';
+import InterviewGuide from './pages/guides/InterviewGuide';
+import SalaryGuide from './pages/guides/SalaryGuide';
 import FAQ from './pages/FAQ';
 import About from './pages/About';
 import Careers from './pages/Careers';
@@ -29,6 +32,7 @@ import { useAuthStore } from './lib/store';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import UserPreferences from './pages/UserPreferences';
+import CareerAssistant from './pages/CareerAssistant';
 
 function App() {
   return (
@@ -42,6 +46,9 @@ function App() {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogDetail />} />
         <Route path="/career-guides" element={<CareerGuides />} />
+        <Route path="/guides/resume" element={<ResumeGuide />} />
+        <Route path="/guides/interview" element={<InterviewGuide />} />
+        <Route path="/guides/salary" element={<SalaryGuide />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/support" element={<Support />} />
         
@@ -64,6 +71,7 @@ function App() {
         <Route path="/progress" element={<Progress />} />
         <Route path="/resume-builder" element={<ResumeBuilder />} />
         <Route path="/preferences" element={<UserPreferences />} />
+        <Route path="/career-assistant" element={<CareerAssistant />} />
 
         {/* 404 Route - must be last */}
         <Route path="*" element={<NotFound />} />
