@@ -9,6 +9,8 @@ import { EducationStep } from './creation-steps/EducationStep';
 import { SkillsStep } from './creation-steps/SkillsStep';
 import { SummaryStep } from './creation-steps/SummaryStep';
 import { Resume } from '@/types/resume';
+import { ResumePreviewStep } from './ResumePreviewStep';
+import { ResumeTemplateStep } from './creation-steps/ResumeTemplateStep';
 
 interface ResumeCreationFlowProps {
   onBack: () => void;
@@ -21,11 +23,14 @@ const STEPS = [
   { id: 3, title: "Education", component: EducationStep },
   { id: 4, title: "Skills", component: SkillsStep },
   { id: 5, title: "Summary", component: SummaryStep },
+  { id: 6, title: "Review", component: ResumePreviewStep },
+  { id: 7, title: "Templates", component: ResumeTemplateStep },
 ];
 
 export const ResumeCreationFlow: React.FC<ResumeCreationFlowProps> = ({ onBack, onComplete }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<Resume>>({});
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("standard");
 
   const handleNext = (stepData: Partial<Resume>) => {
     setFormData(prev => ({ ...prev, ...stepData }));
@@ -44,7 +49,41 @@ export const ResumeCreationFlow: React.FC<ResumeCreationFlowProps> = ({ onBack, 
     }
   };
 
+  const handleTemplateSelect = (template: string) => {
+    setSelectedTemplate(template);
+    // Move to next step or finalize resume
+    if (currentStep < STEPS.length) {
+      setCurrentStep(prev => prev + 1);
+    } else {
+      onComplete(formData as Resume);
+    }
+  };
+
   const CurrentStepComponent = STEPS[currentStep - 1].component;
+
+  // Special props for the preview and template steps
+  const getStepProps = () => {
+    if (currentStep === 6) { // Review step
+      return {
+        data: formData,
+        onNext: handleNext,
+        resumeData: formData as Resume,
+      };
+    } else if (currentStep === 7) { // Template step
+      return {
+        data: formData,
+        onNext: handleNext,
+        resumeData: formData as Resume,
+        onSelectTemplate: handleTemplateSelect,
+        selectedTemplate: selectedTemplate,
+      };
+    } else {
+      return {
+        data: formData,
+        onNext: handleNext,
+      };
+    }
+  };
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -76,8 +115,7 @@ export const ResumeCreationFlow: React.FC<ResumeCreationFlowProps> = ({ onBack, 
       {/* Current Step Content */}
       <Card className="p-6">
         <CurrentStepComponent
-          data={formData}
-          onNext={handleNext}
+          {...getStepProps()}
         />
       </Card>
 

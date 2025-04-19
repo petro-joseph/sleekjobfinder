@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
-import { JobPosting } from '@/types/resume';
+import { JobPosting, Resume } from '@/types/resume';
 import { defaultJobPosting } from '@/data/resume-data';
+import { Download, Save, Template } from 'lucide-react';
 
 interface ResumeTailoringFlowProps {
   jobPosting?: JobPosting;

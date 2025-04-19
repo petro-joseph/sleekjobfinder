@@ -20,6 +20,15 @@ const ResumeBuilder = () => {
     return () => setMode('select');
   }, []);
 
+  const handleResumeComplete = (resume: Resume) => {
+    toast({
+      title: "Resume created successfully!",
+      description: "Your new resume has been saved.",
+    });
+    // In a real app, save resume to user's profile
+    setMode('select');
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
@@ -75,29 +84,12 @@ const ResumeBuilder = () => {
         {mode === 'create' && (
           <ResumeCreationFlow 
             onBack={() => setMode('select')}
-            onComplete={(resume: Resume) => {
-              toast({
-                title: "Resume created successfully!",
-                description: "Your new resume has been saved.",
-              });
-              // TODO: Save resume to user's profile
-              setMode('select');
-            }}
+            onComplete={handleResumeComplete}
           />
         )}
 
         {mode === 'tailor' && (
-          <div className="max-w-3xl mx-auto">
-            <Card className="p-6">
-              <CardTitle className="mb-4">Upload or Select a Resume</CardTitle>
-              <CardDescription className="mb-6">
-                Please upload a resume or select from your existing resumes to continue.
-              </CardDescription>
-              <Button onClick={() => setMode('select')}>
-                Back to Options
-              </Button>
-            </Card>
-          </div>
+          <ResumeTailoringFlow onClose={() => setMode('select')} />
         )}
       </div>
     </Layout>
