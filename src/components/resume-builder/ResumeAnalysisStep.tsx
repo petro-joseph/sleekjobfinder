@@ -64,7 +64,7 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
     else color = '#22c55e';
 
     return {
-      background: `conic-gradient(${color} ${percentage}%, #e5e7eb ${percentage}% 100%)`,
+      background: `conic-gradient(${color} ${percentage}%, hsl(var(--muted)) ${percentage}% 100%)`,
     };
   };
 
@@ -74,13 +74,13 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
       
       {/* Match Score Gauge */}
       <div className="flex flex-col items-center mb-8">
-        <div className="relative w-32 h-32 mb-2">
+        <div className="score-gauge mb-2">
           <div 
             className="w-full h-full rounded-full"
             style={getGaugeStyle(matchData.initialScore)}
           ></div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center">
+            <div className="score-gauge-inner flex items-center justify-center">
               <span className="text-2xl font-bold">{matchData.initialScore}/10</span>
             </div>
           </div>
@@ -96,13 +96,13 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
         <Collapsible 
           open={openSections.overview} 
           onOpenChange={() => toggleSection('overview')}
-          className="border rounded-lg overflow-hidden"
+          className="border border-border rounded-lg overflow-hidden"
         >
           <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/20 text-left">
             <span className="font-medium">Overview</span>
             {openSections.overview ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
           </CollapsibleTrigger>
-          <CollapsibleContent className="p-4 space-y-4">
+          <CollapsibleContent className="p-4 space-y-4 bg-background">
             <div>
               <p className="font-medium mb-2">Job Position:</p>
               <p>{jobPosting.title} at {jobPosting.company}</p>
@@ -137,7 +137,7 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
         <Collapsible 
           open={openSections.jobTitle} 
           onOpenChange={() => toggleSection('jobTitle')}
-          className="border rounded-lg overflow-hidden"
+          className="border border-border rounded-lg overflow-hidden"
         >
           <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/20 text-left">
             <div className="flex items-center">
@@ -150,8 +150,8 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
             </div>
             {openSections.jobTitle ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
           </CollapsibleTrigger>
-          <CollapsibleContent className="p-4">
-            <div className="flex justify-between">
+          <CollapsibleContent className="p-4 bg-background">
+            <div className="flex flex-col md:flex-row md:justify-between gap-4">
               <div>
                 <p className="font-medium mb-2">Your Current Title:</p>
                 <p>{resume.jobTitle}</p>
@@ -173,7 +173,7 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
         <Collapsible 
           open={openSections.experience} 
           onOpenChange={() => toggleSection('experience')}
-          className="border rounded-lg overflow-hidden"
+          className="border border-border rounded-lg overflow-hidden"
         >
           <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/20 text-left">
             <div className="flex items-center">
@@ -186,8 +186,8 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
             </div>
             {openSections.experience ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
           </CollapsibleTrigger>
-          <CollapsibleContent className="p-4">
-            <div className="flex justify-between">
+          <CollapsibleContent className="p-4 bg-background">
+            <div className="flex flex-col md:flex-row md:justify-between gap-4">
               <div>
                 <p className="font-medium mb-2">Your Experience:</p>
                 <p>{resume.yearsOfExperience} years</p>
@@ -209,7 +209,7 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
         <Collapsible 
           open={openSections.industry} 
           onOpenChange={() => toggleSection('industry')}
-          className="border rounded-lg overflow-hidden"
+          className="border border-border rounded-lg overflow-hidden"
         >
           <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/20 text-left">
             <div className="flex items-center">
@@ -222,8 +222,8 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
             </div>
             {openSections.industry ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
           </CollapsibleTrigger>
-          <CollapsibleContent className="p-4">
-            <div className="flex justify-between">
+          <CollapsibleContent className="p-4 bg-background">
+            <div className="flex flex-col md:flex-row md:justify-between gap-4">
               <div>
                 <p className="font-medium mb-2">Your Industries:</p>
                 <ul className="list-disc pl-5">
@@ -255,7 +255,7 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
         <Collapsible 
           open={openSections.skills} 
           onOpenChange={() => toggleSection('skills')}
-          className="border rounded-lg overflow-hidden"
+          className="border border-border rounded-lg overflow-hidden"
         >
           <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/20 text-left">
             <div className="flex items-center">
@@ -270,7 +270,7 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
             </div>
             {openSections.skills ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
           </CollapsibleTrigger>
-          <CollapsibleContent className="p-4">
+          <CollapsibleContent className="p-4 bg-background">
             <p className="font-medium mb-4">Job Required Skills:</p>
             <div className="flex flex-wrap gap-2 mb-6">
               {jobPosting.requiredSkills.map((skill, index) => {
@@ -279,7 +279,7 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
                   <div 
                     key={index}
                     className={`text-sm px-3 py-1 rounded-full flex items-center gap-1 ${
-                      isMatch ? 'bg-green-100' : 'bg-red-100'
+                      isMatch ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                     }`}
                   >
                     {skill}
@@ -297,7 +297,7 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
               {resume.skills.map((skill, index) => (
                 <span 
                   key={index}
-                  className="bg-gray-100 text-sm px-3 py-1 rounded-full"
+                  className="bg-gray-100 dark:bg-gray-800 text-sm px-3 py-1 rounded-full"
                 >
                   {skill}
                 </span>
@@ -310,7 +310,7 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
         <Collapsible 
           open={openSections.summary} 
           onOpenChange={() => toggleSection('summary')}
-          className="border rounded-lg overflow-hidden"
+          className="border border-border rounded-lg overflow-hidden"
         >
           <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/20 text-left">
             <div className="flex items-center">
@@ -319,10 +319,10 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
             </div>
             {openSections.summary ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
           </CollapsibleTrigger>
-          <CollapsibleContent className="p-4">
+          <CollapsibleContent className="p-4 bg-background">
             <p className="font-medium mb-2">Your Current Summary:</p>
             <p className="mb-4">{resume.summary}</p>
-            <p className="text-sm text-yellow-600">
+            <p className="text-sm text-yellow-600 dark:text-yellow-400">
               Your current summary does not fully align with this job's requirements. We recommend enhancing it 
               to highlight relevant skills and experience for this specific position.
             </p>

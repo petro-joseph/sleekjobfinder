@@ -16,10 +16,12 @@ import { ResumeCustomizationStep } from '@/components/resume-builder/ResumeCusto
 import { ResumePreviewStep } from '@/components/resume-builder/ResumePreviewStep';
 import { defaultResume, defaultJobPosting } from '@/data/resume-data';
 import { Resume, JobPosting, MatchData } from '@/types/resume';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const ResumeBuilder = () => {
   const { toast } = useToast();
   const { user } = useAuthStore();
+  const isMobile = useIsMobile();
   const [currentStep, setCurrentStep] = useState(1);
   const [activeTab, setActiveTab] = useState('upload');
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -40,11 +42,16 @@ const ResumeBuilder = () => {
     missingSkills: [],
     summaryMatch: false
   });
-  const [selectedSections, setSelectedSections] = useState({
+  const [selectedSections, setSelectedSections] = useState<{
+    summary: boolean;
+    skills: boolean;
+    experience: boolean;
+    editMode: 'quick' | 'full';
+  }>({
     summary: true,
     skills: true,
     experience: true,
-    editMode: 'quick' as 'quick' | 'full' // Fixed type by using 'as' type assertion
+    editMode: 'quick' // Fixed type by using explicit type
   });
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [tailoredResume, setTailoredResume] = useState<Resume | null>(null);
@@ -308,7 +315,7 @@ const ResumeBuilder = () => {
             credits={credits}
           />
         ) : (
-          <div className="text-center p-12">
+          <div className="text-center p-12 bg-background/50 backdrop-blur-sm rounded-lg border border-border">
             <h3 className="text-xl font-medium mb-4">Generating your tailored resume...</h3>
             <div className="loader mx-auto"></div>
           </div>
@@ -324,20 +331,21 @@ const ResumeBuilder = () => {
         <div className="flex items-center justify-between mb-6">
           <button 
             onClick={resetProcess}
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors p-2 rounded-full hover:bg-secondary/50"
+            aria-label="Reset process"
           >
             <X className="h-6 w-6" />
           </button>
           
           <h1 className="text-2xl font-bold text-center">Generate Your Custom Resume</h1>
           
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full border border-border">
             {credits} credits available today
           </div>
         </div>
 
         {/* Progress Steps */}
-        <div className="flex justify-between mb-8 max-w-2xl mx-auto">
+        <div className="flex justify-between mb-8 max-w-2xl mx-auto px-4">
           {[
             { num: 1, title: "See Your Difference" },
             { num: 2, title: "Align Your Resume" },
@@ -351,16 +359,20 @@ const ResumeBuilder = () => {
               <div 
                 className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
                   step.num === currentStep 
-                    ? 'bg-green-500 text-white' 
+                    ? 'bg-green-500 text-white dark:text-white' 
                     : step.num < currentStep 
-                      ? 'bg-green-100 text-green-500' 
-                      : 'bg-gray-100 text-gray-500'
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-500 dark:text-green-300' 
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
                 }`}
               >
                 {step.num < currentStep ? <Check className="h-5 w-5" /> : step.num}
               </div>
-              <span className={`text-xs text-center ${step.num === currentStep ? 'text-green-500 font-medium' : 'text-muted-foreground'}`}>
-                {step.title}
+              <span className={`text-xs text-center ${
+                step.num === currentStep 
+                  ? 'text-green-500 dark:text-green-400 font-medium' 
+                  : 'text-muted-foreground'
+              }`}>
+                {isMobile ? (step.num === 1 ? "Analyze" : step.num === 2 ? "Customize" : "Preview") : step.title}
               </span>
             </button>
           ))}
@@ -368,7 +380,9 @@ const ResumeBuilder = () => {
         
         {/* Main Content */}
         <div className="max-w-5xl mx-auto">
-          {renderCurrentStep()}
+          <div className="p-4 md:p-6 bg-background/70 dark:bg-background/40 backdrop-blur-sm border border-border rounded-xl shadow-sm">
+            {renderCurrentStep()}
+          </div>
         </div>
       </div>
     </Layout>
