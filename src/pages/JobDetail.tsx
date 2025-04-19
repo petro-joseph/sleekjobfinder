@@ -23,6 +23,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { jobs, Job } from '@/data/jobs';
+import { JobPosting } from '@/types/resume'; // Import JobPosting type
 import { SectionHeading } from '@/components/ui/section-heading';
 import { toast } from 'sonner';
 import {
@@ -377,7 +378,25 @@ const JobDetail = () => {
           </div>
         </div>
       </div>
-      {job && <TailorResumeModal job={job} isOpen={tailorModalOpen} onClose={() => setTailorModalOpen(false)} />}
+      {job && (
+        () => {
+          // Map Job to JobPosting structure
+          const jobPostingData: JobPosting = {
+            // id: job.id, // Removed as it's not in JobPosting type
+            title: job.title,
+            company: job.company,
+            location: job.location, // Assuming JobPosting has location
+            description: job.description, // Assuming JobPosting has description
+            requiredSkills: job.requirements, // Map requirements to skills
+            industries: [job.industry], // Map single industry to array
+            requiredYearsOfExperience: 1, // Default value as Job type doesn't have it
+            // Add other fields if needed, potentially with default values
+            employmentType: job.type, // Assuming mapping
+            salaryRange: job.salary, // Assuming mapping
+          };
+          return <TailorResumeModal jobPosting={jobPostingData} isOpen={tailorModalOpen} onClose={() => setTailorModalOpen(false)} />;
+        }
+      )()}
     </Layout>
   );
 };

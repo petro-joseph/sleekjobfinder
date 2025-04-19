@@ -225,7 +225,8 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
     <div className="grid md:grid-cols-10 gap-6">
       {/* Main Content - Resume Preview (70%) */}
       <div className="md:col-span-7 space-y-6">
-        <div className={`bg-white rounded-lg border p-6 ${template === 'compact' ? 'space-y-3' : 'space-y-6'}`}>
+        {/* Use theme-aware background */}
+        <div className={`bg-card text-card-foreground rounded-lg border p-6 ${template === 'compact' ? 'space-y-3' : 'space-y-6'}`}>
           {/* Header */}
           <div className="text-center">
             <h1 className="text-3xl font-bold">{tailoredResume.name}</h1>
@@ -301,12 +302,12 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
                 <div className="space-y-3">
                   <div className="flex flex-wrap gap-2">
                     {editValues.skills?.map((skill, index) => (
-                      <span 
+                      <span
                         key={index}
-                        className="bg-gray-100 rounded-full px-3 py-1 text-sm flex items-center"
+                        className="bg-secondary text-secondary-foreground rounded-full px-3 py-1 text-sm flex items-center" // Use theme-aware background
                       >
                         {skill}
-                        <button 
+                        <button
                           className="ml-1 text-red-500"
                           onClick={() => removeSkill(skill)}
                         >
@@ -342,12 +343,13 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {tailoredResume.skills.map((skill, index) => (
-                    <span 
+                    <span
                       key={index}
+                      // Use theme-aware backgrounds for skills
                       className={`rounded-full px-3 py-1 text-sm ${
-                        selectedSkills.includes(skill) 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100'
+                        selectedSkills.includes(skill)
+                          ? 'bg-green-500/10 text-green-700 dark:bg-green-900/20 dark:text-green-400' // Highlight added skills
+                          : 'bg-secondary text-secondary-foreground' // Default skill background
                       }`}
                     >
                       {skill}
@@ -519,7 +521,7 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
       {/* Sidebar (30%) */}
       <div className="md:col-span-3 space-y-6">
         {/* Match Score */}
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-card text-card-foreground rounded-lg border p-6"> {/* Use theme-aware background */}
           <div className="flex flex-col items-center mb-4">
             <div className="relative w-24 h-24 mb-2">
               <div 
@@ -527,7 +529,8 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
                 style={getGaugeStyle(matchData.finalScore)}
               ></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                 {/* Use theme-aware background for inner circle */}
+                <div className="w-16 h-16 bg-card rounded-full flex items-center justify-center">
                   <span className="text-xl font-bold">{matchData.finalScore}/10</span>
                 </div>
               </div>
@@ -543,11 +546,12 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
         </div>
         
         {/* What's Changed */}
-        <div className="bg-white rounded-lg border">
+        <div className="bg-card text-card-foreground rounded-lg border"> {/* Use theme-aware background */}
           <h3 className="text-lg font-bold p-4 border-b">What's Changed</h3>
-          
+
           <Collapsible defaultOpen className="border-b">
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-secondary/20">
+             {/* Use theme-aware hover */}
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-muted/50">
               <div className="flex items-center text-left">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                 <span>Summary Enhanced</span>
@@ -560,7 +564,8 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
           </Collapsible>
           
           <Collapsible defaultOpen className="border-b">
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-secondary/20">
+             {/* Use theme-aware hover */}
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-muted/50">
               <div className="flex items-center text-left">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                 <span>Missing Skills Added</span>
@@ -578,7 +583,8 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
           </Collapsible>
           
           <Collapsible defaultOpen>
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-secondary/20">
+             {/* Use theme-aware hover */}
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-muted/50">
               <div className="flex items-center text-left">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                 <span>Work Experience Enhanced</span>
@@ -592,9 +598,9 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
         </div>
         
         {/* Template Options */}
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-card text-card-foreground rounded-lg border p-4"> {/* Use theme-aware background */}
           <h3 className="text-lg font-bold mb-3">Template Options</h3>
-          
+
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <input 
@@ -602,7 +608,7 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
                 id="standard-template"
                 checked={template === 'standard'}
                 onChange={() => setTemplate('standard')}
-                className="h-4 w-4"
+                className="h-4 w-4 text-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-primary dark:focus:ring-offset-gray-800" // Dark mode for radio
               />
               <label htmlFor="standard-template" className="text-sm">
                 Standard (full layout, normal spacing)
@@ -615,7 +621,7 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
                 id="compact-template"
                 checked={template === 'compact'}
                 onChange={() => setTemplate('compact')}
-                className="h-4 w-4"
+                className="h-4 w-4 text-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-primary dark:focus:ring-offset-gray-800" // Dark mode for radio
               />
               <label htmlFor="compact-template" className="text-sm">
                 Compact (tighter spacing, smaller margins)
@@ -625,9 +631,9 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
         </div>
         
         {/* Feedback */}
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-card text-card-foreground rounded-lg border p-4"> {/* Use theme-aware background */}
           <h3 className="text-lg font-bold mb-3">How's Your Resume?</h3>
-          
+
           {showFeedbackInput ? (
             <div className="space-y-3">
               <Textarea 
@@ -671,9 +677,9 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
         </div>
         
         {/* Edit Base Resume Warning */}
-        <div className="bg-white rounded-lg border p-4">
-          <Button 
-            variant="outline" 
+        <div className="bg-card text-card-foreground rounded-lg border p-4"> {/* Use theme-aware background */}
+          <Button
+            variant="outline"
             className="w-full"
             size="sm"
           >

@@ -1,16 +1,21 @@
 
 import React, { useState } from 'react';
-import { Check, AlertTriangle, ThumbsUp, ThumbsDown, ArrowRight, FileText, ChevronDown, ChevronUp } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+// Import necessary icons
+import { Check, AlertTriangle, ArrowRight, FileText, ChevronDown, Building, CheckCircle, XCircle, AlertCircle, Info } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card'; // Keep Card for potential future use if needed
 import { Button } from '@/components/ui/button';
 import { Resume, JobPosting, MatchData } from '@/types/resume';
-import { 
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+// Remove Collapsible imports
 import { Resume as StoreResume } from '@/lib/store';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge'; // Import Badge for skills
+// Import Tooltip components
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ResumeAnalysisStepProps {
   resume: Resume;
@@ -27,22 +32,8 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
   onContinue,
   userResumes
 }) => {
-  const [openSections, setOpenSections] = useState({
-    overview: true,
-    jobTitle: false,
-    experience: false,
-    industry: false,
-    skills: false,
-    summary: false
-  });
+  // Remove openSections state and toggleSection function
   const [selectedResumeId, setSelectedResumeId] = useState(userResumes[0]?.id || '');
-
-  const toggleSection = (section: keyof typeof openSections) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
 
   const getScoreLabel = (score: number) => {
     if (score < 5) return "Poor";
@@ -64,279 +55,192 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
     else color = '#22c55e';
 
     return {
-      background: `conic-gradient(${color} ${percentage}%, hsl(var(--muted)) ${percentage}% 100%)`,
+      // Use theme-aware background for gauge track
+      background: `conic-gradient(${color} ${percentage}%, hsl(var(--border)) ${percentage}% 100%)`,
     };
   };
 
+  // Helper to get icon based on match status
+  const getMatchIcon = (match: boolean | undefined | null, conditionMet?: boolean) => {
+    if (match === true || conditionMet === true) {
+      return <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />;
+    }
+    if (match === false || conditionMet === false) {
+      return <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />;
+    }
+    // Default to warning if status is unclear or needs attention
+    return <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0" />;
+  };
+
+  const selectedUserResume = userResumes.find(r => r.id === selectedResumeId);
+
   return (
-    <div className="space-y-6">
-      <h2 className="text-3xl font-bold text-center mb-6">How Your Resume Aligns with This Job</h2>
-      
-      {/* Match Score Gauge */}
-      <div className="flex flex-col items-center mb-8">
-        <div className="score-gauge mb-2">
-          <div 
-            className="w-full h-full rounded-full"
-            style={getGaugeStyle(matchData.initialScore)}
-          ></div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="score-gauge-inner flex items-center justify-center">
-              <span className="text-2xl font-bold">{matchData.initialScore}/10</span>
-            </div>
+    // Use grid for overall layout
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      {/* Left Column (Heading & Table) */}
+      <div className="md:col-span-2 space-y-6">
+        <h2 className="text-2xl font-semibold text-foreground">How Your Resume Aligns with This Job</h2>
+
+        {/* Comparison Table */}
+        <div className="border border-border rounded-lg overflow-hidden bg-card">
+          {/* Table Header Row (Hidden but defines columns) */}
+          <div className="grid grid-cols-12 gap-4 p-4 font-medium text-sm text-muted-foreground border-b border-border">
+            <div className="col-span-3">Criteria</div>
+            <div className="col-span-4">Job Requirement</div>
+            <div className="col-span-5">Your Resume</div>
           </div>
-        </div>
-        <p className={`text-lg font-medium ${getScoreColor(matchData.initialScore)}`}>
-          {getScoreLabel(matchData.initialScore)}
-        </p>
-      </div>
-      
-      {/* Analysis Sections */}
-      <div className="space-y-4">
-        {/* Overview Section */}
-        <Collapsible 
-          open={openSections.overview} 
-          onOpenChange={() => toggleSection('overview')}
-          className="border border-border rounded-lg overflow-hidden"
-        >
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/20 text-left">
-            <span className="font-medium">Overview</span>
-            {openSections.overview ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="p-4 space-y-4 bg-background">
-            <div>
-              <p className="font-medium mb-2">Job Position:</p>
-              <p>{jobPosting.title} at {jobPosting.company}</p>
+
+          {/* Overview Row */}
+          <div className="grid grid-cols-12 gap-4 p-4 items-start border-b border-border">
+            <div className="col-span-3 text-sm font-medium text-foreground flex items-center gap-2">
+              {/* Placeholder icon or category icon */}
+              <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              Overview
             </div>
-            
-            <div>
-              <p className="font-medium mb-2">Select Resume to Use:</p>
-              <Select 
-                value={selectedResumeId} 
+            <div className="col-span-4 text-sm">
+              <div className="flex items-center gap-2 mb-1">
+                 {/* Add placeholder for job logo if available */}
+                 <Building className="h-4 w-4 text-muted-foreground" />
+                 <span className="font-medium">{jobPosting.company}</span>
+              </div>
+              <p className="text-muted-foreground">{jobPosting.title}</p>
+              {/* Add location if available */}
+              {/* <p className="text-xs text-muted-foreground">{jobPosting.location}</p> */}
+            </div>
+            <div className="col-span-5 text-sm">
+               <Select
+                value={selectedResumeId}
                 onValueChange={setSelectedResumeId}
               >
-                <SelectTrigger className="w-full md:w-auto">
+                <SelectTrigger className="w-full h-9 text-xs">
                   <SelectValue placeholder="Select a resume" />
                 </SelectTrigger>
                 <SelectContent>
                   {userResumes.length > 0 ? (
-                    userResumes.map(resume => (
-                      <SelectItem key={resume.id} value={resume.id}>
-                        {resume.name}
+                    userResumes.map(r => (
+                      <SelectItem key={r.id} value={r.id} className="text-xs">
+                        {r.name}
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="default">Default Resume</SelectItem>
+                    <SelectItem value="default" disabled className="text-xs">No resumes found</SelectItem>
                   )}
                 </SelectContent>
               </Select>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-        
-        {/* Job Title Section */}
-        <Collapsible 
-          open={openSections.jobTitle} 
-          onOpenChange={() => toggleSection('jobTitle')}
-          className="border border-border rounded-lg overflow-hidden"
-        >
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/20 text-left">
-            <div className="flex items-center">
-              <span className="font-medium">Job Title</span>
-              {matchData.titleMatch ? (
-                <Check className="ml-2 h-5 w-5 text-green-500" />
-              ) : (
-                <AlertTriangle className="ml-2 h-5 w-5 text-yellow-500" />
+              {selectedUserResume && (
+                 <p className="text-xs text-muted-foreground mt-1">Using: {selectedUserResume.name}</p>
               )}
             </div>
-            {openSections.jobTitle ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="p-4 bg-background">
-            <div className="flex flex-col md:flex-row md:justify-between gap-4">
-              <div>
-                <p className="font-medium mb-2">Your Current Title:</p>
-                <p>{resume.jobTitle}</p>
-              </div>
-              <div>
-                <p className="font-medium mb-2">Job Posting Title:</p>
-                <p>{jobPosting.title}</p>
-              </div>
+          </div>
+
+          {/* Job Title Row */}
+          <div className="grid grid-cols-12 gap-4 p-4 items-center border-b border-border">
+            <div className="col-span-3 text-sm font-medium text-foreground flex items-center gap-2">
+              {getMatchIcon(matchData.titleMatch)}
+              Job Title
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              {matchData.titleMatch 
-                ? "Your job title aligns well with the position."
-                : "Your job title could be better aligned with the position."}
-            </p>
-          </CollapsibleContent>
-        </Collapsible>
-        
-        {/* Years of Experience Section */}
-        <Collapsible 
-          open={openSections.experience} 
-          onOpenChange={() => toggleSection('experience')}
-          className="border border-border rounded-lg overflow-hidden"
-        >
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/20 text-left">
-            <div className="flex items-center">
-              <span className="font-medium">Years of Experience</span>
-              {matchData.experienceMatch ? (
-                <Check className="ml-2 h-5 w-5 text-green-500" />
-              ) : (
-                <AlertTriangle className="ml-2 h-5 w-5 text-yellow-500" />
-              )}
+            <div className="col-span-4 text-sm text-muted-foreground">{jobPosting.title}</div>
+            <div className="col-span-5 text-sm text-muted-foreground">{resume.jobTitle}</div>
+          </div>
+
+          {/* Years of Experience Row */}
+          <div className="grid grid-cols-12 gap-4 p-4 items-center border-b border-border">
+            <div className="col-span-3 text-sm font-medium text-foreground flex items-center gap-2">
+               {getMatchIcon(matchData.experienceMatch)}
+              Years of Experience
             </div>
-            {openSections.experience ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="p-4 bg-background">
-            <div className="flex flex-col md:flex-row md:justify-between gap-4">
-              <div>
-                <p className="font-medium mb-2">Your Experience:</p>
-                <p>{resume.yearsOfExperience} years</p>
-              </div>
-              <div>
-                <p className="font-medium mb-2">Required Experience:</p>
-                <p>{jobPosting.requiredYearsOfExperience} years</p>
-              </div>
+            <div className="col-span-4 text-sm text-muted-foreground">{jobPosting.requiredYearsOfExperience}+ years exp</div>
+            <div className="col-span-5 text-sm text-muted-foreground">{resume.yearsOfExperience} years exp</div>
+          </div>
+
+          {/* Industry Experience Row */}
+          <div className="grid grid-cols-12 gap-4 p-4 items-start border-b border-border">
+            <div className="col-span-3 text-sm font-medium text-foreground flex items-center gap-2">
+               {getMatchIcon(null, matchData.industryMatches.length > 0)}
+              Industry Experience
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              {matchData.experienceMatch 
-                ? "You meet or exceed the required years of experience."
-                : "You have less experience than required, but your skills may compensate."}
-            </p>
-          </CollapsibleContent>
-        </Collapsible>
-        
-        {/* Industry Experience Section */}
-        <Collapsible 
-          open={openSections.industry} 
-          onOpenChange={() => toggleSection('industry')}
-          className="border border-border rounded-lg overflow-hidden"
-        >
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/20 text-left">
-            <div className="flex items-center">
-              <span className="font-medium">Industry Experience</span>
-              {matchData.industryMatches.length > 0 ? (
-                <Check className="ml-2 h-5 w-5 text-green-500" />
-              ) : (
-                <AlertTriangle className="ml-2 h-5 w-5 text-yellow-500" />
-              )}
+            <div className="col-span-4 text-sm text-muted-foreground">
+                {jobPosting.industries.join(', ')}
             </div>
-            {openSections.industry ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="p-4 bg-background">
-            <div className="flex flex-col md:flex-row md:justify-between gap-4">
-              <div>
-                <p className="font-medium mb-2">Your Industries:</p>
-                <ul className="list-disc pl-5">
-                  {resume.industries.map((industry, index) => (
-                    <li key={index}>{industry}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <p className="font-medium mb-2">Job Industries:</p>
-                <ul className="list-disc pl-5">
-                  {jobPosting.industries.map((industry, index) => (
-                    <li key={index} className={matchData.industryMatches.includes(industry) ? "text-green-500" : ""}>
-                      {industry}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <div className="col-span-5 text-sm text-muted-foreground">
+                {resume.industries.join(', ')}
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              {matchData.industryMatches.length === 0 
-                ? "You don't have direct experience in the required industries."
-                : `You have experience in ${matchData.industryMatches.length} of the required industries.`}
-            </p>
-          </CollapsibleContent>
-        </Collapsible>
-        
-        {/* Skills Section */}
-        <Collapsible 
-          open={openSections.skills} 
-          onOpenChange={() => toggleSection('skills')}
-          className="border border-border rounded-lg overflow-hidden"
-        >
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/20 text-left">
-            <div className="flex items-center">
-              <span className="font-medium">
-                Skills ({matchData.skillMatches.length}/{jobPosting.requiredSkills.length})
-              </span>
-              {matchData.skillMatches.length / jobPosting.requiredSkills.length >= 0.6 ? (
-                <Check className="ml-2 h-5 w-5 text-green-500" />
-              ) : (
-                <AlertTriangle className="ml-2 h-5 w-5 text-yellow-500" />
-              )}
+          </div>
+
+          {/* Skills Row */}
+          <div className="grid grid-cols-12 gap-4 p-4 items-start border-b border-border">
+            <div className="col-span-3 text-sm font-medium text-foreground flex items-center gap-2">
+               {getMatchIcon(null, matchData.skillMatches.length / jobPosting.requiredSkills.length >= 0.5)} {/* Example threshold */}
+              Skills ({matchData.skillMatches.length}/{jobPosting.requiredSkills.length})
             </div>
-            {openSections.skills ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="p-4 bg-background">
-            <p className="font-medium mb-4">Job Required Skills:</p>
-            <div className="flex flex-wrap gap-2 mb-6">
-              {jobPosting.requiredSkills.map((skill, index) => {
-                const isMatch = matchData.skillMatches.includes(skill);
+            <div className="col-span-9 text-sm text-muted-foreground flex flex-wrap gap-1.5">
+               {jobPosting.requiredSkills.map((skill, index) => {
+                const isMatch = matchData.skillMatches.some(s => s.toLowerCase() === skill.toLowerCase());
                 return (
-                  <div 
+                  <Badge
                     key={index}
-                    className={`text-sm px-3 py-1 rounded-full flex items-center gap-1 ${
-                      isMatch ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
-                    }`}
+                    variant={isMatch ? "default" : "outline"} // Use variants for styling
+                    className={`font-normal text-xs ${isMatch ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700' : 'border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-400'}`} // Example styling
                   >
                     {skill}
-                    {isMatch ? (
-                      <ThumbsUp className="h-3 w-3 text-green-500" />
-                    ) : (
-                      <ThumbsDown className="h-3 w-3 text-red-500" />
-                    )}
-                  </div>
+                  </Badge>
                 );
               })}
             </div>
-            <p className="font-medium mb-2">Your Skills:</p>
-            <div className="flex flex-wrap gap-2">
-              {resume.skills.map((skill, index) => (
-                <span 
-                  key={index}
-                  className="bg-gray-100 dark:bg-gray-800 text-sm px-3 py-1 rounded-full"
-                >
-                  {skill}
-                </span>
-              ))}
+             {/* Optionally show user's skills below or indicate missing ones */}
+          </div>
+
+           {/* Summary Row */}
+          <div className="grid grid-cols-12 gap-4 p-4 items-start"> {/* No bottom border on last row */}
+            <div className="col-span-3 text-sm font-medium text-foreground flex items-center gap-2">
+               {getMatchIcon(matchData.summaryMatch)} {/* Assuming summaryMatch indicates if it needs work */}
+              Summary
             </div>
-          </CollapsibleContent>
-        </Collapsible>
-        
-        {/* Summary Section */}
-        <Collapsible 
-          open={openSections.summary} 
-          onOpenChange={() => toggleSection('summary')}
-          className="border border-border rounded-lg overflow-hidden"
-        >
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-secondary/20 text-left">
-            <div className="flex items-center">
-              <span className="font-medium">Summary</span>
-              <AlertTriangle className="ml-2 h-5 w-5 text-yellow-500" />
+            <div className="col-span-9 text-sm text-yellow-600 dark:text-yellow-400">
+               Your current summary does not effectively showcase your qualifications and alignment with this job.
             </div>
-            {openSections.summary ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-          </CollapsibleTrigger>
-          <CollapsibleContent className="p-4 bg-background">
-            <p className="font-medium mb-2">Your Current Summary:</p>
-            <p className="mb-4">{resume.summary}</p>
-            <p className="text-sm text-yellow-600 dark:text-yellow-400">
-              Your current summary does not fully align with this job's requirements. We recommend enhancing it 
-              to highlight relevant skills and experience for this specific position.
-            </p>
-          </CollapsibleContent>
-        </Collapsible>
+          </div>
+
+        </div>
       </div>
-      
-      {/* Action Button */}
-      <div className="flex justify-center mt-8">
-        <Button onClick={onContinue} size="lg">
-          Begin Improvements Now
-          <ArrowRight className="ml-2 h-5 w-5" />
-        </Button>
+
+      {/* Right Column (Score Gauge) */}
+      <div className="md:col-span-1 flex flex-col items-center md:items-end">
+         <div className="bg-card border border-border rounded-lg p-4 flex flex-col items-center w-full max-w-xs">
+             <div className="relative w-32 h-32 mb-3"> {/* Adjusted size */}
+              <div
+                className="w-full h-full rounded-full"
+                style={getGaugeStyle(matchData.initialScore)}
+              ></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                 {/* Use theme-aware background */}
+                <div className="w-24 h-24 bg-card rounded-full flex flex-col items-center justify-center shadow-inner"> {/* Adjusted size */}
+                  <span className="text-3xl font-bold text-foreground">{matchData.initialScore}</span>
+                   <span className="text-xs text-muted-foreground">/ 10</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+                <p className={`text-lg font-medium ${getScoreColor(matchData.initialScore)}`}>
+                  {getScoreLabel(matchData.initialScore)}
+                </p>
+                {/* Wrap Info icon with Tooltip */}
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                       <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs">
+                      <p>This score indicates the initial match based on your selected resume.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+            </div>
+         </div>
       </div>
+
+      {/* Action Button is removed - handled by parent */}
     </div>
   );
 };
