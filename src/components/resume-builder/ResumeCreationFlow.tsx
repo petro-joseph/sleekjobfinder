@@ -9,7 +9,7 @@ import { EducationStep } from './creation-steps/EducationStep';
 import { SkillsStep } from './creation-steps/SkillsStep';
 import { SummaryStep } from './creation-steps/SummaryStep';
 import { Resume, MatchData } from '@/types/resume';
-import { ResumePreviewStep as CreationResumePreviewStep } from './creation-steps/ResumePreviewStep';
+import { ResumePreviewStep } from './creation-steps/ResumePreviewStep';
 import { ResumeTemplateStep } from './creation-steps/ResumeTemplateStep';
 
 interface ResumeCreationFlowProps {
@@ -23,7 +23,7 @@ const STEPS = [
   { id: 3, title: "Education", component: EducationStep },
   { id: 4, title: "Skills", component: SkillsStep },
   { id: 5, title: "Summary", component: SummaryStep },
-  { id: 6, title: "Review", component: CreationResumePreviewStep },
+  { id: 6, title: "Review", component: ResumePreviewStep },
   { id: 7, title: "Templates", component: ResumeTemplateStep },
 ];
 
@@ -53,8 +53,6 @@ export const ResumeCreationFlow: React.FC<ResumeCreationFlowProps> = ({ onBack, 
     setSelectedTemplate(template);
   };
 
-  const CurrentStepComponent = STEPS[currentStep - 1].component;
-
   // Render the appropriate component based on the current step
   const renderStepComponent = () => {
     // For all step components we need to provide at least these common props
@@ -66,7 +64,7 @@ export const ResumeCreationFlow: React.FC<ResumeCreationFlowProps> = ({ onBack, 
     // For Resume Preview Step (step 6)
     if (currentStep === 6) {
       return (
-        <CreationResumePreviewStep
+        <ResumePreviewStep
           {...commonProps}
           resumeData={formData as Resume}
         />
@@ -85,6 +83,7 @@ export const ResumeCreationFlow: React.FC<ResumeCreationFlowProps> = ({ onBack, 
     } 
     // For all other steps (1-5)
     else {
+      const CurrentStepComponent = STEPS[currentStep - 1].component;
       return <CurrentStepComponent {...commonProps} />;
     }
   };

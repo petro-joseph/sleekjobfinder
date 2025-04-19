@@ -7,6 +7,7 @@ import { Card } from '../../ui/card';
 import { Separator } from '../../ui/separator';
 
 interface ResumePreviewStepProps {
+  data?: Partial<Resume>;
   resumeData: Resume;
   onNext: (data: Partial<Resume>) => void;
 }
