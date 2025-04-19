@@ -89,11 +89,22 @@ const ResumeBuilder = () => {
         )}
 
         {mode === 'tailor' && (
-          <ResumeTailoringFlow onClose={() => setMode('select')} />
+          <ResumeTailoringFlow 
+            onClose={() => setMode('select')}
+            jobPosting={{
+              title: '',
+              company: '',
+              location: '',
+              salaryRange: '',
+              description: '',
+              employmentType: '',
+              requiredYearsOfExperience: 0,
+              industries: [],
+              requiredSkills: []
+            }}
+          />
         )}
       </div>
     </Layout>
   );
-};
-
-export default ResumeBuilder;
+};export default ResumeBuilder;
