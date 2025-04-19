@@ -1,4 +1,3 @@
-
 export interface Resume {
   name: string;
   contactInfo: {
@@ -23,11 +22,13 @@ export interface WorkExperience {
   startDate: string;
   endDate?: string;
   responsibilities: string[];
+  department?: string;
 }
 
 export interface Education {
   institution: string;
   degree: string;
+  field?: string;
   gpa?: string;
   startDate: string;
   endDate: string;
