@@ -8,8 +8,8 @@ import { WorkExperienceStep } from './creation-steps/WorkExperienceStep';
 import { EducationStep } from './creation-steps/EducationStep';
 import { SkillsStep } from './creation-steps/SkillsStep';
 import { SummaryStep } from './creation-steps/SummaryStep';
-import { Resume } from '@/types/resume';
-import { ResumePreviewStep } from './ResumePreviewStep';
+import { Resume, MatchData } from '@/types/resume';
+import { ResumePreviewStep as CreationResumePreviewStep } from './creation-steps/ResumePreviewStep';
 import { ResumeTemplateStep } from './creation-steps/ResumeTemplateStep';
 
 interface ResumeCreationFlowProps {
@@ -23,7 +23,7 @@ const STEPS = [
   { id: 3, title: "Education", component: EducationStep },
   { id: 4, title: "Skills", component: SkillsStep },
   { id: 5, title: "Summary", component: SummaryStep },
-  { id: 6, title: "Review", component: ResumePreviewStep },
+  { id: 6, title: "Review", component: CreationResumePreviewStep },
   { id: 7, title: "Templates", component: ResumeTemplateStep },
 ];
 
@@ -66,7 +66,7 @@ export const ResumeCreationFlow: React.FC<ResumeCreationFlowProps> = ({ onBack, 
     // For Resume Preview Step (step 6)
     if (currentStep === 6) {
       return (
-        <ResumePreviewStep
+        <CreationResumePreviewStep
           {...commonProps}
           resumeData={formData as Resume}
         />
