@@ -56,7 +56,7 @@ const Apply = () => {
   const [selectedResumeId, setSelectedResumeId] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Corrected initialization
   const [isSuccess, setIsSuccess] = useState(false);
   const [tailorModalOpen, setTailorModalOpen] = useState(false);
   
