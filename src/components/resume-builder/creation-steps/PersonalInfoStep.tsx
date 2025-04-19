@@ -21,7 +21,7 @@ const formSchema = z.object({
   contactInfo: z.object({
     email: z.string().email("Please enter a valid email"),
     phone: z.string().min(10, "Please enter a valid phone number"),
-    linkedin: z.string().url("Please enter a valid LinkedIn URL").optional(),
+    linkedin: z.string().url("Please enter a valid LinkedIn URL"),
   }),
   jobTitle: z.string().min(2, "Job title must be at least 2 characters"),
 });
@@ -48,7 +48,16 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ data, onNext
   });
 
   const onSubmit = (values: PersonalInfoForm) => {
-    onNext(values);
+    // Ensure all required fields are present for the Resume type
+    onNext({
+      name: values.name,
+      contactInfo: {
+        email: values.contactInfo.email,
+        phone: values.contactInfo.phone,
+        linkedin: values.contactInfo.linkedin,
+      },
+      jobTitle: values.jobTitle,
+    });
   };
 
   return (
@@ -102,7 +111,7 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ data, onNext
             name="contactInfo.linkedin"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>LinkedIn Profile (Optional)</FormLabel>
+                <FormLabel>LinkedIn Profile</FormLabel>
                 <FormControl>
                   <Input placeholder="https://linkedin.com/in/johndoe" {...field} />
                 </FormControl>

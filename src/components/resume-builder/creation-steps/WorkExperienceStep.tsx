@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from '../../ui/form';
 import { Input } from '../../ui/input';
-import { Resume } from '@/types/resume';
+import { Resume, WorkExperience } from '@/types/resume';
 import { Separator } from '../../ui/separator';
 
 const workExperienceSchema = z.object({
@@ -26,6 +26,7 @@ const workExperienceSchema = z.object({
       startDate: z.string().min(1, "Start date is required"),
       endDate: z.string().optional(),
       responsibilities: z.array(z.string()),
+      department: z.string().optional(),
     })
   ).min(1, "At least one work experience is required"),
 });
@@ -49,13 +50,25 @@ export const WorkExperienceStep: React.FC<WorkExperienceStepProps> = ({ data, on
           startDate: '',
           endDate: '',
           responsibilities: [''],
+          department: '',
         },
       ],
     },
   });
 
   const onSubmit = (values: WorkExperienceFormValues) => {
-    onNext(values);
+    // Ensure all required fields are present for the WorkExperience type
+    const workExperiences: WorkExperience[] = values.workExperiences.map(exp => ({
+      company: exp.company,
+      title: exp.title,
+      location: exp.location,
+      startDate: exp.startDate,
+      endDate: exp.endDate,
+      responsibilities: exp.responsibilities,
+      department: exp.department,
+    }));
+    
+    onNext({ workExperiences });
   };
 
   return (
@@ -143,6 +156,42 @@ export const WorkExperienceStep: React.FC<WorkExperienceStepProps> = ({ data, on
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name={`workExperiences.${index}.department`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Department (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Department or team name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name={`workExperiences.${index}.responsibilities`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Key Responsibilities</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Managed a team of developers..."
+                        value={field.value[0] || ''}
+                        onChange={(e) => {
+                          const newResponsibilities = [...field.value];
+                          newResponsibilities[0] = e.target.value;
+                          field.onChange(newResponsibilities);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           ))}
 
@@ -161,6 +210,7 @@ export const WorkExperienceStep: React.FC<WorkExperienceStepProps> = ({ data, on
                   startDate: '',
                   endDate: '',
                   responsibilities: [''],
+                  department: '',
                 },
               ]);
             }}

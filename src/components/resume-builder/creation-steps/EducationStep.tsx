@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from '../../ui/form';
 import { Input } from '../../ui/input';
-import { Resume } from '@/types/resume';
+import { Resume, Education } from '@/types/resume';
 import { Separator } from '../../ui/separator';
 
 const educationSchema = z.object({
@@ -55,7 +55,17 @@ export const EducationStep: React.FC<EducationStepProps> = ({ data, onNext }) =>
   });
 
   const onSubmit = (values: EducationFormValues) => {
-    onNext(values);
+    // Ensure all required fields are present for the Education type
+    const education: Education[] = values.education.map(edu => ({
+      institution: edu.institution,
+      degree: edu.degree,
+      field: edu.field,
+      gpa: edu.gpa,
+      startDate: edu.startDate,
+      endDate: edu.endDate,
+    }));
+    
+    onNext({ education });
   };
 
   return (
