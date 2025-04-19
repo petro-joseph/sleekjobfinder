@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { JobPosting, Resume } from '@/types/resume';
 import { defaultJobPosting } from '@/data/resume-data';
-import { Download, Save, Template } from 'lucide-react';
+import { Download, Save, FileText } from 'lucide-react';
 
 interface ResumeTailoringFlowProps {
   jobPosting?: JobPosting;

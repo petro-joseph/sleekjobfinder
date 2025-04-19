@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '../../ui/button';
-import { CheckCircle, Download, Save, Template } from 'lucide-react';
+import { CheckCircle, Download, Save, FileText } from 'lucide-react';
 import { Resume } from '@/types/resume';
 import { Card, CardContent } from '../../ui/card';
 import { Separator } from '../../ui/separator';
@@ -84,7 +84,7 @@ export const ResumeTemplateStep: React.FC<ResumeTemplateStepProps> = ({
                 )}
               </div>
               <div className="mt-4 h-32 bg-muted rounded flex items-center justify-center">
-                <Template className="h-8 w-8 text-muted-foreground" />
+                <FileText className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
