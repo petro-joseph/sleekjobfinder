@@ -28,7 +28,7 @@ export const pricingPlans: PricingPlan[] = [
   {
     id: 'pro',
     name: 'Job Seeker',
-    price: '$29',
+    price: '$20',
     billing: 'monthly',
     description: 'Advanced tools for serious job seekers.',
     features: [
