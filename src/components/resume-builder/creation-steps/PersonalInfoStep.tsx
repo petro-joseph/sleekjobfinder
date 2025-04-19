@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '../../ui/button';
+import { ChevronRight } from 'lucide-react';
 import { Input } from '../../ui/input';
 import {
   Form,
@@ -37,10 +38,10 @@ export const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({ data, onNext
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: data.name || '',
-      contactInfo: data.contactInfo || {
-        email: '',
-        phone: '',
-        linkedin: '',
+      contactInfo: {
+        email: data.contactInfo?.email || '',
+        phone: data.contactInfo?.phone || '',
+        linkedin: data.contactInfo?.linkedin || '',
       },
       jobTitle: data.jobTitle || '',
     },

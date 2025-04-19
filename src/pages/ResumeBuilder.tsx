@@ -87,7 +87,17 @@ const ResumeBuilder = () => {
         )}
 
         {mode === 'tailor' && (
-          <ResumeTailoringFlow onBack={() => setMode('select')} />
+          <div className="max-w-3xl mx-auto">
+            <Card className="p-6">
+              <CardTitle className="mb-4">Upload or Select a Resume</CardTitle>
+              <CardDescription className="mb-6">
+                Please upload a resume or select from your existing resumes to continue.
+              </CardDescription>
+              <Button onClick={() => setMode('select')}>
+                Back to Options
+              </Button>
+            </Card>
+          </div>
         )}
       </div>
     </Layout>
@@ -95,4 +105,3 @@ const ResumeBuilder = () => {
 };
 
 export default ResumeBuilder;
-
