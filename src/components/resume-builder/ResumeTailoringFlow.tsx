@@ -239,14 +239,9 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
         if (tailoredResume && matchData) {
           return (
             <ResumePreviewStep 
-              resume={tailoredResume}
-              matchData={matchData} 
-              template={template} 
-              setTemplate={setTemplate} 
-              onFeedback={handleFeedback} 
-              credits={credits}
-              onDownload={() => handleDownload('pdf')}
-              selectedSkills={selectedSkills}
+              resumeData={tailoredResume}
+              onNext={() => {}} // We need to provide an onNext function
+              // Additional props that may be used by your custom preview step
             />
           );
         }
