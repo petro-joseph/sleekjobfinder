@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Job } from '@/data/jobs';
 import { Button } from '@/components/ui/button';
-import { MapPin, Briefcase, ChevronDown } from 'lucide-react';
+import { MapPin, Briefcase } from 'lucide-react';
 import { 
   Select, 
   SelectContent, 
@@ -52,7 +51,6 @@ const JobsSidebar = ({
     onFilterChange({ sortBy: value });
   };
 
-  // Pagination display logic
   const renderPaginationItems = () => {
     const items = [];
     const maxPagesToShow = 5;
@@ -64,7 +62,6 @@ const JobsSidebar = ({
       startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
     
-    // First page
     if (startPage > 1) {
       items.push(
         <PaginationItem key="first">
@@ -81,7 +78,6 @@ const JobsSidebar = ({
       }
     }
     
-    // Pages
     for (let i = startPage; i <= endPage; i++) {
       items.push(
         <PaginationItem key={i}>
@@ -95,7 +91,6 @@ const JobsSidebar = ({
       );
     }
     
-    // Last page
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         items.push(
@@ -119,7 +114,6 @@ const JobsSidebar = ({
 
   return (
     <div className="bg-card border rounded-lg shadow-sm overflow-hidden flex flex-col h-[calc(100vh-14rem)]">
-      {/* Auto-Apply Promo Section */}
       <div className="bg-primary/10 p-4 border-b">
         <h3 className="font-semibold text-lg mb-2">Auto-Apply</h3>
         <p className="text-muted-foreground text-sm mb-3">
@@ -128,7 +122,6 @@ const JobsSidebar = ({
         <Button size="sm" className="w-full">Subscribe</Button>
       </div>
 
-      {/* Jobs Count and Sort */}
       <div className="p-4 flex items-center justify-between border-b">
         <p className="text-sm font-medium">
           {totalJobs} {totalJobs === 1 ? 'job' : 'jobs'} found
@@ -148,7 +141,6 @@ const JobsSidebar = ({
         </div>
       </div>
 
-      {/* Job List */}
       {isLoading ? (
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="flex flex-col items-center">
@@ -204,7 +196,6 @@ const JobsSidebar = ({
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="border-t p-3">
           <Pagination>
