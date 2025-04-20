@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { SectionHeading } from '@/components/ui/section-heading';
@@ -82,9 +83,12 @@ const Jobs = () => {
         .map(([key]) => key);
 
       if (activeExperienceLevels.length > 0) {
-        filtered = filtered.filter(job =>
-          activeExperienceLevels.some(level => job.level?.toLowerCase().includes(level.toLowerCase()))
-        );
+        filtered = filtered.filter(job => {
+          // Check if any of the job tags contain the experience level
+          return activeExperienceLevels.some(level => 
+            job.tags.some(tag => tag.toLowerCase().includes(level.toLowerCase()))
+          );
+        });
       }
       
       // Filter by salary range
