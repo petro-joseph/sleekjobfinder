@@ -1,12 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { SectionHeading } from '@/components/ui/section-heading';
 import JobFilter from '@/components/JobFilter';
 import JobCard from '@/components/JobCard';
 import { jobs, Job } from '@/data/jobs';
-import { Briefcase, AlertCircle, Tag, X } from 'lucide-react';
+import { Search, Briefcase, AlertCircle, Tag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Link } from 'react-router-dom';
@@ -204,26 +204,52 @@ const Jobs = () => {
 
   return (
     <Layout>
-      <section className="py-12">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto mb-12">
-            <div className="inline-flex items-center px-3 py-1 mb-4 text-sm rounded-full bg-primary/10 text-primary">
-              <Briefcase className="w-4 h-4 mr-2" />
-              <span>Job Listings</span>
-            </div>
+      {/* Hero Search Section */}
+      <section className="bg-gradient-to-b from-primary/5 to-background border-b">
+        <div className="container mx-auto px-4 py-8 md:py-12">
+          <div className="max-w-4xl mx-auto text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              Find Your Next Job Today
+            </h1>
+            <p className="text-muted-foreground text-lg mb-8">
+              Search through thousands of job listings to find your perfect role
+            </p>
             
-            <SectionHeading
-              title="Find Your Perfect Role"
-              subtitle="Browse our curated selection of jobs matched to your skills and experience. Use the filters to narrow your search."
-            />
+            <div className="flex flex-col md:flex-row gap-3 max-w-2xl mx-auto">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Job title, keywords, or company"
+                  className="pl-10 h-12"
+                  value={activeFilters.searchTerm}
+                  onChange={(e) => {
+                    const newFilters = {
+                      ...activeFilters,
+                      searchTerm: e.target.value
+                    };
+                    setActiveFilters(newFilters);
+                    setTimeout(() => applyFilters(), 0);
+                  }}
+                />
+              </div>
+              <Button className="h-12 px-8" size="lg">
+                Search Jobs
+              </Button>
+            </div>
           </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="lg:col-span-1 order-2 lg:order-1">
+        </div>
+      </section>
+
+      <section className="py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Left Sidebar */}
+            <div className="lg:w-1/4">
               <JobFilter onFilterChange={handleFilterChange} />
             </div>
-            
-            <div className="lg:col-span-3 order-1 lg:order-2">
+
+            {/* Main Content */}
+            <div className="lg:w-3/4">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="loader mb-4" />
@@ -231,54 +257,54 @@ const Jobs = () => {
                 </div>
               ) : filteredJobs.length > 0 ? (
                 <>
-                  <div className="space-y-6">
-                    <div className="flex flex-col gap-4 mb-4">
-                      <div className="flex justify-between items-center">
-                        <p className="text-muted-foreground">Showing {filteredJobs.length} jobs</p>
-                        <div className="flex items-center space-x-2">
-                          <Button 
-                            variant={activeFilters.sortBy === 'newest' ? "default" : "outline"} 
-                            size="sm"
-                            onClick={() => handleSortChange('newest')}
-                          >
-                            Newest
-                          </Button>
-                          <Button 
-                            variant={activeFilters.sortBy === 'relevant' ? "default" : "outline"} 
-                            size="sm"
-                            onClick={() => handleSortChange('relevant')}
-                          >
-                            Relevant
-                          </Button>
-                        </div>
+                  <div className="bg-card rounded-lg border p-4 mb-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <p className="text-muted-foreground">
+                        Showing {indexOfFirstJob + 1}-{Math.min(indexOfLastJob, filteredJobs.length)} of {filteredJobs.length} jobs
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant={activeFilters.sortBy === 'newest' ? "default" : "outline"} 
+                          size="sm"
+                          onClick={() => handleSortChange('newest')}
+                        >
+                          Newest
+                        </Button>
+                        <Button 
+                          variant={activeFilters.sortBy === 'relevant' ? "default" : "outline"} 
+                          size="sm"
+                          onClick={() => handleSortChange('relevant')}
+                        >
+                          Relevant
+                        </Button>
                       </div>
-                      
-                      {activeFilters.industry && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">Active filters:</span>
-                          <Badge className="flex items-center gap-1">
-                            <Tag className="h-3 w-3" />
-                            {activeFilters.industry}
-                            <X 
+                    </div>
+
+                    {activeFilters.industry && (
+                      <div className="flex items-center gap-2 mt-4">
+                        <span className="text-sm text-muted-foreground">Active filters:</span>
+                        <Badge className="flex items-center gap-1">
+                          <Briefcase className="h-3 w-3" />
+                          {activeFilters.industry}
+                          <X 
                               className="h-3 w-3 ml-1 cursor-pointer" 
                               onClick={clearIndustryFilter}
                             />
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="grid gap-4">
-                      {currentJobs.map(job => (
-                        <Link
-                          key={job.id}
-                          to={`/jobs/${job.id}`}
-                          className="block transition-transform hover:-translate-y-1"
-                        >
-                          <JobCard job={job} onIndustryClick={handleIndustryClick} />
-                        </Link>
-                      ))}
-                    </div>
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    {currentJobs.map(job => (
+                      <Link
+                        key={job.id}
+                        to={`/jobs/${job.id}`}
+                        className="block transition-transform hover:-translate-y-1"
+                      >
+                        <JobCard job={job} onIndustryClick={handleIndustryClick} />
+                      </Link>
+                    ))}
                   </div>
 
                   {totalPages > 1 && (
