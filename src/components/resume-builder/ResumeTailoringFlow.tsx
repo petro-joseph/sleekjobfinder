@@ -187,6 +187,15 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
     toast({ title: "Restarted Tailoring", description: "You can customize again." });
   }, [initialMatchData, toast]);
 
+  // Placeholder Download Handler
+  const handleDownload = useCallback((format: 'pdf' | 'docx') => {
+    // In a real implementation, this would generate and download the file
+    toast({ // Correct toast usage
+      title: "Downloading Resume",
+      description: `Preparing your resume as a ${format.toUpperCase()} file...`
+    });
+    // TODO: Implement actual download logic based on tailoredResume and template
+  }, [tailoredResume, template, toast]); // Add dependencies
 
   // Navigation
   const goToNextStep = useCallback(() => { if (currentStep < STEPS.PREVIEW) setCurrentStep(currentStep + 1); }, [currentStep]);
@@ -198,36 +207,54 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
     toast({ title: "Thanks for your feedback!" });
   }, [toast]);
 
-  // Placeholder Download Handler
-  const handleDownload = useCallback((format: 'pdf' | 'docx') => {
-    // In a real implementation, this would generate and download the file
-    toast({ // Correct toast usage
-      title: "Downloading Resume",
-      description: `Preparing your resume as a ${format.toUpperCase()} file...`
-    });
-    // TODO: Implement actual download logic based on tailoredResume and template
-  }, [tailoredResume, template, toast]); // Add dependencies
-
-
   // Render Steps
   const StepComponent = useMemo(() => {
     switch (currentStep) {
       case STEPS.ANALYZE:
-        return <ResumeAnalysisStep resume={resume} jobPosting={jobPosting} matchData={matchData} onContinue={goToNextStep} userResumes={user?.resumes || []} />;
+        return (
+          <ResumeAnalysisStep 
+            resume={resume} 
+            jobPosting={jobPosting} 
+            matchData={matchData || null} 
+            onContinue={goToNextStep} 
+            userResumes={user?.resumes || []} 
+          />
+        );
       case STEPS.CUSTOMIZE:
-        return <ResumeCustomizationStep matchData={matchData} selectedSections={selectedSections} setSelectedSections={setSelectedSections} selectedSkills={selectedSkills} setSelectedSkills={setSelectedSkills} onGenerate={generateTailoredResume} isGenerating={isProcessing} />;
+        return (
+          <ResumeCustomizationStep 
+            matchData={matchData} 
+            selectedSections={selectedSections} 
+            setSelectedSections={setSelectedSections} 
+            selectedSkills={selectedSkills} 
+            setSelectedSkills={setSelectedSkills} 
+            onGenerate={generateTailoredResume} 
+            isGenerating={isProcessing} 
+          />
+        );
       case STEPS.PREVIEW:
         if (isProcessing) {
           return <div className="text-center p-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div><p className="mt-4">Generating...</p></div>;
         }
         if (tailoredResume && matchData) {
-          return <ResumePreviewStep originalResume={resume} tailoredResume={tailoredResume} setTailoredResume={setTailoredResume} matchData={matchData} selectedSkills={selectedSkills} template={template} setTemplate={setTemplate} onFeedback={handleFeedback} credits={credits} />;
+          return (
+            <ResumePreviewStep 
+              resume={tailoredResume}
+              matchData={matchData} 
+              template={template} 
+              setTemplate={setTemplate} 
+              onFeedback={handleFeedback} 
+              credits={credits}
+              onDownload={() => handleDownload('pdf')}
+              selectedSkills={selectedSkills}
+            />
+          );
         }
         // Fallback if tailored resume isn't ready (should ideally be handled by loader)
         return <div className="text-center p-12"><h3 className="text-destructive">Error Loading Preview</h3><p className="text-muted-foreground">There was an issue generating the preview.</p><Button onClick={resetInternalState} variant="outline">Start Over</Button></div>;
       default: return null; // Should not happen
     }
-  }, [currentStep, resume, jobPosting, matchData, goToNextStep, user?.resumes, selectedSections, setSelectedSections, selectedSkills, setSelectedSkills, generateTailoredResume, isProcessing, tailoredResume, template, setTemplate, handleFeedback, credits, resetInternalState]);
+  }, [currentStep, resume, jobPosting, matchData, goToNextStep, user?.resumes, selectedSections, setSelectedSections, selectedSkills, setSelectedSkills, generateTailoredResume, isProcessing, tailoredResume, template, setTemplate, handleFeedback, credits, resetInternalState, handleDownload]);
 
 
   return (

@@ -18,7 +18,7 @@ import {
 interface ResumeAnalysisStepProps {
   resume: Resume;
   jobPosting: JobPosting;
-  matchData: MatchData;
+  matchData: MatchData | null;
   onContinue: () => void;
   userResumes: StoreResume[];
 }
@@ -30,8 +30,8 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
   onContinue,
   userResumes
 }) => {
-  // Remove openSections state and toggleSection function
-  const [selectedResumeId, setSelectedResumeId] = useState(userResumes[0]?.id || '');
+  // Make sure we have default values if userResumes is empty
+  const [selectedResumeId, setSelectedResumeId] = useState(userResumes && userResumes.length > 0 ? userResumes[0]?.id || '' : '');
 
   const getScoreLabel = (score: number) => {
     if (score < 5) return "Poor";
@@ -70,7 +70,17 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
     return <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0" />;
   };
 
-  const selectedUserResume = userResumes.find(r => r.id === selectedResumeId);
+  const selectedUserResume = userResumes?.find(r => r.id === selectedResumeId);
+
+  // Ensure we have valid data before rendering
+  if (!jobPosting || !resume || !matchData) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-muted-foreground">Unable to analyze resume. Missing required data.</p>
+        <Button onClick={onContinue} className="mt-4">Continue Anyway</Button>
+      </div>
+    );
+  }
 
   return (
     // Use grid for overall layout
@@ -104,7 +114,9 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
               </div>
               <p className="text-muted-foreground">{jobPosting.title}</p>
               {/* Add location if available */}
-              {/* <p className="text-xs text-muted-foreground">{jobPosting.location}</p> */}
+              {jobPosting.location && (
+                <p className="text-xs text-muted-foreground">{jobPosting.location}</p>
+              )}
             </div>
             <div className="col-span-5 text-sm">
               <Select
@@ -115,7 +127,7 @@ export const ResumeAnalysisStep: React.FC<ResumeAnalysisStepProps> = ({
                   <SelectValue placeholder="Select a resume" />
                 </SelectTrigger>
                 <SelectContent>
-                  {userResumes.length > 0 ? (
+                  {userResumes && userResumes.length > 0 ? (
                     userResumes.map(r => (
                       <SelectItem key={r.id} value={r.id} className="text-xs">
                         {r.name}
