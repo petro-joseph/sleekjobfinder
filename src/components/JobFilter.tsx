@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface JobFilterProps {
   onFilterChange: (filters: any) => void;
@@ -19,32 +19,46 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
     remote: false,
   });
 
+  const [experienceLevels, setExperienceLevels] = useState({
+    entry: false,
+    mid: false,
+    senior: false,
+  });
+
   const [salaryRange, setSalaryRange] = useState([50, 150]);
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleJobTypeChange = (type: keyof typeof jobTypes) => {
     const updatedJobTypes = { ...jobTypes, [type]: !jobTypes[type] };
     setJobTypes(updatedJobTypes);
-    applyFilters(updatedJobTypes, salaryRange, searchTerm);
+    applyFilters(updatedJobTypes, experienceLevels, salaryRange, searchTerm);
+  };
+
+  const handleExperienceChange = (level: keyof typeof experienceLevels) => {
+    const updatedLevels = { ...experienceLevels, [level]: !experienceLevels[level] };
+    setExperienceLevels(updatedLevels);
+    applyFilters(jobTypes, updatedLevels, salaryRange, searchTerm);
   };
 
   const handleSalaryChange = (value: number[]) => {
     setSalaryRange(value);
-    applyFilters(jobTypes, value, searchTerm);
+    applyFilters(jobTypes, experienceLevels, value, searchTerm);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    applyFilters(jobTypes, salaryRange, e.target.value);
+    applyFilters(jobTypes, experienceLevels, salaryRange, e.target.value);
   };
 
   const applyFilters = (
     types: typeof jobTypes,
+    levels: typeof experienceLevels,
     salary: number[],
     search: string
   ) => {
     onFilterChange({
       jobTypes: types,
+      experienceLevels: levels,
       salaryRange: salary,
       searchTerm: search,
     });
@@ -57,6 +71,11 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
       contract: false,
       remote: false,
     });
+    setExperienceLevels({
+      entry: false,
+      mid: false,
+      senior: false,
+    });
     setSalaryRange([50, 150]);
     setSearchTerm('');
     
@@ -66,6 +85,11 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
         partTime: false,
         contract: false,
         remote: false,
+      },
+      experienceLevels: {
+        entry: false,
+        mid: false,
+        senior: false,
       },
       salaryRange: [50, 150],
       searchTerm: '',
@@ -147,15 +171,27 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
           <h3 className="font-medium mb-3 text-foreground">Experience Level</h3>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
-              <Checkbox id="entry" />
+              <Checkbox 
+                id="entry"
+                checked={experienceLevels.entry}
+                onCheckedChange={() => handleExperienceChange('entry')}
+              />
               <Label htmlFor="entry">Entry Level</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox id="mid" />
+              <Checkbox 
+                id="mid"
+                checked={experienceLevels.mid}
+                onCheckedChange={() => handleExperienceChange('mid')}
+              />
               <Label htmlFor="mid">Mid Level</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox id="senior" />
+              <Checkbox 
+                id="senior"
+                checked={experienceLevels.senior}
+                onCheckedChange={() => handleExperienceChange('senior')}
+              />
               <Label htmlFor="senior">Senior Level</Label>
             </div>
           </div>
