@@ -6,7 +6,7 @@ import { useToast } from '../../hooks/use-toast'; // Adjusted path
 import { useAuthStore } from '../../lib/store'; // Adjusted path
 import { ResumeAnalysisStep } from './ResumeAnalysisStep'; // Adjusted path
 import { ResumeCustomizationStep } from './ResumeCustomizationStep'; // Adjusted path
-import { ResumePreviewStep } from './ResumePreviewStep'; // Adjusted path
+import { ResumePreviewStep } from './ResumePreviewStep'; // Correctly import the preview step
 import { defaultResume } from '../../data/resume-data'; // Adjusted path
 import { Resume, JobPosting, MatchData } from '../../types/resume'; // Adjusted path
 import { useIsMobile } from '../../hooks/use-mobile'; // Adjusted path
@@ -239,9 +239,15 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
         if (tailoredResume && matchData) {
           return (
             <ResumePreviewStep 
-              resumeData={tailoredResume}
-              onNext={() => {}} // We need to provide an onNext function
-              // Additional props that may be used by your custom preview step
+              originalResume={resume}
+              tailoredResume={tailoredResume}
+              setTailoredResume={setTailoredResume}
+              matchData={matchData}
+              selectedSkills={selectedSkills}
+              template={template}
+              setTemplate={setTemplate}
+              onFeedback={handleFeedback}
+              credits={credits}
             />
           );
         }
@@ -250,7 +256,6 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
       default: return null; // Should not happen
     }
   }, [currentStep, resume, jobPosting, matchData, goToNextStep, user?.resumes, selectedSections, setSelectedSections, selectedSkills, setSelectedSkills, generateTailoredResume, isProcessing, tailoredResume, template, setTemplate, handleFeedback, credits, resetInternalState, handleDownload]);
-
 
   return (
     // Removed Layout wrapper
