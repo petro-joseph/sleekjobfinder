@@ -12,6 +12,7 @@ export interface Job {
   logo?: string;
   featured?: boolean;
   industry: string;
+  url?: string;
   tags: string[]; // Added tags property
 }
 
@@ -33,6 +34,8 @@ export const jobs: Job[] = [
     postedAt: '2 days ago',
     featured: true,
     industry: 'Technology',
+    logo: 'https://example.com/logo.png',
+    url: 'https://example.com/job/1',
     tags: ['React', 'TypeScript', 'Frontend', 'UI/UX'],
   },
   {
@@ -52,6 +55,8 @@ export const jobs: Job[] = [
     postedAt: '1 day ago',
     featured: true,
     industry: 'Technology',
+    logo: 'https://example.com/logo.png',
+    url: 'https://example.com/job/2',
     tags: ['Product Management', 'Agile', 'SaaS', 'Analytics'],
   },
   {
@@ -70,6 +75,8 @@ export const jobs: Job[] = [
     ],
     postedAt: '3 days ago',
     industry: 'Cloud Computing',
+    logo: 'https://example.com/logo.png',
+    url: 'https://example.com/job/3',
     tags: ['AWS', 'Docker', 'Kubernetes', 'CI/CD'],
   },
   {
@@ -88,6 +95,8 @@ export const jobs: Job[] = [
     ],
     postedAt: '1 week ago',
     industry: 'Design',
+    logo: 'https://example.com/logo.png',
+    url: 'https://example.com/job/3',
     tags: ['Figma', 'UI Design', 'UX Research', 'Prototyping'],
   },
   {
@@ -106,6 +115,8 @@ export const jobs: Job[] = [
     ],
     postedAt: '5 days ago',
     industry: 'Data Science',
+    logo: 'https://example.com/logo.png',
+    url: 'https://example.com/job/3',
     tags: ['Python', 'Machine Learning', 'SQL', 'Data Visualization'],
   },
   {
@@ -124,6 +135,8 @@ export const jobs: Job[] = [
     ],
     postedAt: '3 days ago',
     industry: 'Software Development',
+    logo: 'https://example.com/logo.png',
+    url: 'https://example.com/job/3',
     tags: ['Node.js', 'React', 'RESTful APIs', 'Databases'],
   },
   {
@@ -142,6 +155,8 @@ export const jobs: Job[] = [
     ],
     postedAt: '1 week ago',
     industry: 'Marketing',
+    logo: 'https://example.com/logo.png',
+    url: 'https://example.com/job/3',
     tags: ['Content Strategy', 'SEO', 'Copywriting', 'Analytics'],
   },
   {
@@ -160,6 +175,8 @@ export const jobs: Job[] = [
     ],
     postedAt: '2 weeks ago',
     industry: 'Customer Service',
+    logo: 'https://example.com/logo.png',
+    url: 'https://example.com/job/3',
     tags: ['Customer Success', 'Account Management', 'CRM', 'Training'],
   },
 ];

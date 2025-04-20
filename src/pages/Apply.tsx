@@ -9,13 +9,13 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
 import {
   Briefcase,
@@ -30,6 +30,7 @@ import {
   Send,
   Clock
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
@@ -48,18 +49,68 @@ import TailorResumeModal from '@/components/TailorResumeModal';
 const Apply = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuthStore();
-  
+  const { user, isAuthenticated, updateUser } = useAuthStore();
+
   const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState("resume");
   const [selectedResumeId, setSelectedResumeId] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Corrected initialization
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [tailorModalOpen, setTailorModalOpen] = useState(false);
-  
+  const [hasApplied, setHasApplied] = useState(false);
+
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size limit exceeded", {
+        description: "Please upload a file smaller than 5MB"
+      });
+      return;
+    }
+
+    if (file.type !== 'application/pdf') {
+      toast.error("Invalid file type", {
+        description: "Please upload a PDF file"
+      });
+      return;
+    }
+
+    setUploading(true);
+
+    // Simulate parsing and storing resume
+    setTimeout(() => {
+      const newResume = {
+        id: Date.now().toString(),
+        name: file.name,
+        filePath: URL.createObjectURL(file),
+        isPrimary: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      if (user) {
+        const updatedResumes = [...(user.resumes || []), newResume];
+        updateUser({
+          ...user,
+          resumes: updatedResumes
+        });
+      }
+
+      setUploading(false);
+      toast.success("Resume uploaded successfully");
+    }, 1500);
+  };
+
+
   useEffect(() => {
     if (!isAuthenticated) {
       toast.error("Please log in to apply for jobs", {
@@ -68,26 +119,26 @@ const Apply = () => {
       navigate('/login');
       return;
     }
-    
+
     const timer = setTimeout(() => {
       const foundJob = jobs.find(j => j.id === id);
       setJob(foundJob || null);
-      
+
       if (user?.resumes?.length > 0) {
         setSelectedResumeId(user.resumes[0].id);
       }
-      
+
       setIsLoading(false);
     }, 500);
-    
+
     return () => clearTimeout(timer);
   }, [id, isAuthenticated, navigate, user]);
-  
+
   const generateCoverLetter = () => {
     if (!job) return;
-    
+
     setIsGeneratingCoverLetter(true);
-    
+
     // Simulate AI generating a cover letter
     setTimeout(() => {
       const generatedLetter = `Dear Hiring Manager,
@@ -107,33 +158,68 @@ Thank you for considering my application. I look forward to the possibility of d
 
 Sincerely,
 ${user?.firstName} ${user?.lastName}`;
-      
+
       setCoverLetter(generatedLetter);
       setIsGeneratingCoverLetter(false);
     }, 2000);
   };
-  
+
   const handleSubmitApplication = () => {
     if (!selectedResumeId && !coverLetter) {
       toast.error("Please select a resume or write a cover letter");
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     // Simulate submitting application
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSuccess(true);
-      toast.success("Application submitted successfully!");
+      localStorage.setItem("applicationSubmitted", "true");
+      toast.success("Application submitted successfully!", {
+        duration: 5000,
+      });
     }, 1500);
   };
-  
+
+  useEffect(() => {
+    if (localStorage.getItem("applicationSubmitted") === "true" && job) {
+      localStorage.removeItem("applicationSubmitted");
+      toast.success("Did you apply for this job?", {
+        duration: 10000,
+        action: {
+          label: "Yes",
+          onClick: () => {
+            setHasApplied(true);
+            const newApplication = {
+              id: Date.now().toString(),
+              jobId: job.id,
+              position: job.title,
+              company: job.company,
+              status: "applied" as "applied",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              appliedAt: new Date().toISOString(),
+            };
+            if (user) {
+              const updatedApplications = [...(user.applications || []), newApplication];
+              updateUser({
+                ...user,
+                applications: updatedApplications,
+              });
+            }
+          },
+        },
+      });
+    }
+  }, [job, updateUser, user]);
+
   const getSelectedResume = () => {
     if (!user || !selectedResumeId) return null;
     return user.resumes.find(resume => resume.id === selectedResumeId);
   };
-  
+
   if (isLoading) {
     return (
       <Layout>
@@ -146,7 +232,7 @@ ${user?.firstName} ${user?.lastName}`;
       </Layout>
     );
   }
-  
+
   if (!job) {
     return (
       <Layout>
@@ -164,8 +250,8 @@ ${user?.firstName} ${user?.lastName}`;
       </Layout>
     );
   }
-  
-  if (isSuccess) {
+
+  if (hasApplied) {
     return (
       <Layout>
         <div className="container mx-auto px-6 py-12 max-w-3xl">
@@ -178,7 +264,7 @@ ${user?.firstName} ${user?.lastName}`;
               Your application for <span className="font-medium text-foreground">{job.title}</span> at <span className="font-medium text-foreground">{job.company}</span> has been submitted successfully.
             </p>
           </div>
-          
+
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>What's Next?</CardTitle>
@@ -197,7 +283,7 @@ ${user?.firstName} ${user?.lastName}`;
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex">
                   <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                     <Send className="h-5 w-5 text-primary" />
@@ -209,7 +295,7 @@ ${user?.firstName} ${user?.lastName}`;
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex">
                   <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                     <Briefcase className="h-5 w-5 text-primary" />
@@ -224,7 +310,7 @@ ${user?.firstName} ${user?.lastName}`;
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="outline" asChild>
               <Link to="/progress">
@@ -243,7 +329,86 @@ ${user?.firstName} ${user?.lastName}`;
       </Layout>
     );
   }
-  
+
+  if (isSuccess) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-6 py-12 max-w-3xl">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 mb-4">
+              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+            </div>
+            <h1 className="text-3xl font-bold mb-2">Application Submitted!</h1>
+            <p className="text-muted-foreground">
+              Your application for <span className="font-medium text-foreground">{job.title}</span> at <span className="font-medium text-foreground">{job.company}</span> has been submitted successfully.
+            </p>
+          </div>
+
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>What's Next?</CardTitle>
+              <CardDescription>Here's what you can expect from your application process</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex">
+                  <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    <Clock className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Application Review</h3>
+                    <p className="text-sm text-muted-foreground">
+                      The hiring team will review your application and resume
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex">
+                  <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    <Send className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Initial Contact</h3>
+                    <p className="text-sm text-muted-foreground">
+                      If your profile is a good match, they'll reach out via email or phone
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex">
+                  <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    <Briefcase className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Interview Process</h3>
+                    <p className="text-sm text-muted-foreground">
+                      You may be invited for one or more interviews
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button variant="outline" asChild>
+              <Link to="/progress">
+                <Clock className="mr-2 h-4 w-4" />
+                Track Application
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/jobs">
+                <Briefcase className="mr-2 h-4 w-4" />
+                Browse More Jobs
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="container mx-auto px-6 py-12">
@@ -255,7 +420,7 @@ ${user?.firstName} ${user?.lastName}`;
             </Link>
           </Button>
         </div>
-        
+
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Apply for {job.title}</h1>
@@ -273,7 +438,7 @@ ${user?.firstName} ${user?.lastName}`;
               </div>
             </div>
           </div>
-          
+
           <Tabs defaultValue="resume" value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="resume">
@@ -285,7 +450,7 @@ ${user?.firstName} ${user?.lastName}`;
                 Cover Letter
               </TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="resume" className="space-y-6">
               <Card>
                 <CardHeader>
@@ -315,7 +480,7 @@ ${user?.firstName} ${user?.lastName}`;
                           </SelectContent>
                         </Select>
                       </div>
-                      
+
                       {selectedResumeId && (
                         <div className="border rounded-lg p-4 flex justify-between items-center">
                           <div className="flex items-center">
@@ -330,7 +495,7 @@ ${user?.firstName} ${user?.lastName}`;
                           </Button>
                         </div>
                       )}
-                      
+
                       <div className="bg-secondary/30 rounded-lg p-4">
                         <div className="flex items-start mb-2">
                           <Sparkles className="h-5 w-5 text-primary mr-2 mt-0.5" />
@@ -348,22 +513,56 @@ ${user?.firstName} ${user?.lastName}`;
                     </div>
                   ) : (
                     <div className="text-center py-6">
-                      <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
+                      {/* <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" /> */}
                       <h3 className="text-lg font-medium mb-2">No Resumes Yet</h3>
                       <p className="text-muted-foreground mb-4">
-                        You haven't created any resumes yet. Create one to apply for this job.
+                        You haven't uploaded any resumes yet. Upload one to apply for this job.
                       </p>
-                      <Button asChild>
-                        <Link to="/resume-builder">
-                          Create Resume
-                        </Link>
-                      </Button>
-                    </div>
+
+                      <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                        <Input
+                          type="file"
+                          accept=".pdf"
+                          id="resume-upload"
+                          className="hidden"
+                          onChange={handleFileUpload}
+                        />
+                        <Label
+                          htmlFor="resume-upload"
+                          className="flex flex-col items-center cursor-pointer"
+                        >
+                          <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
+                          <span className="text-sm font-medium">
+                            Click to upload your resume (PDF only)
+                          </span>
+                          <span className="text-xs text-muted-foreground mt-1">
+                            Maximum 5MB
+                          </span>
+                        </Label>
+                      </div>
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        id="resume-upload"
+                        className="hidden"
+                        onChange={handleFileUpload}
+                        />
+                        <div className="text-sm text-muted-foreground my-4">
+                          <p>You dont have resume.?  <br></br> use our resume builder to create professional Resume  </p>
+                        </div>
+                        <Button asChild>
+                          <Link to="/resume-builder">
+                            Create Resume
+                          </Link>
+                        </Button>
+                      </div>
                   )}
+
+
                 </CardContent>
               </Card>
             </TabsContent>
-            
+
             <TabsContent value="cover-letter" className="space-y-6">
               <Card>
                 <CardHeader>
@@ -385,7 +584,7 @@ ${user?.firstName} ${user?.lastName}`;
                         >
                           {isGeneratingCoverLetter ? (
                             <>
-                              <div className="loader mr-2" /> 
+                              <div className="loader mr-2" />
                               Generating...
                             </>
                           ) : (
@@ -404,7 +603,7 @@ ${user?.firstName} ${user?.lastName}`;
                         onChange={(e) => setCoverLetter(e.target.value)}
                       />
                     </div>
-                    
+
                     <div className="bg-secondary/30 rounded-lg p-4">
                       <div className="flex items-start">
                         <Sparkles className="h-5 w-5 text-primary mr-2 mt-0.5" />
@@ -425,23 +624,29 @@ ${user?.firstName} ${user?.lastName}`;
               </Card>
             </TabsContent>
           </Tabs>
-          
+
           <div className="flex justify-between items-center pt-6 border-t mt-8">
             <Button variant="outline" onClick={() => navigate(`/jobs/${job.id}`)}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleSubmitApplication}
+            <Button
+              onClick={() => {
+                if (job?.url) {
+                  window.open(job.url, '_blank');
+                } else {
+                  handleSubmitApplication();
+                }
+              }}
               disabled={isSubmitting || (!selectedResumeId && !coverLetter)}
             >
               {isSubmitting ? (
                 <>
                   <div className="loader mr-2" />
-                  Submitting...
+                  Applying...
                 </>
               ) : (
                 <>
-                  Submit Application
+                  Apply now
                   <Send className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -449,7 +654,7 @@ ${user?.firstName} ${user?.lastName}`;
           </div>
         </div>
       </div>
-      
+
       {job && <TailorResumeModal job={job} isOpen={tailorModalOpen} onClose={() => setTailorModalOpen(false)} />}
     </Layout>
   );
