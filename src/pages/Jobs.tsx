@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Layout from '@/components/Layout';
 import { SectionHeading } from '@/components/ui/section-heading';
 import JobCard from '@/components/JobCard';
@@ -21,6 +21,8 @@ const Jobs = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 6;
+  const jobListingsRef = useRef<HTMLDivElement>(null); // Reference to the job listings section
+
   const initialFilters = {
     jobTypes: {} as Record<string, boolean>,
     experienceLevels: { entry: false, mid: false, senior: false } as Record<string, boolean>,
@@ -175,6 +177,14 @@ const Jobs = () => {
     handleFilterChange({ sortBy: sortType });
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to the top of the job listings section
+    if (jobListingsRef.current) {
+      jobListingsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
   const indexOfLastJob = currentPage * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
@@ -182,8 +192,8 @@ const Jobs = () => {
 
   return (
     <Layout>
-      <section className="min-h-screen pt-6 bg-background">
-        <div className="container px-4 sm:px-6 py-8">
+      <section className="min-h-screen my-8 bg-background">
+        <div className="container mx-auto px-4 sm:px-6 py-8">
           {/* Header Section */}
           <div className="max-w-3xl mb-12">
             <div className="inline-flex items-center px-3 py-1 mb-4 text-sm rounded-full bg-primary/10 text-primary">
@@ -216,29 +226,32 @@ const Jobs = () => {
                   </div>
                 ) : filteredJobs.length > 0 ? (
                   <>
-                      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                        <p className="text-muted-foreground text-sm md:text-base font-medium">
-                          Showing {filteredJobs.length} jobs
-                        </p>
-                        <div className="flex items-center space-x-3">
-                          <Button
-                            variant={activeFilters.sortBy === 'newest' ? 'default' : 'outline'}
-                            size="sm"
-                            className="h-11 px-5 rounded-xl shadow-sm transition-all text-sm font-medium"
-                            onClick={() => handleSortChange('newest')}
-                          >
-                            Newest
-                          </Button>
-                          <Button
-                            variant={activeFilters.sortBy === 'relevant' ? 'default' : 'outline'}
-                            size="sm"
-                            className="h-11 px-5 rounded-xl shadow-sm transition-all text-sm font-medium"
-                            onClick={() => handleSortChange('relevant')}
-                          >
-                            Relevant
-                          </Button>
-                        </div>
+                    <div
+                      ref={jobListingsRef} // Reference to scroll to this section
+                      className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4"
+                    >
+                      <p className="text-muted-foreground text-sm md:text-base font-medium">
+                        Showing {filteredJobs.length} jobs
+                      </p>
+                      <div className="flex items-center space-x-3">
+                        <Button
+                          variant={activeFilters.sortBy === 'newest' ? 'default' : 'outline'}
+                          size="sm"
+                          className="h-11 px-5 rounded-xl shadow-sm transition-all text-sm font-medium"
+                          onClick={() => handleSortChange('newest')}
+                        >
+                          Newest
+                        </Button>
+                        <Button
+                          variant={activeFilters.sortBy === 'relevant' ? 'default' : 'outline'}
+                          size="sm"
+                          className="h-11 px-5 rounded-xl shadow-sm transition-all text-sm font-medium"
+                          onClick={() => handleSortChange('relevant')}
+                        >
+                          Relevant
+                        </Button>
                       </div>
+                    </div>
 
                     <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-1">
                       {currentJobs.map((job) => (
@@ -261,17 +274,22 @@ const Jobs = () => {
                           <PaginationContent className="flex justify-center space-x-2 flex-wrap gap-2">
                             <PaginationItem>
                               <PaginationPrevious
-                                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                                className={`h-10 px-4 rounded-lg shadow-sm transition-all bg-background border-border ${
-                                  currentPage === 1 ? 'pointer-events-none opacity-50' : ''
-                                }`}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handlePageChange(Math.max(1, currentPage - 1));
+                                }}
+                                className={`h-10 px-4 rounded-lg shadow-sm transition-all bg-background border-border ${currentPage === 1 ? 'pointer-events-none opacity-50' : ''
+                                  }`}
                               />
                             </PaginationItem>
 
                             {[...Array(totalPages)].map((_, i) => (
                               <PaginationItem key={i}>
                                 <PaginationLink
-                                  onClick={() => setCurrentPage(i + 1)}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    handlePageChange(i + 1);
+                                  }}
                                   isActive={currentPage === i + 1}
                                   className="h-10 w-10 flex items-center justify-center rounded-lg shadow-sm transition-all bg-background border-border"
                                 >
@@ -282,10 +300,12 @@ const Jobs = () => {
 
                             <PaginationItem>
                               <PaginationNext
-                                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                                className={`h-10 px-4 rounded-lg shadow-sm transition-all bg-background border-border ${
-                                  currentPage === totalPages ? 'pointer-events-none opacity-50' : ''
-                                }`}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handlePageChange(Math.min(totalPages, currentPage + 1));
+                                }}
+                                className={`h-10 px-4 rounded-lg shadow-sm transition-all bg-background border-border ${currentPage === totalPages ? 'pointer-events-none opacity-50' : ''
+                                  }`}
                               />
                             </PaginationItem>
                           </PaginationContent>
