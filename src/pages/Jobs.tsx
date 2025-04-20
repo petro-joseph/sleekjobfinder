@@ -6,7 +6,14 @@ import JobsHeader from '@/components/jobs/JobsHeader';
 import { jobs, Job } from '@/data/jobs';
 import { Briefcase, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { Link } from 'react-router-dom';
 
 const Jobs = () => {
@@ -14,30 +21,28 @@ const Jobs = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 6;
-  const [activeFilters, setActiveFilters] = useState({
+  const initialFilters = {
     jobTypes: {} as Record<string, boolean>,
-    experienceLevels: {} as Record<string, boolean>,
+    experienceLevels: { entry: false, mid: false, senior: false } as Record<string, boolean>,
     salaryRange: [50, 150] as [number, number],
     searchTerm: '',
     industry: '',
     datePosted: '',
     location: '',
-    sortBy: 'relevant'
-  });
+    sortBy: 'relevant',
+  };
+  const [activeFilters, setActiveFilters] = useState(initialFilters);
 
   useEffect(() => {
-    // Check for industry selection from job detail page
     const selectedIndustry = localStorage.getItem('selectedIndustry');
     if (selectedIndustry) {
-      setActiveFilters(prev => ({
+      setActiveFilters((prev) => ({
         ...prev,
-        industry: selectedIndustry
+        industry: selectedIndustry,
       }));
       localStorage.removeItem('selectedIndustry');
     }
-    
-    // Initial filter application
-    applyFilters();
+    applyFilters(activeFilters);
   }, []);
 
   const parsePostedDate = (postedStr: string): Date => {
@@ -50,7 +55,7 @@ const Jobs = () => {
     } else if (postedStr.includes('week')) {
       const weeks = parseInt(postedStr.split(' ')[0], 10);
       const date = new Date();
-      date.setDate(now.getDate() - (weeks * 7));
+      date.setDate(now.getDate() - weeks * 7);
       return date;
     } else if (postedStr.includes('month')) {
       const months = parseInt(postedStr.split(' ')[0], 10);
@@ -66,29 +71,29 @@ const Jobs = () => {
     return now;
   };
 
-  const applyFilters = () => {
+  const applyFilters = (filters: typeof activeFilters) => {
     setIsLoading(true);
-    
+
     setTimeout(() => {
       let filtered = [...jobs];
-      
+
       // Search term filter
-      if (activeFilters.searchTerm) {
-        const searchLower = activeFilters.searchTerm.toLowerCase();
+      if (filters.searchTerm) {
+        const searchLower = filters.searchTerm.toLowerCase();
         filtered = filtered.filter(
-          job => 
-            job.title.toLowerCase().includes(searchLower) || 
+          (job) =>
+            job.title.toLowerCase().includes(searchLower) ||
             job.company.toLowerCase().includes(searchLower) ||
             job.description.toLowerCase().includes(searchLower)
         );
       }
 
       // Date posted filter
-      if (activeFilters.datePosted) {
+      if (filters.datePosted && filters.datePosted !== 'any') {
         const now = new Date();
-        filtered = filtered.filter(job => {
+        filtered = filtered.filter((job) => {
           const postedDate = parsePostedDate(job.postedAt);
-          switch(activeFilters.datePosted) {
+          switch (filters.datePosted) {
             case '24h':
               return (now.getTime() - postedDate.getTime()) <= 24 * 60 * 60 * 1000;
             case '7d':
@@ -104,50 +109,52 @@ const Jobs = () => {
       }
 
       // Location filter
-      if (activeFilters.location) {
-        filtered = filtered.filter(job => 
-          job.location.toLowerCase().includes(activeFilters.location.toLowerCase())
+      if (filters.location) {
+        filtered = filtered.filter((job) =>
+          job.location.toLowerCase().includes(filters.location.toLowerCase())
         );
       }
-      
+
       // Experience level filter
-      const activeExperienceLevels = Object.entries(activeFilters.experienceLevels)
+      const activeExperienceLevels = Object.entries(filters.experienceLevels)
         .filter(([_, value]) => value)
         .map(([key]) => key);
 
       if (activeExperienceLevels.length > 0) {
-        filtered = filtered.filter(job => {
-          return activeExperienceLevels.some(level => 
-            job.tags.some(tag => tag.toLowerCase().includes(level.toLowerCase()))
-          );
-        });
+        filtered = filtered.filter((job) =>
+          activeExperienceLevels.some((level) =>
+            job.tags.some((tag) => tag.toLowerCase().includes(level.toLowerCase()))
+          )
+        );
       }
-      
+
       // Salary range filter
-      filtered = filtered.filter(job => {
+      filtered = filtered.filter((job) => {
         const salaryStr = job.salary.replace(/[^0-9-]/g, '');
-        const [min, max] = salaryStr.split('-').map(s => parseInt(s.trim(), 10));
+        const [min, max] = salaryStr.split('-').map((s) => parseInt(s.trim(), 10));
         const avgSalary = (min + max) / 2;
-        return avgSalary >= activeFilters.salaryRange[0] * 1000 && avgSalary <= activeFilters.salaryRange[1] * 1000;
+        return (
+          avgSalary >= filters.salaryRange[0] * 1000 &&
+          avgSalary <= filters.salaryRange[1] * 1000
+        );
       });
-      
+
       // Industry filter
-      if (activeFilters.industry) {
-        filtered = filtered.filter(job => job.industry === activeFilters.industry);
+      if (filters.industry) {
+        filtered = filtered.filter((job) => job.industry === filters.industry);
       }
-      
+
       // Sort
-      if (activeFilters.sortBy === 'newest') {
+      if (filters.sortBy === 'newest') {
         filtered.sort((a, b) => {
           const dateA = parsePostedDate(a.postedAt);
           const dateB = parsePostedDate(b.postedAt);
           return dateB.getTime() - dateA.getTime();
         });
-      } else if (activeFilters.sortBy === 'relevant') {
+      } else if (filters.sortBy === 'relevant') {
         filtered.sort((a, b) => {
           if (a.featured && !b.featured) return -1;
           if (!a.featured && b.featured) return 1;
-          
           const dateA = parsePostedDate(a.postedAt);
           const dateB = parsePostedDate(b.postedAt);
           return dateB.getTime() - dateA.getTime();
@@ -161,32 +168,20 @@ const Jobs = () => {
   };
 
   const handleFilterChange = (filters: Partial<typeof activeFilters>) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      ...filters
-    }));
-    setTimeout(() => applyFilters(), 0);
+    const newFilters = { ...activeFilters, ...filters };
+    setActiveFilters(newFilters);
+    applyFilters(newFilters);
   };
 
   const handleResetFilters = () => {
-    setActiveFilters({
-      jobTypes: {},
-      experienceLevels: {},
-      salaryRange: [50, 150],
-      searchTerm: '',
-      industry: '',
-      datePosted: '',
-      location: '',
-      sortBy: 'relevant'
-    });
-    setTimeout(() => applyFilters(), 0);
+    setActiveFilters(initialFilters);
+    applyFilters(initialFilters);
   };
 
   const handleSortChange = (sortType: 'newest' | 'relevant') => {
     handleFilterChange({ sortBy: sortType });
   };
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
   const indexOfLastJob = currentPage * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
@@ -194,25 +189,24 @@ const Jobs = () => {
 
   return (
     <Layout>
-      <JobsHeader
-        activeFilters={activeFilters}
-        onFilterChange={handleFilterChange}
-        onResetFilters={handleResetFilters}
-      />
-
       <section className="py-12">
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto mb-12">
             <div className="inline-flex items-center px-3 py-1 mb-4 text-sm rounded-full bg-primary/10 text-primary">
               <Briefcase className="w-4 h-4 mr-2" />
               <span>Job Listings</span>
             </div>
-            
             <SectionHeading
               title="Find Your Perfect Role"
               subtitle="Browse our curated selection of jobs matched to your skills and experience."
             />
           </div>
+
+          <JobsHeader
+            activeFilters={activeFilters}
+            onFilterChange={handleFilterChange}
+            onResetFilters={handleResetFilters}
+          />
 
           <div className="space-y-6">
             {isLoading ? (
@@ -222,21 +216,23 @@ const Jobs = () => {
               </div>
             ) : filteredJobs.length > 0 ? (
               <>
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
                   <p className="text-muted-foreground">
                     Showing {filteredJobs.length} jobs
                   </p>
                   <div className="flex items-center space-x-2">
-                    <Button 
-                      variant={activeFilters.sortBy === 'newest' ? "default" : "outline"} 
+                    <Button
+                      variant={activeFilters.sortBy === 'newest' ? 'default' : 'outline'}
                       size="sm"
+                      className="h-10 px-4 rounded-lg shadow-sm transition-all"
                       onClick={() => handleSortChange('newest')}
                     >
                       Newest
                     </Button>
-                    <Button 
-                      variant={activeFilters.sortBy === 'relevant' ? "default" : "outline"} 
+                    <Button
+                      variant={activeFilters.sortBy === 'relevant' ? 'default' : 'outline'}
                       size="sm"
+                      className="h-10 px-4 rounded-lg shadow-sm transition-all"
                       onClick={() => handleSortChange('relevant')}
                     >
                       Relevant
@@ -244,14 +240,18 @@ const Jobs = () => {
                   </div>
                 </div>
 
-                <div className="grid gap-4">
-                  {currentJobs.map(job => (
+                <div className="space-y-4">
+                  {currentJobs.map((job) => (
                     <Link
                       key={job.id}
                       to={`/jobs/${job.id}`}
                       className="block transition-transform hover:-translate-y-1"
                     >
-                      <JobCard job={job} onIndustryClick={(industry) => handleFilterChange({ industry })} />
+                      <JobCard
+                        job={job}
+                        onIndustryClick={(industry) => handleFilterChange({ industry })}
+                        className="p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                      />
                     </Link>
                   ))}
                 </div>
@@ -259,29 +259,32 @@ const Jobs = () => {
                 {totalPages > 1 && (
                   <div className="mt-8">
                     <Pagination>
-                      <PaginationContent>
+                      <PaginationContent className="flex justify-center space-x-2 flex-wrap gap-2">
                         <PaginationItem>
-                          <PaginationPrevious 
-                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                            className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                          <PaginationPrevious
+                            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                            className={`h-10 px-4 rounded-lg shadow-sm transition-all ${currentPage === 1 ? 'pointer-events-none opacity-50' : ''
+                              }`}
                           />
                         </PaginationItem>
-                        
+
                         {[...Array(totalPages)].map((_, i) => (
                           <PaginationItem key={i}>
                             <PaginationLink
                               onClick={() => setCurrentPage(i + 1)}
                               isActive={currentPage === i + 1}
+                              className="h-10 w-10 flex items-center justify-center rounded-lg shadow-sm transition-all"
                             >
                               {i + 1}
                             </PaginationLink>
                           </PaginationItem>
                         ))}
-                        
+
                         <PaginationItem>
                           <PaginationNext
-                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                            className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                            className={`h-10 px-4 rounded-lg shadow-sm transition-all ${currentPage === totalPages ? 'pointer-events-none opacity-50' : ''
+                              }`}
                           />
                         </PaginationItem>
                       </PaginationContent>
@@ -296,7 +299,10 @@ const Jobs = () => {
                 <p className="text-muted-foreground mb-4">
                   Try adjusting your filters or search terms to find more jobs.
                 </p>
-                <Button onClick={handleResetFilters}>
+                <Button
+                  onClick={handleResetFilters}
+                  className="h-12 px-6 rounded-lg shadow-md transition-all"
+                >
                   Clear All Filters
                 </Button>
               </div>
