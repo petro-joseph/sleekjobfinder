@@ -1,8 +1,8 @@
-
+// Apply.tsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { jobs, Job } from '@/data/jobs';
-import Layout from '@/components/Layout';
+import { jobs, Job } from "@/data/jobs";
+import Layout from "@/components/Layout";
 import {
   Tabs,
   TabsContent,
@@ -13,7 +13,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
@@ -45,6 +44,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import TailorResumeModal from '@/components/TailorResumeModal';
+import ApplyConfirmationModal from '../components/ApplyConfirmationModal';
 
 const Apply = () => {
   const { id } = useParams<{ id: string }>();
@@ -59,10 +59,9 @@ const Apply = () => {
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [tailorModalOpen, setTailorModalOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
-
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -84,8 +83,6 @@ const Apply = () => {
       return;
     }
 
-    setUploading(true);
-
     // Simulate parsing and storing resume
     setTimeout(() => {
       const newResume = {
@@ -105,11 +102,9 @@ const Apply = () => {
         });
       }
 
-      setUploading(false);
       toast.success("Resume uploaded successfully");
     }, 1500);
   };
-
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -162,6 +157,41 @@ ${user?.firstName} ${user?.lastName}`;
       setCoverLetter(generatedLetter);
       setIsGeneratingCoverLetter(false);
     }, 2000);
+  };
+
+  const handleApplyClick = () => {
+    if (job?.url) {
+      window.open(job.url, '_blank');
+      setTimeout(() => {
+        setShowConfirmationModal(true);
+      }, 1000);
+    } else {
+      handleSubmitApplication();
+    }
+  };
+
+  const handleConfirmApplication = () => {
+    setShowConfirmationModal(false);
+    setIsSuccess(true);
+    if (job) {
+      const newApplication = {
+        id: Date.now().toString(),
+        jobId: job.id,
+        position: job.title,
+        company: job.company,
+        status: "applied" as "applied",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        appliedAt: new Date().toISOString(),
+      };
+      if (user) {
+        const updatedApplications = [...(user.applications || []), newApplication];
+        updateUser({
+          ...user,
+          applications: updatedApplications,
+        });
+      }
+    }
   };
 
   const handleSubmitApplication = () => {
@@ -251,86 +281,7 @@ ${user?.firstName} ${user?.lastName}`;
     );
   }
 
-  if (hasApplied) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-6 py-12 max-w-3xl">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 mb-4">
-              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
-            </div>
-            <h1 className="text-3xl font-bold mb-2">Application Submitted!</h1>
-            <p className="text-muted-foreground">
-              Your application for <span className="font-medium text-foreground">{job.title}</span> at <span className="font-medium text-foreground">{job.company}</span> has been submitted successfully.
-            </p>
-          </div>
-
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>What's Next?</CardTitle>
-              <CardDescription>Here's what you can expect from your application process</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex">
-                  <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <Clock className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Application Review</h3>
-                    <p className="text-sm text-muted-foreground">
-                      The hiring team will review your application and resume
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex">
-                  <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <Send className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Initial Contact</h3>
-                    <p className="text-sm text-muted-foreground">
-                      If your profile is a good match, they'll reach out via email or phone
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex">
-                  <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <Briefcase className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Interview Process</h3>
-                    <p className="text-sm text-muted-foreground">
-                      You may be invited for one or more interviews
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="outline" asChild>
-              <Link to="/progress">
-                <Clock className="mr-2 h-4 w-4" />
-                Track Application
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link to="/jobs">
-                <Briefcase className="mr-2 h-4 w-4" />
-                Browse More Jobs
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (isSuccess) {
+  if (hasApplied || isSuccess) {
     return (
       <Layout>
         <div className="container mx-auto px-6 py-12 max-w-3xl">
@@ -506,14 +457,13 @@ ${user?.firstName} ${user?.lastName}`;
                             </p>
                           </div>
                         </div>
-                        <Button variant="secondary" onClick={() => setTailorModalOpen(true)}>
+                        <Button variant="default" onClick={() => setTailorModalOpen(true)} className="w-full h-10 ">
                           Tailor Resume
                         </Button>
                       </div>
                     </div>
                   ) : (
                     <div className="text-center py-6">
-                      {/* <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" /> */}
                       <h3 className="text-lg font-medium mb-2">No Resumes Yet</h3>
                       <p className="text-muted-foreground mb-4">
                         You haven't uploaded any resumes yet. Upload one to apply for this job.
@@ -540,25 +490,16 @@ ${user?.firstName} ${user?.lastName}`;
                           </span>
                         </Label>
                       </div>
-                      <input
-                        type="file"
-                        accept=".pdf"
-                        id="resume-upload"
-                        className="hidden"
-                        onChange={handleFileUpload}
-                        />
-                        <div className="text-sm text-muted-foreground my-4">
-                          <p>You dont have resume.?  <br></br> use our resume builder to create professional Resume  </p>
-                        </div>
-                        <Button asChild>
-                          <Link to="/resume-builder">
-                            Create Resume
-                          </Link>
-                        </Button>
+                      <div className="text-sm text-muted-foreground my-4">
+                        <p>You don't have a resume? <br /> Use our resume builder to create a professional Resume</p>
                       </div>
+                      <Button asChild>
+                        <Link to="/resume-builder">
+                          Create Resume
+                        </Link>
+                      </Button>
+                    </div>
                   )}
-
-
                 </CardContent>
               </Card>
             </TabsContent>
@@ -630,13 +571,7 @@ ${user?.firstName} ${user?.lastName}`;
               Cancel
             </Button>
             <Button
-              onClick={() => {
-                if (job?.url) {
-                  window.open(job.url, '_blank');
-                } else {
-                  handleSubmitApplication();
-                }
-              }}
+              onClick={handleApplyClick}
               disabled={isSubmitting || (!selectedResumeId && !coverLetter)}
             >
               {isSubmitting ? (
@@ -655,7 +590,22 @@ ${user?.firstName} ${user?.lastName}`;
         </div>
       </div>
 
-      {job && <TailorResumeModal job={job} isOpen={tailorModalOpen} onClose={() => setTailorModalOpen(false)} />}
+      {job && (
+        <>
+          <TailorResumeModal
+            job={job}
+            isOpen={tailorModalOpen}
+            onClose={() => setTailorModalOpen(false)}
+          />
+          <ApplyConfirmationModal
+            isOpen={showConfirmationModal}
+            onClose={() => setShowConfirmationModal(false)}
+            onConfirm={handleConfirmApplication}
+            jobTitle={job.title}
+            company={job.company}
+          />
+        </>
+      )}
     </Layout>
   );
 };
