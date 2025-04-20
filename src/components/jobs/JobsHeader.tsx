@@ -39,7 +39,7 @@ const JobsHeader = ({ activeFilters, onFilterChange, onResetFilters }: JobsHeade
   };
 
   return (
-    <div className="bg-gradient-to-b from-primary/5 to-background border-b">
+    <div className="bg-gradient-to-b items-center from-primary/5 to-background border-b">
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col gap-6">
           {/* Search Bar */}
