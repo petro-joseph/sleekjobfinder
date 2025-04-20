@@ -38,16 +38,16 @@ const JobsHeader = ({ activeFilters, onFilterChange, onResetFilters }: JobsHeade
   };
 
   return (
-    <div className="bg-gradient-to-b mb-6 from-primary/5 to-background border-b rounded-lg shadow-sm">
-      <div className="container mx-auto px-4 sm:px-6 py-8">
+    <div className="bg-background sticky top-0 z-10 border-b border-border shadow-lg backdrop-blur-sm bg-opacity-90">
+      <div className="container mx-auto px-4 sm:px-6 py-6">
         <div className="flex flex-col gap-6">
           {/* Search Bar */}
           <form onSubmit={handleSearchSubmit} className="w-full">
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-6 w-6" />
                 <Input
-                  className="pl-12 h-14 rounded-lg shadow-sm transition-all"
+                  className="pl-14 h-14 rounded-xl bg-background border-border shadow-md focus:ring-2 focus:ring-primary/50 transition-all text-base placeholder:text-muted-foreground/70"
                   placeholder="Search for Product Manager, Developer, or company..."
                   value={searchTerm}
                   onChange={handleSearchChange}
@@ -55,7 +55,7 @@ const JobsHeader = ({ activeFilters, onFilterChange, onResetFilters }: JobsHeade
               </div>
               <Button
                 type="submit"
-                className="h-14 px-6 rounded-lg shadow-md transition-all sm:w-auto w-full"
+                className="h-14 px-8 rounded-xl bg-primary hover:bg-primary/90 shadow-md transition-all text-base font-medium sm:w-auto w-full"
               >
                 Search Jobs
               </Button>
@@ -63,33 +63,33 @@ const JobsHeader = ({ activeFilters, onFilterChange, onResetFilters }: JobsHeade
           </form>
 
           {/* Filters Row */}
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex overflow-x-auto gap-3 no-scrollbar">
             {/* Date Posted Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 px-4 rounded-lg shadow-sm transition-all"
+                  className="h-11 px-5 rounded-xl bg-background border-border shadow-sm hover:bg-secondary/50 transition-all text-sm font-medium flex items-center"
                 >
-                  <CalendarDays className="mr-2 h-5 w-5" />
+                  <CalendarDays className="mr-2 h-5 w-5 text-muted-foreground" />
                   {activeFilters.datePosted ? getDatePostedLabel(activeFilters.datePosted) : "Date Posted"}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => onFilterChange({ datePosted: 'any' })}>
+              <DropdownMenuContent align="start" className="bg-background border-border rounded-lg shadow-lg">
+                <DropdownMenuItem onClick={() => onFilterChange({ datePosted: 'any' })} className="hover:bg-secondary/50 transition-all">
                   Any time
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ datePosted: '24h' })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ datePosted: '24h' })} className="hover:bg-secondary/50 transition-all">
                   Last 24 hours
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ datePosted: '7d' })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ datePosted: '7d' })} className="hover:bg-secondary/50 transition-all">
                   Last 7 days
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ datePosted: '14d' })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ datePosted: '14d' })} className="hover:bg-secondary/50 transition-all">
                   Last 14 days
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ datePosted: '30d' })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ datePosted: '30d' })} className="hover:bg-secondary/50 transition-all">
                   Last 30 days
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -101,19 +101,20 @@ const JobsHeader = ({ activeFilters, onFilterChange, onResetFilters }: JobsHeade
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 px-4 rounded-lg shadow-sm transition-all"
+                  className="h-11 px-5 rounded-xl bg-background border-border shadow-sm hover:bg-secondary/50 transition-all text-sm font-medium flex items-center"
                 >
-                  <Briefcase className="mr-2 h-5 w-5" />
+                  <Briefcase className="mr-2 h-5 w-5 text-muted-foreground" />
                   Experience Level
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
+              <DropdownMenuContent align="start" className="bg-background border-border rounded-lg shadow-lg">
                 <DropdownMenuItem
                   onClick={() =>
                     onFilterChange({
                       experienceLevels: { ...activeFilters.experienceLevels, entry: !activeFilters.experienceLevels.entry },
                     })
                   }
+                  className="hover:bg-secondary/50 transition-all"
                 >
                   Entry Level {activeFilters.experienceLevels.entry && "✓"}
                 </DropdownMenuItem>
@@ -123,6 +124,7 @@ const JobsHeader = ({ activeFilters, onFilterChange, onResetFilters }: JobsHeade
                       experienceLevels: { ...activeFilters.experienceLevels, mid: !activeFilters.experienceLevels.mid },
                     })
                   }
+                  className="hover:bg-secondary/50 transition-all"
                 >
                   Mid Level {activeFilters.experienceLevels.mid && "✓"}
                 </DropdownMenuItem>
@@ -132,6 +134,7 @@ const JobsHeader = ({ activeFilters, onFilterChange, onResetFilters }: JobsHeade
                       experienceLevels: { ...activeFilters.experienceLevels, senior: !activeFilters.experienceLevels.senior },
                     })
                   }
+                  className="hover:bg-secondary/50 transition-all"
                 >
                   Senior Level {activeFilters.experienceLevels.senior && "✓"}
                 </DropdownMenuItem>
@@ -144,26 +147,26 @@ const JobsHeader = ({ activeFilters, onFilterChange, onResetFilters }: JobsHeade
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 px-4 rounded-lg shadow-sm transition-all"
+                  className="h-11 px-5 rounded-xl bg-background border-border shadow-sm hover:bg-secondary/50 transition-all text-sm font-medium flex items-center"
                 >
-                  <DollarSign className="mr-2 h-5 w-5" />
+                  <DollarSign className="mr-2 h-5 w-5 text-muted-foreground" />
                   Salary
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [30, 60] })}>
+              <DropdownMenuContent align="start" className="bg-background border-border rounded-lg shadow-lg">
+                <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [30, 60] })} className="hover:bg-secondary/50 transition-all">
                   $30K - $60K
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [60, 90] })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [60, 90] })} className="hover:bg-secondary/50 transition-all">
                   $60K - $90K
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [90, 120] })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [90, 120] })} className="hover:bg-secondary/50 transition-all">
                   $90K - $120K
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [120, 150] })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [120, 150] })} className="hover:bg-secondary/50 transition-all">
                   $120K - $150K
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [150, 200] })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [150, 200] })} className="hover:bg-secondary/50 transition-all">
                   $150K+
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -175,26 +178,26 @@ const JobsHeader = ({ activeFilters, onFilterChange, onResetFilters }: JobsHeade
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 px-4 rounded-lg shadow-sm transition-all"
+                  className="h-11 px-5 rounded-xl bg-background border-border shadow-sm hover:bg-secondary/50 transition-all text-sm font-medium flex items-center"
                 >
-                  <MapPin className="mr-2 h-5 w-5" />
+                  <MapPin className="mr-2 h-5 w-5 text-muted-foreground" />
                   Location
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => onFilterChange({ location: 'Remote' })}>
+              <DropdownMenuContent align="start" className="bg-background border-border rounded-lg shadow-lg">
+                <DropdownMenuItem onClick={() => onFilterChange({ location: 'Remote' })} className="hover:bg-secondary/50 transition-all">
                   Remote
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ location: 'San Francisco' })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ location: 'San Francisco' })} className="hover:bg-secondary/50 transition-all">
                   San Francisco
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ location: 'New York' })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ location: 'New York' })} className="hover:bg-secondary/50 transition-all">
                   New York
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ location: 'Austin' })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ location: 'Austin' })} className="hover:bg-secondary/50 transition-all">
                   Austin
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ location: 'Chicago' })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ location: 'Chicago' })} className="hover:bg-secondary/50 transition-all">
                   Chicago
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -206,26 +209,26 @@ const JobsHeader = ({ activeFilters, onFilterChange, onResetFilters }: JobsHeade
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 px-4 rounded-lg shadowhearts-sm transition-all"
+                  className="h-11 px-5 rounded-xl bg-background border-border shadow-sm hover:bg-secondary/50 transition-all text-sm font-medium flex items-center"
                 >
-                  <Building className="mr-2 h-5 w-5" />
+                  <Building className="mr-2 h-5 w-5 text-muted-foreground" />
                   {activeFilters.industry ? activeFilters.industry : "Industry"}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Technology' })}>
+              <DropdownMenuContent align="start" className="bg-background border-border rounded-lg shadow-lg">
+                <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Technology' })} className="hover:bg-secondary/50 transition-all">
                   Technology
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Finance' })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Finance' })} className="hover:bg-secondary/50 transition-all">
                   Finance
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Healthcare' })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Healthcare' })} className="hover:bg-secondary/50 transition-all">
                   Healthcare
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Education' })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Education' })} className="hover:bg-secondary/50 transition-all">
                   Education
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Marketing' })}>
+                <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Marketing' })} className="hover:bg-secondary/50 transition-all">
                   Marketing
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -235,7 +238,7 @@ const JobsHeader = ({ activeFilters, onFilterChange, onResetFilters }: JobsHeade
             <Button
               variant="ghost"
               size="sm"
-              className="h-10 rounded-lg transition-all"
+              className="h-11 px-5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all text-sm font-medium"
               onClick={onResetFilters}
             >
               Reset all
@@ -248,71 +251,71 @@ const JobsHeader = ({ activeFilters, onFilterChange, onResetFilters }: JobsHeade
             activeFilters.industry ||
             Object.values(activeFilters.experienceLevels).some((v) => v) ||
             (activeFilters.salaryRange[0] !== 50 || activeFilters.salaryRange[1] !== 150)) && (
-              <div className="flex flex-wrap items-center gap-3 mt-4">
-                <span className="text-sm text-muted-foreground">Active filters:</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-muted-foreground font-medium">Active filters:</span>
 
-                {activeFilters.datePosted && (
-                  <Badge variant="outline" className="flex items-center gap-1 rounded-full px-3 py-1">
-                    <CalendarDays className="h-4 w-4" />
-                    {getDatePostedLabel(activeFilters.datePosted)}
+              {activeFilters.datePosted && (
+                <Badge variant="outline" className="flex items-center gap-1 rounded-full px-3 py-1 bg-background border-border shadow-sm hover:bg-secondary/30 transition-all">
+                  <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                  {getDatePostedLabel(activeFilters.datePosted)}
+                  <X
+                    className="h-4 w-4 ml-1 cursor-pointer text-muted-foreground hover:text-foreground transition-all"
+                    onClick={() => onFilterChange({ datePosted: '' })}
+                  />
+                </Badge>
+              )}
+
+              {activeFilters.location && (
+                <Badge variant="outline" className="flex items-center gap-1 rounded-full px-3 py-1 bg-background border-border shadow-sm hover:bg-secondary/30 transition-all">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  {activeFilters.location}
+                  <X
+                    className="h-4 w-4 ml-1 cursor-pointer text-muted-foreground hover:text-foreground transition-all"
+                    onClick={() => onFilterChange({ location: '' })}
+                  />
+                </Badge>
+              )}
+
+              {activeFilters.industry && (
+                <Badge variant="outline" className="flex items-center gap-1 rounded-full px-3 py-1 bg-background border-border shadow-sm hover:bg-secondary/30 transition-all">
+                  <Building className="h-4 w-4 text-muted-foreground" />
+                  {activeFilters.industry}
+                  <X
+                    className="h-4 w-4 ml-1 cursor-pointer text-muted-foreground hover:text-foreground transition-all"
+                    onClick={() => onFilterChange({ industry: '' })}
+                  />
+                </Badge>
+              )}
+
+              {Object.entries(activeFilters.experienceLevels)
+                .filter(([_, value]) => value)
+                .map(([key]) => (
+                  <Badge key={key} variant="outline" className="flex items-center gap-1 rounded-full px-3 py-1 bg-background border-border shadow-sm hover:bg-secondary/30 transition-all">
+                    <Briefcase className="h-4 w-4 text-muted-foreground" />
+                    {key.charAt(0).toUpperCase() + key.slice(1)} Level
                     <X
-                      className="h-4 w-4 ml-1 cursor-pointer"
-                      onClick={() => onFilterChange({ datePosted: '' })}
+                      className="h-4 w-4 ml-1 cursor-pointer text-muted-foreground hover:text-foreground transition-all"
+                      onClick={() =>
+                        onFilterChange({
+                          experienceLevels: { ...activeFilters.experienceLevels, [key]: false },
+                        })
+                      }
                     />
                   </Badge>
-                )}
+                ))}
 
-                {activeFilters.location && (
-                  <Badge variant="outline" className="flex items-center gap-1 rounded-full px-3 py-1">
-                    <MapPin className="h-4 w-4" />
-                    {activeFilters.location}
-                    <X
-                      className="h-4 w-4 ml-1 cursor-pointer"
-                      onClick={() => onFilterChange({ location: '' })}
-                    />
-                  </Badge>
-                )}
-
-                {activeFilters.industry && (
-                  <Badge variant="outline" className="flex items-center gap-1 rounded-full px-3 py-1">
-                    <Building className="h-4 w-4" />
-                    {activeFilters.industry}
-                    <X
-                      className="h-4 w-4 ml-1 cursor-pointer"
-                      onClick={() => onFilterChange({ industry: '' })}
-                    />
-                  </Badge>
-                )}
-
-                {Object.entries(activeFilters.experienceLevels)
-                  .filter(([_, value]) => value)
-                  .map(([key]) => (
-                    <Badge key={key} variant="outline" className="flex items-center gap-1 rounded-full px-3 py-1">
-                      <Briefcase className="h-4 w-4" />
-                      {key.charAt(0).toUpperCase() + key.slice(1)} Level
-                      <X
-                        className="h-4 w-4 ml-1 cursor-pointer"
-                        onClick={() =>
-                          onFilterChange({
-                            experienceLevels: { ...activeFilters.experienceLevels, [key]: false },
-                          })
-                        }
-                      />
-                    </Badge>
-                  ))}
-
-                {(activeFilters.salaryRange[0] !== 50 || activeFilters.salaryRange[1] !== 150) && (
-                  <Badge variant="outline" className="flex items-center gap-1 rounded-full px-3 py-1">
-                    <DollarSign className="h-4 w-4" />
-                    ${activeFilters.salaryRange[0]}K - ${activeFilters.salaryRange[1]}K
-                    <X
-                      className="h-4 w-4 ml-1 cursor-pointer"
-                      onClick={() => onFilterChange({ salaryRange: [50, 150] })}
-                    />
-                  </Badge>
-                )}
-              </div>
-            )}
+              {(activeFilters.salaryRange[0] !== 50 || activeFilters.salaryRange[1] !== 150) && (
+                <Badge variant="outline" className="flex items-center gap-1 rounded-full px-3 py-1 bg-background border-border shadow-sm hover:bg-secondary/30 transition-all">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  ${activeFilters.salaryRange[0]}K - ${activeFilters.salaryRange[1]}K
+                  <X
+                    className="h-4 w-4 ml-1 cursor-pointer text-muted-foreground hover:text-foreground transition-all"
+                    onClick={() => onFilterChange({ salaryRange: [50, 150] })}
+                  />
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

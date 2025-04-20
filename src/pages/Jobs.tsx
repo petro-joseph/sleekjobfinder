@@ -77,7 +77,6 @@ const Jobs = () => {
     setTimeout(() => {
       let filtered = [...jobs];
 
-      // Search term filter
       if (filters.searchTerm) {
         const searchLower = filters.searchTerm.toLowerCase();
         filtered = filtered.filter(
@@ -88,7 +87,6 @@ const Jobs = () => {
         );
       }
 
-      // Date posted filter
       if (filters.datePosted && filters.datePosted !== 'any') {
         const now = new Date();
         filtered = filtered.filter((job) => {
@@ -108,14 +106,12 @@ const Jobs = () => {
         });
       }
 
-      // Location filter
       if (filters.location) {
         filtered = filtered.filter((job) =>
           job.location.toLowerCase().includes(filters.location.toLowerCase())
         );
       }
 
-      // Experience level filter
       const activeExperienceLevels = Object.entries(filters.experienceLevels)
         .filter(([_, value]) => value)
         .map(([key]) => key);
@@ -128,7 +124,6 @@ const Jobs = () => {
         );
       }
 
-      // Salary range filter
       filtered = filtered.filter((job) => {
         const salaryStr = job.salary.replace(/[^0-9-]/g, '');
         const [min, max] = salaryStr.split('-').map((s) => parseInt(s.trim(), 10));
@@ -139,12 +134,10 @@ const Jobs = () => {
         );
       });
 
-      // Industry filter
       if (filters.industry) {
         filtered = filtered.filter((job) => job.industry === filters.industry);
       }
 
-      // Sort
       if (filters.sortBy === 'newest') {
         filtered.sort((a, b) => {
           const dateA = parsePostedDate(a.postedAt);
@@ -189,9 +182,10 @@ const Jobs = () => {
 
   return (
     <Layout>
-      <section className="py-12">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="max-w-3xl mx-auto mb-12">
+      <section className="min-h-screen pt-6 bg-background">
+        <div className="container px-4 sm:px-6 py-8">
+          {/* Header Section */}
+          <div className="max-w-3xl mb-12">
             <div className="inline-flex items-center px-3 py-1 mb-4 text-sm rounded-full bg-primary/10 text-primary">
               <Briefcase className="w-4 h-4 mr-2" />
               <span>Job Listings</span>
@@ -199,114 +193,123 @@ const Jobs = () => {
             <SectionHeading
               title="Find Your Perfect Role"
               subtitle="Browse our curated selection of jobs matched to your skills and experience."
+              className="title:text-4xl title:font-bold subtitle:text-lg subtitle:mt-3"
             />
           </div>
 
-          <JobsHeader
-            activeFilters={activeFilters}
-            onFilterChange={handleFilterChange}
-            onResetFilters={handleResetFilters}
-          />
+          {/* Main Content */}
+          <div className="flex flex-col gap-6">
+            {/* JobsHeader */}
+            <JobsHeader
+              activeFilters={activeFilters}
+              onFilterChange={handleFilterChange}
+              onResetFilters={handleResetFilters}
+            />
 
-          <div className="space-y-6">
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <div className="loader mb-4" />
-                <p className="text-muted-foreground">Finding the perfect jobs for you...</p>
-              </div>
-            ) : filteredJobs.length > 0 ? (
-              <>
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
-                  <p className="text-muted-foreground">
-                    Showing {filteredJobs.length} jobs
-                  </p>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant={activeFilters.sortBy === 'newest' ? 'default' : 'outline'}
-                      size="sm"
-                      className="h-10 px-4 rounded-lg shadow-sm transition-all"
-                      onClick={() => handleSortChange('newest')}
-                    >
-                      Newest
-                    </Button>
-                    <Button
-                      variant={activeFilters.sortBy === 'relevant' ? 'default' : 'outline'}
-                      size="sm"
-                      className="h-10 px-4 rounded-lg shadow-sm transition-all"
-                      onClick={() => handleSortChange('relevant')}
-                    >
-                      Relevant
-                    </Button>
+            {/* Job Listings */}
+            <div className="w-full">
+              <div className="space-y-6">
+                {isLoading ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="loader mb-4" />
+                    <p className="text-muted-foreground">Finding the perfect jobs for you...</p>
                   </div>
-                </div>
+                ) : filteredJobs.length > 0 ? (
+                  <>
+                      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+                        <p className="text-muted-foreground text-sm md:text-base font-medium">
+                          Showing {filteredJobs.length} jobs
+                        </p>
+                        <div className="flex items-center space-x-3">
+                          <Button
+                            variant={activeFilters.sortBy === 'newest' ? 'default' : 'outline'}
+                            size="sm"
+                            className="h-11 px-5 rounded-xl shadow-sm transition-all text-sm font-medium"
+                            onClick={() => handleSortChange('newest')}
+                          >
+                            Newest
+                          </Button>
+                          <Button
+                            variant={activeFilters.sortBy === 'relevant' ? 'default' : 'outline'}
+                            size="sm"
+                            className="h-11 px-5 rounded-xl shadow-sm transition-all text-sm font-medium"
+                            onClick={() => handleSortChange('relevant')}
+                          >
+                            Relevant
+                          </Button>
+                        </div>
+                      </div>
 
-                <div className="space-y-4">
-                  {currentJobs.map((job) => (
-                    <Link
-                      key={job.id}
-                      to={`/jobs/${job.id}`}
-                      className="block transition-transform hover:-translate-y-1"
+                    <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-1">
+                      {currentJobs.map((job) => (
+                        <Link
+                          key={job.id}
+                          to={`/jobs/${job.id}`}
+                          className="block transition-transform hover:-translate-y-1"
+                        >
+                          <JobCard
+                            job={job}
+                            onIndustryClick={(industry) => handleFilterChange({ industry })}
+                          />
+                        </Link>
+                      ))}
+                    </div>
+
+                    {totalPages > 1 && (
+                      <div className="mt-8">
+                        <Pagination>
+                          <PaginationContent className="flex justify-center space-x-2 flex-wrap gap-2">
+                            <PaginationItem>
+                              <PaginationPrevious
+                                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                                className={`h-10 px-4 rounded-lg shadow-sm transition-all bg-background border-border ${
+                                  currentPage === 1 ? 'pointer-events-none opacity-50' : ''
+                                }`}
+                              />
+                            </PaginationItem>
+
+                            {[...Array(totalPages)].map((_, i) => (
+                              <PaginationItem key={i}>
+                                <PaginationLink
+                                  onClick={() => setCurrentPage(i + 1)}
+                                  isActive={currentPage === i + 1}
+                                  className="h-10 w-10 flex items-center justify-center rounded-lg shadow-sm transition-all bg-background border-border"
+                                >
+                                  {i + 1}
+                                </PaginationLink>
+                              </PaginationItem>
+                            ))}
+
+                            <PaginationItem>
+                              <PaginationNext
+                                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                                className={`h-10 px-4 rounded-lg shadow-sm transition-all bg-background border-border ${
+                                  currentPage === totalPages ? 'pointer-events-none opacity-50' : ''
+                                }`}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="bg-background border border-border rounded-xl p-8 text-center shadow-sm">
+                    <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-xl font-semibold mb-2 text-foreground">No jobs found</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Try adjusting your filters or search terms to find more jobs.
+                    </p>
+                    <Button
+                      onClick={handleResetFilters}
+                      className="h-12 px-6 rounded-lg shadow-md transition-all bg-primary hover:bg-primary/90"
                     >
-                      <JobCard
-                        job={job}
-                        onIndustryClick={(industry) => handleFilterChange({ industry })}
-                        className="p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
-                      />
-                    </Link>
-                  ))}
-                </div>
-
-                {totalPages > 1 && (
-                  <div className="mt-8">
-                    <Pagination>
-                      <PaginationContent className="flex justify-center space-x-2 flex-wrap gap-2">
-                        <PaginationItem>
-                          <PaginationPrevious
-                            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                            className={`h-10 px-4 rounded-lg shadow-sm transition-all ${currentPage === 1 ? 'pointer-events-none opacity-50' : ''
-                              }`}
-                          />
-                        </PaginationItem>
-
-                        {[...Array(totalPages)].map((_, i) => (
-                          <PaginationItem key={i}>
-                            <PaginationLink
-                              onClick={() => setCurrentPage(i + 1)}
-                              isActive={currentPage === i + 1}
-                              className="h-10 w-10 flex items-center justify-center rounded-lg shadow-sm transition-all"
-                            >
-                              {i + 1}
-                            </PaginationLink>
-                          </PaginationItem>
-                        ))}
-
-                        <PaginationItem>
-                          <PaginationNext
-                            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                            className={`h-10 px-4 rounded-lg shadow-sm transition-all ${currentPage === totalPages ? 'pointer-events-none opacity-50' : ''
-                              }`}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
+                      Clear All Filters
+                    </Button>
                   </div>
                 )}
-              </>
-            ) : (
-              <div className="bg-secondary/50 rounded-lg p-8 text-center">
-                <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No jobs found</h3>
-                <p className="text-muted-foreground mb-4">
-                  Try adjusting your filters or search terms to find more jobs.
-                </p>
-                <Button
-                  onClick={handleResetFilters}
-                  className="h-12 px-6 rounded-lg shadow-md transition-all"
-                >
-                  Clear All Filters
-                </Button>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </section>
