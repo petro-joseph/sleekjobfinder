@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/store';
-import { jobs } from '@/data/jobs';
 
 interface JobCardCompactProps {
   job: Job;

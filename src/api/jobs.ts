@@ -20,7 +20,12 @@ export const fetchJobs = async (filters?: any): Promise<Job[]> => {
   if (error) {
     throw new Error(error.message);
   }
-  return data as Job[];
+  
+  // Transform data to match Job interface expectations
+  return data.map(job => ({
+    ...job,
+    postedAt: formatPostedDate(job.posted_at) // Add postedAt property for UI components
+  })) as Job[];
 };
 
 export const fetchJobById = async (jobId: string): Promise<Job | null> => {
@@ -29,6 +34,45 @@ export const fetchJobById = async (jobId: string): Promise<Job | null> => {
     .select("*")
     .eq("id", jobId)
     .maybeSingle();
+  
   if (error) throw new Error(error.message);
-  return data as Job | null;
+  
+  if (!data) return null;
+  
+  // Transform to match Job interface
+  return {
+    ...data,
+    postedAt: formatPostedDate(data.posted_at)
+  } as Job;
 };
+
+// Helper function to format the posted_at date into a human-readable string
+function formatPostedDate(postedAt: string): string {
+  if (!postedAt) return "";
+  
+  const postedDate = new Date(postedAt);
+  const now = new Date();
+  const diffMs = now.getTime() - postedDate.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    if (diffHours === 0) {
+      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+      return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+    }
+    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+  }
+  
+  if (diffDays < 7) {
+    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+  }
+  
+  if (diffDays < 30) {
+    const diffWeeks = Math.floor(diffDays / 7);
+    return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} ago`;
+  }
+  
+  const diffMonths = Math.floor(diffDays / 30);
+  return `${diffMonths} month${diffMonths !== 1 ? 's' : ''} ago`;
+}

@@ -1,3 +1,4 @@
+
 export interface Job {
   id: string;
   title: string;
@@ -7,10 +8,12 @@ export interface Job {
   type: 'Full-time' | 'Part-time' | 'Contract' | 'Remote';
   description: string;
   requirements: string[];
-  postedAt: string;
+  posted_at: string;
+  postedAt?: string; // For backward compatibility
   logo?: string;
   featured?: boolean;
   industry: string;
   url?: string;
   tags: string[];
+  created_at?: string;
 }
