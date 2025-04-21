@@ -105,7 +105,7 @@ const Progress = () => {
       return { id, status };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['applications', user.id]);
+      queryClient.invalidateQueries({ queryKey: ['applications', user.id] });
       toast.success('Application status updated');
     },
     onError: (error: any) => {
@@ -148,7 +148,7 @@ const Progress = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['job_alerts', user.id]);
+      queryClient.invalidateQueries({ queryKey: ['job_alerts', user.id] });
       setNewAlertQuery('');
       setNewAlertLocation('');
       setNewAlertFrequency('daily');
@@ -171,7 +171,7 @@ const Progress = () => {
       return alertId;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['job_alerts', user.id]);
+      queryClient.invalidateQueries({ queryKey: ['job_alerts', user.id] });
       toast.success('Job alert deleted');
     },
     onError: (error: any) => {
@@ -192,7 +192,7 @@ const Progress = () => {
       return alert;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['job_alerts', user.id]);
+      queryClient.invalidateQueries({ queryKey: ['job_alerts', user.id] });
       toast.success('Job alert updated');
     },
     onError: (error: any) => {
@@ -315,7 +315,7 @@ const Progress = () => {
                             <Select
                               value={app.status}
                               onValueChange={(value) => handleStatusChange(app.id, value as ApplicationStatus)}
-                              disabled={updateStatusMutation.isLoading}
+                              disabled={updateStatusMutation.isPending}
                             >
                               <SelectTrigger className="w-[160px]">
                                 <SelectValue />
@@ -385,7 +385,6 @@ const Progress = () => {
                     <div className="space-y-2">
                       <Label htmlFor="alert-frequency">Alert Frequency</Label>
                       <Select
-                        id="alert-frequency"
                         value={newAlertFrequency}
                         onValueChange={setNewAlertFrequency}
                       >
@@ -401,7 +400,7 @@ const Progress = () => {
                   </CardContent>
 
                   <CardFooter>
-                    <Button type="submit" disabled={createAlertMutation.isLoading} className="w-full">
+                    <Button type="submit" disabled={createAlertMutation.isPending} className="w-full">
                       <Bell className="h-4 w-4 mr-2" />
                       Create Alert
                     </Button>
