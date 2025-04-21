@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,32 +10,63 @@ import { Bookmark, ExternalLink, Trash2, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Job } from '@/data/jobs';
+import { supabase } from '@/integrations/supabase/client';
 
+// Component for displaying saved jobs from Supabase
 const SavedJobs = () => {
-  const { user, removeJob } = useAuthStore();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // If no user or no saved jobs, return appropriate UI
-  if (!user) return null;
-  
-  const savedJobs = user.savedJobs || [];
-  
-  // Filter by search term
-  const filteredJobs = searchTerm 
-    ? savedJobs.filter(job => 
-        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.location.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : savedJobs;
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleRemoveJob = (jobId: string) => {
-    removeJob(jobId);
+  useEffect(() => {
+    if (!user) return;
+    setLoading(true);
+    // Fetch joined saved_jobs and jobs
+    supabase
+      .from("saved_jobs")
+      .select("job_id, jobs(*)")
+      .eq("user_id", user.id)
+      .then(async ({ data, error }) => {
+        if (error) {
+          setLoading(false);
+          toast.error("Error loading saved jobs.");
+          return;
+        }
+        if (!data) return setJobs([]);
+        // data: [{ job_id, jobs: {...} }]
+        setJobs(
+          data
+            .map((r: any) => r.jobs)
+            .filter((j: Job | null) => !!j)
+        );
+        setLoading(false);
+      });
+  }, [user]);
+
+  // Remove saved job in Supabase
+  const handleRemoveJob = async (jobId: string) => {
+    if (!user) return;
+    const { error } = await supabase.from("saved_jobs").delete().eq("job_id", jobId).eq("user_id", user.id);
+    if (error) {
+      toast.error("Error removing job from saved list.");
+      return;
+    }
+    setJobs((jobs) => jobs.filter((job) => job.id !== jobId));
     toast.success("Job removed from saved jobs", {
       position: "top-center"
     });
   };
+
+  // Search filter
+  const filteredJobs = searchTerm
+    ? jobs.filter(job =>
+        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.location.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : jobs;
 
   return (
     <Layout>
@@ -49,7 +80,6 @@ const SavedJobs = () => {
               Jobs you've bookmarked for later consideration
             </p>
           </div>
-          
           <div className="mt-4 md:mt-0 relative w-full md:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
@@ -61,8 +91,9 @@ const SavedJobs = () => {
             />
           </div>
         </div>
-        
-        {filteredJobs.length === 0 ? (
+        {loading ? (
+          <div className="p-8 text-center text-muted-foreground">Loading saved jobs...</div>
+        ) : filteredJobs.length === 0 ? (
           <EmptyState searchTerm={searchTerm} navigate={navigate} />
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -81,12 +112,11 @@ const SavedJobs = () => {
   );
 };
 
-// Empty state component
+// Empty state (reuse)
 const EmptyState = ({ searchTerm, navigate }: { searchTerm: string, navigate: (path: string) => void }) => (
   <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg animate-fade-in">
     <CardContent className="p-8 flex flex-col items-center text-center">
       <Bookmark className="h-12 w-12 text-muted-foreground mb-4" />
-      
       {searchTerm ? (
         <>
           <h3 className="text-xl font-bold mb-2">No matching saved jobs</h3>
@@ -112,7 +142,7 @@ const EmptyState = ({ searchTerm, navigate }: { searchTerm: string, navigate: (p
   </Card>
 );
 
-// Saved job card component
+// Reuse SavedJobCard
 const SavedJobCard = ({ 
   job, 
   onRemove, 
@@ -132,13 +162,11 @@ const SavedJobCard = ({
           >
             {!job.logo && job.company.charAt(0)}
           </div>
-          
           <div className="flex-1">
             <h3 className="font-bold text-lg mb-1 line-clamp-1">{job.title}</h3>
             <p className="text-sm text-muted-foreground mb-2">{job.company} • {job.location}</p>
-            
             <div className="flex flex-wrap gap-2 mt-3 mb-4">
-              {job.tags.slice(0, 3).map((tag, i) => (
+              {job.tags?.slice(0, 3).map((tag, i) => (
                 <span
                   key={i}
                   className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary"
@@ -146,13 +174,12 @@ const SavedJobCard = ({
                   {tag}
                 </span>
               ))}
-              {job.tags.length > 3 && (
+              {job.tags && job.tags.length > 3 && (
                 <span className="px-2 py-1 text-xs rounded-full bg-muted text-muted-foreground">
                   +{job.tags.length - 3}
                 </span>
               )}
             </div>
-            
             <div className="flex gap-2 mt-4">
               <Button size="sm" variant="outline" onClick={onView} className="group-hover:border-primary">
                 <ExternalLink className="h-4 w-4 mr-2" />
@@ -174,7 +201,7 @@ const SavedJobCard = ({
   );
 };
 
-// Wrap with ProtectedRoute component
+// Protect route
 const ProtectedSavedJobsPage = () => (
   <ProtectedRoute>
     <SavedJobs />

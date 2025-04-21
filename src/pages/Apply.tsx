@@ -1,5 +1,3 @@
-
-// Apply.tsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Job } from "@/data/jobs";
@@ -48,6 +46,8 @@ import TailorResumeModal from '@/components/TailorResumeModal';
 import ApplyConfirmationModal from '../components/ApplyConfirmationModal';
 import { useQuery } from '@tanstack/react-query';
 import { fetchJobById } from '@/api/jobs';
+import { uploadResumeFile } from '@/integrations/supabase/uploadResume';
+import { supabase } from '@/integrations/supabase/client';
 
 const Apply = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,6 +63,7 @@ const Apply = () => {
   const [tailorModalOpen, setTailorModalOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null); // Track uploaded PDF for Supabase upload
 
   // Fetch job data from Supabase
   const { 
@@ -75,6 +76,7 @@ const Apply = () => {
     enabled: !!id
   });
 
+  // Update file upload handler to store uploaded file in state for eventual Supabase upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -95,7 +97,9 @@ const Apply = () => {
       return;
     }
 
-    // Simulate parsing and storing resume
+    setUploadedFile(file);
+
+    // Simulate parsing and storing resume in user state for UI, but also keep file for real upload
     setTimeout(() => {
       const newResume = {
         id: Date.now().toString(),
@@ -363,6 +367,88 @@ ${user?.firstName} ${user?.lastName}`;
     );
   }
 
+  // --- NEW: Supabase Insert Resume ---
+  async function saveResumeToSupabase(): Promise<string | null> {
+    if (!uploadedFile || !user?.id) return null;
+
+    // Upload file to bucket
+    try {
+      const filePath = await uploadResumeFile(uploadedFile, user.id);
+      // Insert resume record
+      const { data, error } = await supabase.from("resumes").insert({
+        user_id: user.id,
+        name: uploadedFile.name,
+        file_path: filePath,
+        is_primary: false,
+      }).select().maybeSingle();
+
+      if (error) throw error;
+      return data?.file_path ?? null;
+    } catch (err) {
+      toast.error("Failed to upload resume to Supabase.");
+      return null;
+    }
+  }
+
+  // --- Override handleConfirmApplication ---
+  const handleConfirmApplication = async () => {
+    setShowConfirmationModal(false);
+    setIsSuccess(true);
+
+    let file_path: string | null = null;
+    if (uploadedFile) {
+      file_path = await saveResumeToSupabase();
+    }
+
+    if (job && user) {
+      // Insert into applications table in Supabase
+      const { error } = await supabase.from("applications").insert({
+        job_id: job.id,
+        user_id: user.id,
+        position: job.title,
+        company: job.company,
+        status: "applied",
+        applied_at: new Date().toISOString(),
+      });
+
+      if (error) {
+        toast.error(`Error saving application to Supabase: ${error.message}`);
+      } else {
+        toast.success("Your application was saved!");
+      }
+    }
+
+    // (Optional) You could also link to the Supabase resume via user's local state if needed
+  };
+
+  // --- NEW: Ask to save job if user didn't apply ---
+  // Replace ApplyConfirmationModal usage with logic to prompt for saving job if answer is 'No'
+  const [saveJobPrompt, setSaveJobPrompt] = useState(false);
+
+  // Called when user chooses "No, not yet" in the confirmation modal
+  const handleNotAppliedYet = () => {
+    setShowConfirmationModal(false);
+    setSaveJobPrompt(true);
+  };
+
+  // Handle saving job to Supabase's saved_jobs
+  const handleSaveJobForLater = async () => {
+    if (user && job) {
+      const { error } = await supabase.from("saved_jobs").insert({
+        job_id: job.id,
+        user_id: user.id,
+      });
+      if (error) {
+        toast.error("Failed to save job. Try again!");
+        return;
+      }
+      toast.success("Job saved for later!");
+      setSaveJobPrompt(false);
+      // Redirect to saved jobs page
+      navigate("/saved-jobs");
+    }
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-6 py-12">
@@ -600,13 +686,30 @@ ${user?.firstName} ${user?.lastName}`;
             isOpen={tailorModalOpen}
             onClose={() => setTailorModalOpen(false)}
           />
+          {/* Confirmation modal, updated */}
           <ApplyConfirmationModal
             isOpen={showConfirmationModal}
-            onClose={() => setShowConfirmationModal(false)}
+            onClose={handleNotAppliedYet} // Now handles "No, not yet"
             onConfirm={handleConfirmApplication}
             jobTitle={job.title}
             company={job.company}
           />
+          {/* Save Job Prompt */}
+          {saveJobPrompt && (
+            <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+              <div className="bg-white dark:bg-background p-6 rounded-lg shadow-lg space-y-4 max-w-sm">
+                <p>Would you like to save this job so you can apply later?</p>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setSaveJobPrompt(false)}>
+                    No, thanks
+                  </Button>
+                  <Button onClick={handleSaveJobForLater}>
+                    Save Job
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </Layout>
