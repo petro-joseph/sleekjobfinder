@@ -63,9 +63,9 @@ const Apply = () => {
   const [tailorModalOpen, setTailorModalOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null); // Track uploaded PDF for Supabase upload
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [saveJobPrompt, setSaveJobPrompt] = useState(false);
 
-  // Fetch job data from Supabase
   const { 
     data: job, 
     isLoading,
@@ -76,7 +76,6 @@ const Apply = () => {
     enabled: !!id
   });
 
-  // Update file upload handler to store uploaded file in state for eventual Supabase upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -99,7 +98,6 @@ const Apply = () => {
 
     setUploadedFile(file);
 
-    // Simulate parsing and storing resume in user state for UI, but also keep file for real upload
     setTimeout(() => {
       const newResume = {
         id: Date.now().toString(),
@@ -141,7 +139,6 @@ const Apply = () => {
 
     setIsGeneratingCoverLetter(true);
 
-    // Simulate AI generating a cover letter
     setTimeout(() => {
       const generatedLetter = `Dear Hiring Manager,
 
@@ -177,26 +174,68 @@ ${user?.firstName} ${user?.lastName}`;
     }
   };
 
-  const handleConfirmApplication = () => {
+  async function saveResumeToSupabase(): Promise<string | null> {
+    if (!uploadedFile || !user?.id) return null;
+
+    try {
+      const filePath = await uploadResumeFile(uploadedFile, user.id);
+      const { data, error } = await supabase.from("resumes").insert({
+        user_id: user.id,
+        name: uploadedFile.name,
+        file_path: filePath,
+        is_primary: false,
+      }).select().maybeSingle();
+
+      if (error) throw error;
+      return data?.file_path ?? null;
+    } catch (err) {
+      toast.error("Failed to upload resume to Supabase.");
+      return null;
+    }
+  }
+
+  const handleConfirmApplication = async () => {
     setShowConfirmationModal(false);
     setIsSuccess(true);
-    if (job) {
-      const newApplication = {
-        id: Date.now().toString(),
-        jobId: job.id,
+
+    let file_path: string | null = null;
+    if (uploadedFile) {
+      file_path = await saveResumeToSupabase();
+    }
+
+    if (job && user) {
+      const { error } = await supabase.from("applications").insert({
+        job_id: job.id,
+        user_id: user.id,
         position: job.title,
         company: job.company,
-        status: "applied" as "applied",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        appliedAt: new Date().toISOString(),
-      };
-      if (user) {
-        const updatedApplications = [...(user.applications || []), newApplication];
-        updateUser({
-          ...user,
-          applications: updatedApplications,
-        });
+        status: "applied",
+        applied_at: new Date().toISOString(),
+      });
+
+      if (error) {
+        toast.error(`Error saving application to Supabase: ${error.message}`);
+      } else {
+        toast.success("Your application was saved!");
+
+        const newApplication = {
+          id: Date.now().toString(),
+          jobId: job.id,
+          position: job.title,
+          company: job.company,
+          status: "applied" as "applied",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          appliedAt: new Date().toISOString(),
+        };
+
+        if (user) {
+          const updatedApplications = [...(user.applications || []), newApplication];
+          updateUser({
+            ...user,
+            applications: updatedApplications,
+          });
+        }
       }
     }
   };
@@ -209,7 +248,6 @@ ${user?.firstName} ${user?.lastName}`;
 
     setIsSubmitting(true);
 
-    // Simulate submitting application
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSuccess(true);
@@ -366,88 +404,6 @@ ${user?.firstName} ${user?.lastName}`;
       </Layout>
     );
   }
-
-  // --- NEW: Supabase Insert Resume ---
-  async function saveResumeToSupabase(): Promise<string | null> {
-    if (!uploadedFile || !user?.id) return null;
-
-    // Upload file to bucket
-    try {
-      const filePath = await uploadResumeFile(uploadedFile, user.id);
-      // Insert resume record
-      const { data, error } = await supabase.from("resumes").insert({
-        user_id: user.id,
-        name: uploadedFile.name,
-        file_path: filePath,
-        is_primary: false,
-      }).select().maybeSingle();
-
-      if (error) throw error;
-      return data?.file_path ?? null;
-    } catch (err) {
-      toast.error("Failed to upload resume to Supabase.");
-      return null;
-    }
-  }
-
-  // --- Override handleConfirmApplication ---
-  const handleConfirmApplication = async () => {
-    setShowConfirmationModal(false);
-    setIsSuccess(true);
-
-    let file_path: string | null = null;
-    if (uploadedFile) {
-      file_path = await saveResumeToSupabase();
-    }
-
-    if (job && user) {
-      // Insert into applications table in Supabase
-      const { error } = await supabase.from("applications").insert({
-        job_id: job.id,
-        user_id: user.id,
-        position: job.title,
-        company: job.company,
-        status: "applied",
-        applied_at: new Date().toISOString(),
-      });
-
-      if (error) {
-        toast.error(`Error saving application to Supabase: ${error.message}`);
-      } else {
-        toast.success("Your application was saved!");
-      }
-    }
-
-    // (Optional) You could also link to the Supabase resume via user's local state if needed
-  };
-
-  // --- NEW: Ask to save job if user didn't apply ---
-  // Replace ApplyConfirmationModal usage with logic to prompt for saving job if answer is 'No'
-  const [saveJobPrompt, setSaveJobPrompt] = useState(false);
-
-  // Called when user chooses "No, not yet" in the confirmation modal
-  const handleNotAppliedYet = () => {
-    setShowConfirmationModal(false);
-    setSaveJobPrompt(true);
-  };
-
-  // Handle saving job to Supabase's saved_jobs
-  const handleSaveJobForLater = async () => {
-    if (user && job) {
-      const { error } = await supabase.from("saved_jobs").insert({
-        job_id: job.id,
-        user_id: user.id,
-      });
-      if (error) {
-        toast.error("Failed to save job. Try again!");
-        return;
-      }
-      toast.success("Job saved for later!");
-      setSaveJobPrompt(false);
-      // Redirect to saved jobs page
-      navigate("/saved-jobs");
-    }
-  };
 
   return (
     <Layout>
@@ -686,15 +642,13 @@ ${user?.firstName} ${user?.lastName}`;
             isOpen={tailorModalOpen}
             onClose={() => setTailorModalOpen(false)}
           />
-          {/* Confirmation modal, updated */}
           <ApplyConfirmationModal
             isOpen={showConfirmationModal}
-            onClose={handleNotAppliedYet} // Now handles "No, not yet"
+            onClose={handleNotAppliedYet}
             onConfirm={handleConfirmApplication}
             jobTitle={job.title}
             company={job.company}
           />
-          {/* Save Job Prompt */}
           {saveJobPrompt && (
             <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
               <div className="bg-white dark:bg-background p-6 rounded-lg shadow-lg space-y-4 max-w-sm">
