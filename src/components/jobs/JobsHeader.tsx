@@ -10,6 +10,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 
+interface FilterValues {
+  searchTerm?: string;
+  datePosted?: string;
+  experienceLevels?: Record<string, boolean>;
+  salaryRange?: [number, number];
+  location?: string;
+  industry?: string;
+}
+
 interface JobsHeaderProps {
   activeFilters: {
     jobTypes: Record<string, boolean>;
@@ -21,7 +30,7 @@ interface JobsHeaderProps {
     location: string;
     sortBy: string;
   };
-  onFilterChange: (filters: any) => void;
+  onFilterChange: (filters: FilterValues) => void;
   onResetFilters: () => void;
 }
 

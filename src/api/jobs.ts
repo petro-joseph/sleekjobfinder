@@ -2,7 +2,17 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Job } from "@/data/jobs";
 
-export const fetchJobs = async (filters?: any): Promise<Job[]> => {
+interface JobFilters {
+  industry?: string;
+  type?: string;
+  location?: string;
+  salary?: string;
+  posted_at?: string;
+  searchTerm?: string;
+  featured?: boolean;
+}
+
+export const fetchJobs = async (filters?: JobFilters): Promise<Job[]> => {
   let query = supabase
     .from("jobs")
     .select("*")
@@ -14,7 +24,10 @@ export const fetchJobs = async (filters?: any): Promise<Job[]> => {
     if (filters.type) query = query.eq("type", filters.type);
     if (filters.searchTerm) query = query.ilike("title", `%${filters.searchTerm}%`);
     if (filters.featured !== undefined) query = query.eq("featured", filters.featured);
-    // Add more filter logic as needed...
+    if (filters.location) query = query.ilike("location", `%${filters.location}%`);
+    if (filters.salary) query = query.ilike("salary", `%${filters.salary}%`);
+    if (filters.posted_at) query = query.ilike("posted_at", `%${filters.posted_at}%`);
+    if (filters.type) query = query.ilike("type", `%${filters.type}%`);
   }
 
   const { data, error } = await query;
@@ -23,10 +36,23 @@ export const fetchJobs = async (filters?: any): Promise<Job[]> => {
   }
   
   // Transform data to match Job interface expectations
-  return data.map(job => ({
+  const transformedData = data.map(job => ({
     ...job,
     postedAt: formatPostedDate(job.posted_at) // Add postedAt property for UI components
   })) as Job[];
+
+  // Sort jobs to show featured jobs first
+  transformedData.sort((a, b) => {
+    if (a.featured && !b.featured) {
+      return -1;
+    }
+    if (!a.featured && b.featured) {
+      return 1;
+    }
+    return 0;
+  });
+
+  return transformedData;
 };
 
 export const fetchJobById = async (jobId: string): Promise<Job | null> => {

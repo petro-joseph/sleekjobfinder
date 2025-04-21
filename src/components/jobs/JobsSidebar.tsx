@@ -29,9 +29,8 @@ interface JobsSidebarProps {
   onPageChange: (page: number) => void;
   activeFilters: {
     sortBy: string;
-    [key: string]: any;
   };
-  onFilterChange: (filters: any) => void;
+  onFilterChange: (filters: { sortBy?: string }) => void;
 }
 
 const JobsSidebar = ({
@@ -54,10 +53,10 @@ const JobsSidebar = ({
   const renderPaginationItems = () => {
     const items = [];
     const maxPagesToShow = 5;
-    
+
     let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-    
+    const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
     if (endPage - startPage + 1 < maxPagesToShow) {
       startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
@@ -176,19 +175,10 @@ const JobsSidebar = ({
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="text-center">
             <p className="text-muted-foreground mb-2">No jobs found matching your criteria</p>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
-              onClick={() => onFilterChange({
-                jobTypes: {},
-                experienceLevels: {},
-                salaryRange: [50, 150],
-                searchTerm: '',
-                industry: '',
-                datePosted: '',
-                location: '',
-                sortBy: 'newest'
-              })}
+              onClick={() => onFilterChange({ sortBy: 'newest' })}
             >
               Clear filters
             </Button>

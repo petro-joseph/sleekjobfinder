@@ -7,8 +7,24 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Search } from 'lucide-react';
 
+interface FilterValues {
+  jobTypes: {
+    fullTime: boolean;
+    partTime: boolean;
+    contract: boolean;
+    remote: boolean;
+  };
+  experienceLevels: {
+    entry: boolean;
+    mid: boolean;
+    senior: boolean;
+  };
+  salaryRange: number[];
+  searchTerm: string;
+}
+
 interface JobFilterProps {
-  onFilterChange: (filters: any) => void;
+  onFilterChange: (filters: FilterValues) => void;
 }
 
 const JobFilter = ({ onFilterChange }: JobFilterProps) => {
