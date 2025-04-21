@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,8 +22,6 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { Job } from '@/data/jobs';
-import { JobPosting } from '@/types/resume';
-import { SectionHeading } from '@/components/ui/section-heading';
 import { toast } from 'sonner';
 import {
   DropdownMenu,

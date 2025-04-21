@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Job } from "@/data/jobs"; // For type only
+import { Job } from "@/data/jobs";
 
 export const fetchJobs = async (filters?: any): Promise<Job[]> => {
   let query = supabase
