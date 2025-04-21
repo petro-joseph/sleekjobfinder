@@ -258,6 +258,39 @@ ${user?.firstName} ${user?.lastName}`;
     }, 1500);
   };
 
+  const handleNotAppliedYet = () => {
+    setShowConfirmationModal(false);
+    setSaveJobPrompt(true);
+  };
+
+  const handleSaveJobForLater = async () => {
+    if (user && job) {
+      const { error } = await supabase.from("saved_jobs").insert({
+        job_id: job.id,
+        user_id: user.id,
+      });
+      
+      if (error) {
+        toast.error("Failed to save job. Try again!");
+        return;
+      }
+      
+      toast.success("Job saved for later!");
+      setSaveJobPrompt(false);
+      
+      const newSavedJob = job;
+      if (user) {
+        const updatedSavedJobs = [...(user.savedJobs || []), newSavedJob];
+        updateUser({
+          ...user,
+          savedJobs: updatedSavedJobs,
+        });
+      }
+      
+      navigate("/saved-jobs");
+    }
+  };
+
   useEffect(() => {
     if (localStorage.getItem("applicationSubmitted") === "true" && job) {
       localStorage.removeItem("applicationSubmitted");
