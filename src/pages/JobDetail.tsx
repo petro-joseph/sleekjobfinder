@@ -21,7 +21,7 @@ import {
   Mail,
   MessageSquare
 } from 'lucide-react';
-import { jobs, Job } from '@/data/jobs';
+import { Job } from '@/data/jobs';
 import { JobPosting } from '@/types/resume';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { toast } from 'sonner';
@@ -34,24 +34,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from '@/lib/store';
 import TailorResumeModal from '@/components/TailorResumeModal';
+import { useQuery } from '@tanstack/react-query';
+import { fetchJobById } from "@/api/jobs";
 
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [job, setJob] = useState<Job | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const { user, saveJob, removeJob } = useAuthStore();
   const [tailorModalOpen, setTailorModalOpen] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const foundJob = jobs.find(j => j.id === id);
-      setJob(foundJob || null);
-      setIsLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [id]);
+  // Fetch this job directly from Supabase
+  const { data: job, isLoading } = useQuery({
+    queryKey: ['job', id],
+    queryFn: () => fetchJobById(id as string),
+    enabled: !!id,
+  });
 
   const handleApply = () => {
     if (job) {
@@ -59,6 +55,7 @@ const JobDetail = () => {
     }
   };
 
+  const { user, saveJob, removeJob } = useAuthStore();
   const isSaved = user?.savedJobs.some(j => j.id === id) || false;
 
   const handleSaveJob = () => {

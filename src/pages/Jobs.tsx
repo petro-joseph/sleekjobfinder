@@ -3,7 +3,7 @@ import Layout from '@/components/Layout';
 import { SectionHeading } from '@/components/ui/section-heading';
 import JobCard from '@/components/JobCard';
 import JobsHeader from '@/components/jobs/JobsHeader';
-import { jobs, Job } from '@/data/jobs';
+import { Job } from '@/data/jobs';
 import { Briefcase, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +15,8 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { fetchJobs } from "@/api/jobs";
 
 const Jobs = () => {
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
@@ -77,88 +79,88 @@ const Jobs = () => {
     setIsLoading(true);
 
     setTimeout(() => {
-      let filtered = [...jobs];
+      // let filtered = [...jobs];
 
-      if (filters.searchTerm) {
-        const searchLower = filters.searchTerm.toLowerCase();
-        filtered = filtered.filter(
-          (job) =>
-            job.title.toLowerCase().includes(searchLower) ||
-            job.company.toLowerCase().includes(searchLower) ||
-            job.description.toLowerCase().includes(searchLower)
-        );
-      }
+      // if (filters.searchTerm) {
+      //   const searchLower = filters.searchTerm.toLowerCase();
+      //   filtered = filtered.filter(
+      //     (job) =>
+      //       job.title.toLowerCase().includes(searchLower) ||
+      //       job.company.toLowerCase().includes(searchLower) ||
+      //       job.description.toLowerCase().includes(searchLower)
+      //   );
+      // }
 
-      if (filters.datePosted && filters.datePosted !== 'any') {
-        const now = new Date();
-        filtered = filtered.filter((job) => {
-          const postedDate = parsePostedDate(job.postedAt);
-          switch (filters.datePosted) {
-            case '24h':
-              return (now.getTime() - postedDate.getTime()) <= 24 * 60 * 60 * 1000;
-            case '7d':
-              return (now.getTime() - postedDate.getTime()) <= 7 * 24 * 60 * 60 * 1000;
-            case '14d':
-              return (now.getTime() - postedDate.getTime()) <= 14 * 24 * 60 * 60 * 1000;
-            case '30d':
-              return (now.getTime() - postedDate.getTime()) <= 30 * 24 * 60 * 60 * 1000;
-            default:
-              return true;
-          }
-        });
-      }
+      // if (filters.datePosted && filters.datePosted !== 'any') {
+      //   const now = new Date();
+      //   filtered = filtered.filter((job) => {
+      //     const postedDate = parsePostedDate(job.postedAt);
+      //     switch (filters.datePosted) {
+      //       case '24h':
+      //         return (now.getTime() - postedDate.getTime()) <= 24 * 60 * 60 * 1000;
+      //       case '7d':
+      //         return (now.getTime() - postedDate.getTime()) <= 7 * 24 * 60 * 60 * 1000;
+      //       case '14d':
+      //         return (now.getTime() - postedDate.getTime()) <= 14 * 24 * 60 * 60 * 1000;
+      //       case '30d':
+      //         return (now.getTime() - postedDate.getTime()) <= 30 * 24 * 60 * 60 * 1000;
+      //       default:
+      //         return true;
+      //     }
+      //   });
+      // }
 
-      if (filters.location) {
-        filtered = filtered.filter((job) =>
-          job.location.toLowerCase().includes(filters.location.toLowerCase())
-        );
-      }
+      // if (filters.location) {
+      //   filtered = filtered.filter((job) =>
+      //     job.location.toLowerCase().includes(filters.location.toLowerCase())
+      //   );
+      // }
 
-      const activeExperienceLevels = Object.entries(filters.experienceLevels)
-        .filter(([_, value]) => value)
-        .map(([key]) => key);
+      // const activeExperienceLevels = Object.entries(filters.experienceLevels)
+      //   .filter(([_, value]) => value)
+      //   .map(([key]) => key);
 
-      if (activeExperienceLevels.length > 0) {
-        filtered = filtered.filter((job) =>
-          activeExperienceLevels.some((level) =>
-            job.tags.some((tag) => tag.toLowerCase().includes(level.toLowerCase()))
-          )
-        );
-      }
+      // if (activeExperienceLevels.length > 0) {
+      //   filtered = filtered.filter((job) =>
+      //     activeExperienceLevels.some((level) =>
+      //       job.tags.some((tag) => tag.toLowerCase().includes(level.toLowerCase()))
+      //     )
+      //   );
+      // }
 
-      filtered = filtered.filter((job) => {
-        const salaryStr = job.salary.replace(/[^0-9-]/g, '');
-        const [min, max] = salaryStr.split('-').map((s) => parseInt(s.trim(), 10));
-        const avgSalary = (min + max) / 2;
-        return (
-          avgSalary >= filters.salaryRange[0] * 1000 &&
-          avgSalary <= filters.salaryRange[1] * 1000
-        );
-      });
+      // filtered = filtered.filter((job) => {
+      //   const salaryStr = job.salary.replace(/[^0-9-]/g, '');
+      //   const [min, max] = salaryStr.split('-').map((s) => parseInt(s.trim(), 10));
+      //   const avgSalary = (min + max) / 2;
+      //   return (
+      //     avgSalary >= filters.salaryRange[0] * 1000 &&
+      //     avgSalary <= filters.salaryRange[1] * 1000
+      //   );
+      // });
 
-      if (filters.industry) {
-        filtered = filtered.filter((job) => job.industry === filters.industry);
-      }
+      // if (filters.industry) {
+      //   filtered = filtered.filter((job) => job.industry === filters.industry);
+      // }
 
-      if (filters.sortBy === 'newest') {
-        filtered.sort((a, b) => {
-          const dateA = parsePostedDate(a.postedAt);
-          const dateB = parsePostedDate(b.postedAt);
-          return dateB.getTime() - dateA.getTime();
-        });
-      } else if (filters.sortBy === 'relevant') {
-        filtered.sort((a, b) => {
-          if (a.featured && !b.featured) return -1;
-          if (!a.featured && b.featured) return 1;
-          const dateA = parsePostedDate(a.postedAt);
-          const dateB = parsePostedDate(b.postedAt);
-          return dateB.getTime() - dateA.getTime();
-        });
-      }
+      // if (filters.sortBy === 'newest') {
+      //   filtered.sort((a, b) => {
+      //     const dateA = parsePostedDate(a.postedAt);
+      //     const dateB = parsePostedDate(b.postedAt);
+      //     return dateB.getTime() - dateA.getTime();
+      //   });
+      // } else if (filters.sortBy === 'relevant') {
+      //   filtered.sort((a, b) => {
+      //     if (a.featured && !b.featured) return -1;
+      //     if (!a.featured && b.featured) return 1;
+      //     const dateA = parsePostedDate(a.postedAt);
+      //     const dateB = parsePostedDate(b.postedAt);
+      //     return dateB.getTime() - dateA.getTime();
+      //   });
+      // }
 
-      setFilteredJobs(filtered);
-      setCurrentPage(1);
-      setIsLoading(false);
+      // setFilteredJobs(filtered);
+      // setCurrentPage(1);
+      // setIsLoading(false);
     }, 500);
   };
 
@@ -184,6 +186,16 @@ const Jobs = () => {
       jobListingsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+
+  // Fetch jobs from Supabase using react-query
+  const { data: supabaseJobs, isLoading: supabaseLoading, error } = useQuery({
+    queryKey: ['jobs', activeFilters],
+    queryFn: () => fetchJobs(activeFilters),
+  });
+
+  // Derive filtered jobs (client-side filtering can be removed as server does most)
+  const filteredJobs = supabaseJobs || [];
+  const isLoading = supabaseLoading;
 
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
   const indexOfLastJob = currentPage * jobsPerPage;
