@@ -20,6 +20,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const APPLICATION_STATUSES = ['applied', 'interview', 'offer_received', 'rejected', 'archived'] as const;
 type ApplicationStatus = typeof APPLICATION_STATUSES[number];
@@ -61,17 +69,17 @@ const Progress = () => {
   if (!user) return null;
 
   // Fetch user's applications excluding archived in counts but including for viewing/editing
-  const { data: applications = [], isLoading: isApplicationsLoading } = useQuery<Application[]>({
+  const { data: applications = [], isLoading: isApplicationsLoading } = useQuery({
     queryKey: ['applications', user.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from<Application>('applications')
+        .from('applications')
         .select('*')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
       if (error) throw new Error(error.message);
-      return data ?? [];
+      return data as Application[];
     }
   });
 
@@ -106,16 +114,16 @@ const Progress = () => {
   });
 
   // Fetch user's job alerts
-  const { data: jobAlerts = [], isLoading: isJobAlertsLoading } = useQuery<JobAlert[]>({
+  const { data: jobAlerts = [], isLoading: isJobAlertsLoading } = useQuery({
     queryKey: ['job_alerts', user.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from<JobAlert>('job_alerts')
+        .from('job_alerts')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       if (error) throw new Error(error.message);
-      return data ?? [];
+      return data as JobAlert[];
     }
   });
 
@@ -212,15 +220,6 @@ const Progress = () => {
     updateAlertMutation.mutate({ id: alertId, frequency });
   };
 
-  // Handle alert location change
-  const handleAlertLocationChange = (alertId: string, location: string | null) => {
-    updateAlertMutation.mutate({ id: alertId, location });
-  };
-
-  if (!user) {
-    return null; // Will be redirected by auth wrapper
-  }
-
   return (
     <Layout>
       <div className="container mx-auto px-6 py-6 md:py-12">
@@ -286,59 +285,63 @@ const Progress = () => {
               </div>
             ) : (
               <div className="border rounded-lg overflow-auto max-h-[450px]">
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="bg-muted/30 border-b">
-                      <th className="py-3 px-4 text-left font-medium text-muted-foreground text-sm">Company</th>
-                      <th className="py-3 px-4 text-left font-medium text-muted-foreground text-sm">Position</th>
-                      <th className="py-3 px-4 text-left font-medium text-muted-foreground text-sm">Applied</th>
-                      <th className="py-3 px-4 text-left font-medium text-muted-foreground text-sm">Status</th>
-                      <th className="py-3 px-4 text-left font-medium text-muted-foreground text-sm">Last Update</th>
-                      <th className="py-3 px-4 text-right font-medium text-muted-foreground text-sm"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredApplications.map((app) => (
-                      <tr key={app.id} className="border-b last:border-b-0 hover:bg-muted/20 transition-colors">
-                        <td className="py-3 px-4 text-sm">{app.company}</td>
-                        <td className="py-3 px-4 text-sm font-medium">{app.position}</td>
-                        <td className="py-3 px-4 text-sm text-muted-foreground">
-                          {new Date(app.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="py-3 px-4">
-                          <Select
-                            value={app.status}
-                            onValueChange={(value) => handleStatusChange(app.id, value as ApplicationStatus)}
-                            className="max-w-[160px]"
-                            disabled={updateStatusMutation.isLoading}
-                          >
-                            {APPLICATION_STATUSES.map(status => (
-                              <SelectItem key={status} value={status}>
-                                {status.charAt(0).toUpperCase() + status.replace('_', ' ').slice(1)}
-                              </SelectItem>
-                            ))}
-                          </Select>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-muted-foreground">
-                          {new Date(app.updated_at).toLocaleDateString()}
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <Button variant="ghost" size="icon" onClick={() => navigate(`/jobs/${app.job_id || ''}`)}>
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-
-                    {filteredApplications.length === 0 && (
-                      <tr>
-                        <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Position</TableHead>
+                      <TableHead>Applied</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Last Update</TableHead>
+                      <TableHead></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredApplications.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                           No applications found for this filter. Try another status.
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredApplications.map((app) => (
+                        <TableRow key={app.id} className="hover:bg-muted/20 transition-colors">
+                          <TableCell>{app.company}</TableCell>
+                          <TableCell className="font-medium">{app.position}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {new Date(app.created_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={app.status}
+                              onValueChange={(value) => handleStatusChange(app.id, value as ApplicationStatus)}
+                              disabled={updateStatusMutation.isLoading}
+                            >
+                              <SelectTrigger className="w-[160px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {APPLICATION_STATUSES.map(status => (
+                                  <SelectItem key={status} value={status}>
+                                    {status.charAt(0).toUpperCase() + status.replace('_', ' ').slice(1)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {new Date(app.updated_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="icon" onClick={() => navigate(`/jobs/${app.job_id || ''}`)}>
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             )}
           </TabsContent>
@@ -448,10 +451,14 @@ const Progress = () => {
                               <Select
                                 value={alert.frequency}
                                 onValueChange={(frequency) => handleAlertFrequencyChange(alert.id, frequency)}
-                                className="max-w-[120px]"
                               >
-                                <SelectItem value="daily">Daily</SelectItem>
-                                <SelectItem value="weekly">Weekly</SelectItem>
+                                <SelectTrigger className="w-[120px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="daily">Daily</SelectItem>
+                                  <SelectItem value="weekly">Weekly</SelectItem>
+                                </SelectContent>
                               </Select>
                               <Button variant="ghost" size="sm" onClick={() => deleteAlertMutation.mutate(alert.id)} className="h-8 w-8 p-0">
                                 <X className="h-4 w-4" />
