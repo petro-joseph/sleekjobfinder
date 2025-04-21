@@ -2,19 +2,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
-import { jobs, Job } from '@/data/jobs';
+import { Job } from '@/data/jobs';
 import JobsSidebar from '@/components/jobs/JobsSidebar';
 import JobDetails from '@/components/jobs/JobDetails';
 import JobsHeader from '@/components/jobs/JobsHeader';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { fetchJobs, fetchJobById } from '@/api/jobs';
 
 const Jobs = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { id } = useParams();
   const [selectedJobId, setSelectedJobId] = useState<string | null>(id || null);
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 10;
   const [activeFilters, setActiveFilters] = useState({
@@ -27,6 +28,29 @@ const Jobs = () => {
     location: '',
     sortBy: 'newest'
   });
+
+  // Fetch jobs using React Query
+  const { 
+    data: allJobs = [], 
+    isLoading: isJobsLoading,
+    refetch 
+  } = useQuery({
+    queryKey: ['jobs', activeFilters],
+    queryFn: () => fetchJobs(activeFilters),
+  });
+
+  // Fetch specific job if ID is provided
+  const { 
+    data: selectedJob, 
+    isLoading: isSelectedJobLoading 
+  } = useQuery({
+    queryKey: ['job', selectedJobId],
+    queryFn: () => selectedJobId ? fetchJobById(selectedJobId) : null,
+    enabled: !!selectedJobId
+  });
+
+  // Apply filters to jobs
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
 
   // Set the first job as selected if none is selected
   useEffect(() => {
@@ -51,154 +75,17 @@ const Jobs = () => {
         industry: selectedIndustry
       }));
       localStorage.removeItem('selectedIndustry');
+      refetch(); // Refetch with new filter
     }
-    
-    // Simulate API call
-    const timer = setTimeout(() => {
-      applyFilters();
+  }, [refetch]);
+
+  // Update filtered jobs when allJobs changes
+  useEffect(() => {
+    if (allJobs) {
+      setFilteredJobs(allJobs);
       setIsLoading(false);
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const applyFilters = () => {
-    setIsLoading(true);
-    
-    setTimeout(() => {
-      let filtered = [...jobs];
-      
-      // Filter by search term
-      if (activeFilters.searchTerm) {
-        const searchLower = activeFilters.searchTerm.toLowerCase();
-        filtered = filtered.filter(
-          job => 
-            job.title.toLowerCase().includes(searchLower) || 
-            job.company.toLowerCase().includes(searchLower) ||
-            job.description.toLowerCase().includes(searchLower)
-        );
-      }
-      
-      // Filter by job type
-      const activeJobTypes = Object.entries(activeFilters.jobTypes)
-        .filter(([_, value]) => value)
-        .map(([key]) => key);
-        
-      if (activeJobTypes.length > 0) {
-        filtered = filtered.filter(job => {
-          const jobType = job.type.replace('-', '').toLowerCase();
-          return activeJobTypes.some(type => {
-            const typeFormatted = type.replace(/([A-Z])/g, '').toLowerCase();
-            return jobType.includes(typeFormatted);
-          });
-        });
-      }
-      
-      // Filter by experience level
-      const activeExperienceLevels = Object.entries(activeFilters.experienceLevels)
-        .filter(([_, value]) => value)
-        .map(([key]) => key);
-
-      if (activeExperienceLevels.length > 0) {
-        filtered = filtered.filter(job => {
-          // Check if any of the job tags contain the experience level
-          return activeExperienceLevels.some(level => 
-            job.tags.some(tag => tag.toLowerCase().includes(level.toLowerCase()))
-          );
-        });
-      }
-      
-      // Filter by salary range
-      filtered = filtered.filter(job => {
-        const salaryStr = job.salary.replace(/[^0-9-]/g, '');
-        const [min, max] = salaryStr.split('-').map(s => parseInt(s.trim(), 10));
-        const avgSalary = (min + max) / 2;
-        return avgSalary >= activeFilters.salaryRange[0] * 1000 && avgSalary <= activeFilters.salaryRange[1] * 1000;
-      });
-      
-      // Filter by industry if set
-      if (activeFilters.industry) {
-        filtered = filtered.filter(job => job.industry === activeFilters.industry);
-      }
-
-      // Filter by date posted if set
-      if (activeFilters.datePosted) {
-        const now = new Date();
-        let cutoffDate = new Date();
-        
-        switch(activeFilters.datePosted) {
-          case '24h':
-            cutoffDate.setHours(now.getHours() - 24);
-            break;
-          case '7d':
-            cutoffDate.setDate(now.getDate() - 7);
-            break;
-          case '14d':
-            cutoffDate.setDate(now.getDate() - 14);
-            break;
-          case '30d':
-            cutoffDate.setDate(now.getDate() - 30);
-            break;
-        }
-        
-        if (activeFilters.datePosted !== 'any') {
-          filtered = filtered.filter(job => {
-            const postedDate = parsePostedDate(job.postedAt);
-            return postedDate >= cutoffDate;
-          });
-        }
-      }
-
-      // Filter by location if set
-      if (activeFilters.location) {
-        filtered = filtered.filter(job => 
-          job.location.toLowerCase().includes(activeFilters.location.toLowerCase())
-        );
-      }
-      
-      // Sort the jobs
-      if (activeFilters.sortBy === 'newest') {
-        filtered.sort((a, b) => {
-          const dateA = parsePostedDate(a.postedAt);
-          const dateB = parsePostedDate(b.postedAt);
-          return dateB.getTime() - dateA.getTime();
-        });
-      } else if (activeFilters.sortBy === 'relevant') {
-        filtered.sort((a, b) => {
-          if (a.featured && !b.featured) return -1;
-          if (!a.featured && b.featured) return 1;
-          
-          const dateA = parsePostedDate(a.postedAt);
-          const dateB = parsePostedDate(b.postedAt);
-          return dateB.getTime() - dateA.getTime();
-        });
-      } else if (activeFilters.sortBy === 'salary-high') {
-        filtered.sort((a, b) => {
-          const salaryA = a.salary.replace(/[^0-9-]/g, '');
-          const salaryB = b.salary.replace(/[^0-9-]/g, '');
-          const [minA, maxA] = salaryA.split('-').map(s => parseInt(s.trim(), 10));
-          const [minB, maxB] = salaryB.split('-').map(s => parseInt(s.trim(), 10));
-          const avgA = (minA + maxA) / 2;
-          const avgB = (minB + maxB) / 2;
-          return avgB - avgA;
-        });
-      } else if (activeFilters.sortBy === 'salary-low') {
-        filtered.sort((a, b) => {
-          const salaryA = a.salary.replace(/[^0-9-]/g, '');
-          const salaryB = b.salary.replace(/[^0-9-]/g, '');
-          const [minA, maxA] = salaryA.split('-').map(s => parseInt(s.trim(), 10));
-          const [minB, maxB] = salaryB.split('-').map(s => parseInt(s.trim(), 10));
-          const avgA = (minA + maxA) / 2;
-          const avgB = (minB + maxB) / 2;
-          return avgA - avgB;
-        });
-      }
-      
-      setFilteredJobs(filtered);
-      setCurrentPage(1); // Reset to first page when filters change
-      setIsLoading(false);
-    }, 500);
-  };
+    }
+  }, [allJobs]);
 
   // Helper function to parse posted date strings
   const parsePostedDate = (postedStr: string): Date => {
@@ -234,7 +121,6 @@ const Jobs = () => {
     };
     
     setActiveFilters(newFilters);
-    setTimeout(() => applyFilters(), 0);
   };
 
   const handleResetFilters = () => {
@@ -248,7 +134,6 @@ const Jobs = () => {
       location: '',
       sortBy: 'newest'
     });
-    setTimeout(() => applyFilters(), 0);
     toast({
       title: "Filters reset",
       description: "All filters have been cleared",
@@ -270,13 +155,6 @@ const Jobs = () => {
     setCurrentPage(pageNumber);
   };
 
-  // Find the selected job
-  const selectedJob = selectedJobId
-    ? jobs.find(job => job.id === selectedJobId)
-    : currentJobs.length > 0
-    ? currentJobs[0]
-    : null;
-
   return (
     <Layout>
       <div className="min-h-screen bg-background">
@@ -294,7 +172,7 @@ const Jobs = () => {
             <JobsSidebar 
               jobs={currentJobs}
               totalJobs={filteredJobs.length}
-              isLoading={isLoading}
+              isLoading={isJobsLoading || isLoading}
               selectedJobId={selectedJobId}
               onJobSelect={handleJobSelect}
               currentPage={currentPage}
@@ -307,7 +185,11 @@ const Jobs = () => {
           
           {/* Right Content Area - Job Details */}
           <div className="w-full lg:w-2/3 lg:border-l lg:pl-6">
-            {selectedJob ? (
+            {isSelectedJobLoading ? (
+              <div className="h-full flex items-center justify-center p-8">
+                <div className="loader mb-4" />
+              </div>
+            ) : selectedJob ? (
               <JobDetails job={selectedJob} />
             ) : (
               <div className="h-full flex items-center justify-center p-8 bg-secondary/20 rounded-lg">

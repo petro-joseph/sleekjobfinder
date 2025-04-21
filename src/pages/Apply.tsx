@@ -1,7 +1,8 @@
+
 // Apply.tsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { jobs, Job } from "@/data/jobs";
+import { Job } from "@/data/jobs";
 import Layout from "@/components/Layout";
 import {
   Tabs,
@@ -45,14 +46,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import TailorResumeModal from '@/components/TailorResumeModal';
 import ApplyConfirmationModal from '../components/ApplyConfirmationModal';
+import { useQuery } from '@tanstack/react-query';
+import { fetchJobById } from '@/api/jobs';
 
 const Apply = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isAuthenticated, updateUser } = useAuthStore();
 
-  const [job, setJob] = useState<Job | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState("resume");
   const [selectedResumeId, setSelectedResumeId] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
@@ -62,6 +63,17 @@ const Apply = () => {
   const [tailorModalOpen, setTailorModalOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+
+  // Fetch job data from Supabase
+  const { 
+    data: job, 
+    isLoading,
+    error 
+  } = useQuery({
+    queryKey: ['job', id],
+    queryFn: () => fetchJobById(id || ''),
+    enabled: !!id
+  });
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -115,19 +127,10 @@ const Apply = () => {
       return;
     }
 
-    const timer = setTimeout(() => {
-      const foundJob = jobs.find(j => j.id === id);
-      setJob(foundJob || null);
-
-      if (user?.resumes?.length > 0) {
-        setSelectedResumeId(user.resumes[0].id);
-      }
-
-      setIsLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [id, isAuthenticated, navigate, user]);
+    if (user?.resumes?.length > 0) {
+      setSelectedResumeId(user.resumes[0].id);
+    }
+  }, [isAuthenticated, navigate, user]);
 
   const generateCoverLetter = () => {
     if (!job) return;
@@ -263,7 +266,7 @@ ${user?.firstName} ${user?.lastName}`;
     );
   }
 
-  if (!job) {
+  if (error || !job) {
     return (
       <Layout>
         <div className="container mx-auto px-6 py-12">
