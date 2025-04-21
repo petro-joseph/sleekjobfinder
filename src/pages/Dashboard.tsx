@@ -19,7 +19,7 @@ const Dashboard = () => {
   const { user, isAuthenticated, saveJob, removeJob } = useAuthStore();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  const jobsPerPage = 3;
+  const jobsPerPage = 4;
 
   // Fetch jobs from Supabase
   const { data: allJobs = [] } = useQuery({
