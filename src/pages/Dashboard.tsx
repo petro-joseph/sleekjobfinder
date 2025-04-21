@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,16 +7,26 @@ import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart, Rocket, Clock, MapPin, Building, ChevronLeft, ChevronRight, Bot } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { toast } from "sonner";
-import { jobs } from '@/data/jobs';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { useQuery } from '@tanstack/react-query';
+import { fetchJobs } from '@/api/jobs';
+import { Job } from '@/data/jobs';
 
 const Dashboard = () => {
   const { user, isAuthenticated, saveJob, removeJob } = useAuthStore();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 3;
+
+  // Fetch jobs from Supabase
+  const { data: allJobs = [] } = useQuery({
+    queryKey: ['dashboardJobs'],
+    queryFn: async () => {
+      return fetchJobs();
+    },
+  });
 
   // Recent activities - limit to 3 as requested
   const recentActivities = [
@@ -34,9 +45,9 @@ const Dashboard = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Featured and recommended jobs - use actual job data from our jobs array
-  const featuredJobs = jobs.filter(job => job.featured).slice(0, 2);
-  const recommendedJobs = jobs.filter(job => !job.featured).slice(0, 5);
+  // Featured and recommended jobs - use actual job data from Supabase
+  const featuredJobs = allJobs.filter(job => job.featured).slice(0, 2);
+  const recommendedJobs = allJobs.filter(job => !job.featured).slice(0, 5);
   
   // Combine and paginate
   const allDisplayedJobs = [...featuredJobs, ...recommendedJobs];
@@ -48,7 +59,7 @@ const Dashboard = () => {
   const currentJobs = allDisplayedJobs.slice(indexOfFirstJob, indexOfLastJob);
 
   const handleBookmarkToggle = (jobId: string) => {
-    const job = jobs.find(j => j.id === jobId);
+    const job = allJobs.find(j => j.id === jobId);
     if (!job) return;
     
     const isJobSaved = user?.savedJobs.some(j => j.id === jobId);

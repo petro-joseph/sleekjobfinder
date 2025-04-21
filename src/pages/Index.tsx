@@ -10,11 +10,20 @@ import Layout from '@/components/Layout';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useIsMobile } from '@/hooks/use-mobile';
 import JobCardCompact from '@/components/JobCardCompact';
-import { jobs } from '@/data/jobs';
+import { useQuery } from '@tanstack/react-query';
+import { fetchJobs } from '@/api/jobs';
 
 const Index = () => {
   const isMobile = useIsMobile();
-  const featuredJobs = jobs.slice(0, 5);
+  
+  // Fetch featured jobs from Supabase
+  const { data: featuredJobs = [] } = useQuery({
+    queryKey: ['featuredJobs'],
+    queryFn: async () => {
+      const jobs = await fetchJobs({ featured: true });
+      return jobs.slice(0, 5); // Limit to 5 featured jobs
+    },
+  });
   
   return (
     <Layout>

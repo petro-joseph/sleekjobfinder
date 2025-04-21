@@ -13,6 +13,7 @@ export const fetchJobs = async (filters?: any): Promise<Job[]> => {
     if (filters.industry) query = query.eq("industry", filters.industry);
     if (filters.type) query = query.eq("type", filters.type);
     if (filters.searchTerm) query = query.ilike("title", `%${filters.searchTerm}%`);
+    if (filters.featured !== undefined) query = query.eq("featured", filters.featured);
     // Add more filter logic as needed...
   }
 
