@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,8 +17,17 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuthStore();
+
+  useEffect(() => {
+    // Clear any existing errors when component mounts
+    setError('');
+    setNeedsVerification(false);
+  }, []);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -26,37 +35,90 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
     }
-    
+
     setIsLoading(true);
     setError('');
-    
+
+    console.log('Login attempt started for email:', email); // Log start of login attempt
+
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
 
+      console.log('signInWithPassword response:', { data, signInError }); // Log Supabase response
+
       if (signInError) {
+        console.error('signInWithPassword Error:', signInError); // Log signInError in case of error
+        // Check if the error is due to unconfirmed email
+        if (signInError.message.includes('Email not confirmed')) {
+          setNeedsVerification(true);
+          setVerificationEmail(email);
+          toast.error('Please verify your email address to continue', {
+            position: "top-center",
+            duration: 5000,
+          });
+          setIsLoading(false);
+          return;
+        }
         throw signInError;
       }
 
       if (data.user) {
+        console.log('Login Success Data:', data); // Log success data
         // Show success toast
         toast.success("Login successful! Welcome back.", {
           position: "top-center",
           duration: 3000,
         });
-        
+
+        // Update auth store
+        login(data.user.email || '', password);
+
         // Redirect to dashboard
         navigate('/dashboard');
       }
     } catch (error: any) {
+      console.error('Login error:', error); // Log error details
       setError(error.message);
+      toast.error(error.message);
+    } finally {
+      setIsLoading(false);
+      console.log('Login attempt finished'); // Log end of login attempt
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signInWithOtp({
+        email: verificationEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/verify-otp?email=${encodeURIComponent(verificationEmail)}`,
+        },
+      });
+
+      if (error) {
+        if (error.message.includes('429')) {
+          toast.error('Please wait a moment before requesting another verification email');
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success('Verification email sent! Please check your inbox', {
+          position: "top-center",
+          duration: 5000,
+        });
+        // Navigate to verification page
+        navigate(`/verify-otp?email=${encodeURIComponent(verificationEmail)}`);
+      }
+    } catch (error: any) {
       toast.error(error.message);
     } finally {
       setIsLoading(false);
@@ -65,19 +127,23 @@ const Login = () => {
 
   const handleGoogleSignIn = async () => {
     try {
+      setError('');
       await signInWithGoogle();
       // Auth state will be handled by Supabase's session listener
     } catch (error: any) {
       setError(error.message);
+      toast.error(error.message);
     }
   };
 
   const handleLinkedInSignIn = async () => {
     try {
+      setError('');
       await signInWithLinkedIn();
       // Auth state will be handled by Supabase's session listener
     } catch (error: any) {
       setError(error.message);
+      toast.error(error.message);
     }
   };
 
@@ -87,104 +153,151 @@ const Login = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-md mx-auto">
             <div className="text-center mb-8">
-              <h1 className="heading-lg mb-2 text-gradient bg-gradient-to-r from-primary to-primary/70">Welcome back</h1>
+              <h1 className="heading-lg mb-2 text-gradient bg-gradient-to-r from-primary to-primary/70">
+                Welcome back
+              </h1>
               <p className="paragraph">
                 Log in to continue your job search journey
               </p>
             </div>
-            
+
             <Card className="overflow-hidden glass hover backdrop-blur-xl">
               <CardContent className="p-8">
-                {error && (
+                {error && !needsVerification && (
                   <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg mb-6 flex items-center">
                     <AlertCircle className="h-5 w-5 mr-2" />
                     {error}
                   </div>
                 )}
-                
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-base">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10 py-6 transition-all border-muted/30 focus:border-primary"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="password" className="text-base">Password</Label>
-                      <Link to="/forgot-password" className="text-sm text-primary hover:underline transition-all">
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10 py-6 transition-all border-muted/30 focus:border-primary"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={togglePasswordVisibility}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                        tabIndex={-1}
+
+                {needsVerification ? (
+                  <div className="bg-primary/5 p-4 rounded-lg mb-6">
+                    <h3 className="text-sm font-medium mb-2">Email Verification Required</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Your email address ({verificationEmail}) needs to be verified before you can log in.
+                      Please check your inbox for the verification link or click below to resend it.
+                    </p>
+                    <div className="space-y-3">
+                      <Button
+                        onClick={handleResendVerification}
+                        variant="secondary"
+                        className="w-full"
+                        disabled={isLoading}
                       >
-                        {showPassword ? 
-                          <EyeOff className="h-5 w-5" /> : 
-                          <Eye className="h-5 w-5" />
-                        }
+                        {isLoading ? (
+                          <>
+                            <div className="loader mr-2" />
+                            Sending verification...
+                          </>
+                        ) : (
+                          'Resend Verification Email'
+                        )}
+                      </Button>
+                      <button
+                        onClick={() => {
+                          setNeedsVerification(false);
+                          setError('');
+                        }}
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors w-full text-center"
+                      >
+                        Try different email
                       </button>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="remember" />
-                    <Label htmlFor="remember" className="text-sm font-normal">
-                      Remember me for 30 days
-                    </Label>
-                  </div>
-                  
-                  <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <div className="loader mr-2" />
-                        Logging in...
-                      </>
-                    ) : (
-                      <>
-                        Log in
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                </form>
-                
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-base">Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="you@example.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="pl-10 py-6 transition-all border-muted/30 focus:border-primary"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="password" className="text-base">Password</Label>
+                        <Link
+                          to="/forgot-password"
+                          className="text-sm text-primary hover:underline transition-all"
+                        >
+                          Forgot password?
+                        </Link>
+                      </div>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="pl-10 pr-10 py-6 transition-all border-muted/30 focus:border-primary"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={togglePasswordVisibility}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          tabIndex={-1}
+                        >
+                          {showPassword ?
+                            <EyeOff className="h-5 w-5" /> :
+                            <Eye className="h-5 w-5" />
+                          }
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="remember"
+                        checked={rememberMe}
+                        onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                      />
+                      <Label htmlFor="remember" className="text-sm font-normal">
+                        Remember me for 30 days
+                      </Label>
+                    </div>
+
+                    <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
+                      {isLoading ? (
+                        <>
+                          <div className="loader mr-2" />
+                          Logging in...
+                        </>
+                      ) : (
+                        <>
+                          Log in
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                )}
+
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-border/50"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-card text-muted-foreground">Or continue with</span>
+                    <span className="px-2 bg-card text-muted-foreground">
+                      Or continue with
+                    </span>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4 mt-6">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     type="button"
                     className="w-full"
                     onClick={handleGoogleSignIn}
@@ -210,8 +323,8 @@ const Login = () => {
                     Continue with Google
                   </Button>
 
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     type="button"
                     className="w-full"
                     onClick={handleLinkedInSignIn}
@@ -225,11 +338,14 @@ const Login = () => {
                     Continue with LinkedIn
                   </Button>
                 </div>
-                
+
                 <div className="mt-6 text-center">
                   <p className="text-sm text-muted-foreground">
                     Don't have an account?{' '}
-                    <Link to="/signup" className="text-primary hover:underline font-medium transition-all">
+                    <Link
+                      to="/signup"
+                      className="text-primary hover:underline font-medium transition-all"
+                    >
                       Sign up
                     </Link>
                   </p>

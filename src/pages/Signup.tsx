@@ -72,60 +72,41 @@ const Signup = () => {
             first_name: firstName,
             last_name: lastName,
           },
-        },
-      });
-
-      if (signUpError) {
-        console.error('Error during registration:', signUpError);
-        setError(signUpError.message || 'Failed to create account. Please try again.');
-        setIsLoading(false);
-        return;
-      }
-
-      // Insert user data into profiles table
-      // if (data.user) {
-      //   const { error: profileError } = await supabase.from('profiles').upsert({
-      //     id: data.user.id,
-      //     email: formData.email,
-      //     first_name: firstName,
-      //     last_name: lastName,
-      //     is_email_verified: false,
-      //   });
-
-      //   if (profileError) {
-      //     console.error('Error creating profile:', profileError);
-      //     setError('Failed to create user profile. Please try again.');
-      //     setIsLoading(false);
-      //     return;
-      //   }
-      // }
-
-      // Send OTP for email verification
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email: formData.email,
-        options: {
           emailRedirectTo: `${window.location.origin}/verify-otp?email=${encodeURIComponent(formData.email)}`,
         },
       });
 
-      if (otpError) {
-        console.error('Error sending OTP:', otpError);
-        setError(otpError.message || 'Failed to send OTP. Please try again.');
-        setIsLoading(false);
-        return;
+      if (signUpError) {
+        throw signUpError;
       }
 
-      // Show success toast and redirect
-      toast.success('Account created successfully! Please check your email for the OTP.', {
-        position: 'top-center',
-        duration: 3000,
-      });
+      // If we have a user, proceed with profile creation
+      if (data.user) {
+        // const { error: profileError } = await supabase.from('profiles').upsert({
+        //   id: data.user.id,
+        //   email: formData.email,
+        //   first_name: firstName,
+        //   last_name: lastName,
+        //   is_email_verified: false,
+        // });
 
-      // Redirect to OTP verification page
-      navigate(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
+        // if (profileError) {
+        //   throw profileError;
+        // }
+
+        // Success - account created and verification email sent
+        toast.success('Account created successfully! Please check your email for verification.', {
+          position: 'top-center',
+          duration: 3000,
+        });
+
+        // Navigate to verification page
+        navigate(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
+      }
     } catch (err: any) {
-      console.error('Unexpected error:', err);
+      console.error('Registration error:', err);
       setError(err.message || 'An unexpected error occurred. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
