@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { useAuthStore } from './lib/store';
@@ -120,6 +119,9 @@ function App() {
           <Route path="/resume-builder" element={<ResumeBuilder />} />
           <Route path="/preferences" element={<UserPreferences />} />
           <Route path="/career-assistant" element={<CareerAssistant />} />
+
+          {/* Add the new callback route */}
+          <Route path="/auth/callback" element={<Callback />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

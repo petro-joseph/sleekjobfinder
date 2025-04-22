@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import Layout from '@/components/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from "sonner";
 import { useAuthStore, signInWithGoogle, signInWithLinkedIn } from '@/lib/store';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -35,15 +35,17 @@ const Login = () => {
     setIsLoading(true);
     setError('');
     
-    // Simulate API call for mock login
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      // Check if credentials match our mock user
-      if (email === 'johndoe@example.com' && password === 'qwerty@2025') {
-        // Success - set authenticated in global store
-        login(email, password);
-        
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        throw signInError;
+      }
+
+      if (data.user) {
         // Show success toast
         toast.success("Login successful! Welcome back.", {
           position: "top-center",
@@ -52,11 +54,13 @@ const Login = () => {
         
         // Redirect to dashboard
         navigate('/dashboard');
-      } else {
-        // Failed login
-        setError('Invalid email or password');
       }
-    }, 1500);
+    } catch (error: any) {
+      setError(error.message);
+      toast.error(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleSignIn = async () => {

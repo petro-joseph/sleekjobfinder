@@ -1,9 +1,9 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Job } from '@/data/jobs';
 import { Resume as BaseResume } from '@/types/resume';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'react-toastify';
 
 export interface User {
   id: string;
@@ -185,18 +185,10 @@ export const useAuthStore = create<AuthState>()(
       },
       logout: async () => {
         try {
-          // Call signOut but don't wait for it to complete before updating the UI state
-          const promise = supabase.auth.signOut();
-          
-          // Immediately update the UI state
           set({ isAuthenticated: false, user: null });
-          
-          // Still wait for the promise to complete in the background
-          await promise;
+          await supabase.auth.signOut();
         } catch (error) {
           console.error("Error during logout:", error);
-          // Still set auth state to logged out even if there was an error
-          set({ isAuthenticated: false, user: null });
         }
       },
       register: async (userData) => {
@@ -207,31 +199,21 @@ export const useAuthStore = create<AuthState>()(
             data: {
               first_name: userData.firstName,
               last_name: userData.lastName,
-            }
+            },
+            emailRedirectTo: `${window.location.origin}/auth/callback`
           }
         });
 
         if (error) throw error;
 
         if (user) {
-          set({ 
-            isAuthenticated: true, 
-            user: {
-              id: user.id,
-              email: user.email!,
-              firstName: userData.firstName,
-              lastName: userData.lastName,
-              applications: [],
-              savedJobs: [],
-              alerts: [],
-              resumes: [],
-              settings: {
-                notifications: true,
-                emailUpdates: false,
-                darkMode: false,
-              }
+          toast.success(
+            "Please check your email to verify your account.",
+            {
+              description: "We've sent you a verification link.",
+              duration: 5000,
             }
-          });
+          );
         }
       },
       saveJob: (job) => {
