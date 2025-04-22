@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import { Job } from '@/data/jobs';
 import { Resume as BaseResume } from '@/types/resume';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 export interface User {
   id: string;

@@ -28,6 +28,7 @@ import Contact from './pages/Contact';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Support from './pages/Support';
+import Callback from './pages/auth/Callback';
 import './index.css';
 import './styles/mobile.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -40,11 +41,9 @@ function App() {
   const { login, logout } = useAuthStore();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session?.user) {
-          // Get user profile data
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
@@ -52,20 +51,16 @@ function App() {
             .single();
 
           if (profile) {
-            // Set authenticated state
             login(profile.email || session.user.email || '', '');
           }
         } else if (event === 'SIGNED_OUT') {
-          // Handle sign out event
           logout();
         }
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        // Get user profile data
         supabase
           .from('profiles')
           .select('*')
@@ -79,7 +74,6 @@ function App() {
       }
     });
 
-    // Clean up subscription
     return () => {
       subscription.unsubscribe();
     };
@@ -120,7 +114,6 @@ function App() {
           <Route path="/preferences" element={<UserPreferences />} />
           <Route path="/career-assistant" element={<CareerAssistant />} />
 
-          {/* Add the new callback route */}
           <Route path="/auth/callback" element={<Callback />} />
 
           <Route path="*" element={<NotFound />} />
