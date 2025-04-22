@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -53,9 +52,6 @@ const Login = () => {
     console.log('Login attempt started for email:', email);
 
     try {
-      // First check if this user exists and email is confirmed
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
       // Try to sign in
       await login(email, password);
       

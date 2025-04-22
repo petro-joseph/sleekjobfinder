@@ -82,18 +82,6 @@ const Signup = () => {
 
       // If we have a user, proceed with profile creation
       if (data.user) {
-        // const { error: profileError } = await supabase.from('profiles').upsert({
-        //   id: data.user.id,
-        //   email: formData.email,
-        //   first_name: firstName,
-        //   last_name: lastName,
-        //   is_email_verified: false,
-        // });
-
-        // if (profileError) {
-        //   throw profileError;
-        // }
-
         // Success - account created and verification email sent
         toast.success('Account created successfully! Please check your email for verification.', {
           position: 'top-center',

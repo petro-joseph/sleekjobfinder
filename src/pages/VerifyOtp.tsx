@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -106,15 +105,7 @@ const VerifyOtp = () => {
       if (data.session) {
         console.log('OTP Verification Success:', data.session);
         
-        // Important: Update user metadata and manually set the authentication state
-        await supabase.auth.updateUser({
-          data: {
-            email_confirmed_at: new Date().toISOString(),
-          },
-        });
-        
         // Manually update the auth store to ensure the user is logged in
-        // This solves the redirection issue
         if (data.user) {
           // Use the login function from the auth store with empty password
           // as we're already authenticated via OTP
