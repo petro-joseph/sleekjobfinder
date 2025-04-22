@@ -1,7 +1,11 @@
+
 import { Resume, JobPosting } from '@/types/resume';
 
 export const defaultResume: Resume = {
+  id: "default-resume-1",
   name: "Alex Johnson",
+  file_path: "", // Empty string for default resume
+  isPrimary: true,
   contactInfo: {
     phone: "555-123-4567",
     email: "alex.johnson@example.com",

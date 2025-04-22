@@ -85,7 +85,15 @@ export interface Alert {
   createdAt: string;
 }
 
-export interface Resume extends Pick<BaseResume, "id" | "name" | "created_at" | "updated_at" | "file_path" | "isPrimary" | "uploadDate"> {}
+export interface Resume extends Pick<BaseResume, 
+  "id" | 
+  "name" | 
+  "file_path" | 
+  "isPrimary" | 
+  "created_at" | 
+  "updated_at" | 
+  "uploadDate"
+> {}
 
 export interface UserRegistration {
   firstName: string;

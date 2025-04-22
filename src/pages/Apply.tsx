@@ -89,7 +89,6 @@ const Apply = () => {
     }
   }, [user?.resumes]); // Depend only on resumes array
 
-
   // --- Mutations ---
 
   // 1. Upload Resume Mutation
@@ -108,7 +107,7 @@ const Apply = () => {
           user_id: user.id,
           name: file.name,
           file_path: filePath,
-          isPrimary: !(user.resumes && user.resumes.length > 0), // Make first upload primary
+          is_primary: !(user.resumes && user.resumes.length > 0), // Make first upload primary
         })
         .select()
         .single(); // Expecting a single new record
@@ -116,8 +115,20 @@ const Apply = () => {
       if (error) throw error;
       if (!data) throw new Error("Failed to save resume record");
 
-      // Return the newly created resume record (adjust type as needed)
-      return data as Resume;
+      // Convert database fields to our Resume type
+      const newResume: Resume = {
+        id: data.id,
+        user_id: data.user_id,
+        name: data.name,
+        file_path: data.file_path,
+        isPrimary: data.is_primary,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        uploadDate: data.upload_date ? new Date(data.upload_date) : undefined
+      };
+
+      // Return the newly created resume record
+      return newResume;
     },
 
     onSuccess: (newResumeData: Resume) => {
@@ -249,7 +260,6 @@ const Apply = () => {
     },
   });
 
-
   // --- Event Handlers ---
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -283,7 +293,6 @@ const Apply = () => {
       toast.success("Cover letter generated!");
     }, 1500);
   }, [job, user]);
-
 
   const handleApplyClick = useCallback(() => {
     // Basic validation before proceeding
@@ -325,7 +334,6 @@ const Apply = () => {
   const handleSaveJobForLater = useCallback(() => {
     saveJobMutation.mutate();
   }, [saveJobMutation]);
-
 
   // --- Computed Values ---
   const selectedResume = useMemo(() => {
@@ -551,8 +559,6 @@ const Apply = () => {
                           {/* <Button variant="outline" size="sm" onClick={() => window.open(selectedResume.file_path, '_blank')}>Preview</Button> */}
                         </div>
                       )}
-
-                  
 
                       {/* AI Tailoring Section */}
                       <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-4 border border-primary/20 mt-4">

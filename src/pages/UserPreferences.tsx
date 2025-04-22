@@ -181,10 +181,10 @@ const UserPreferences = () => {
       const newResume: Resume = {
         id: Date.now().toString(),
         name: file.name,
-        filePath: URL.createObjectURL(file),
+        file_path: URL.createObjectURL(file),
         isPrimary: resumeFiles.length === 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         uploadDate: new Date()
       };
       
@@ -538,7 +538,7 @@ const UserPreferences = () => {
                                 <div>
                                   <div className="font-medium">{resume.name}</div>
                                   <div className="text-xs text-muted-foreground">
-                                    Uploaded {resume.uploadDate ? new Date(resume.uploadDate).toLocaleDateString() : new Date(resume.createdAt).toLocaleDateString()}
+                                    Uploaded {resume.uploadDate ? new Date(resume.uploadDate).toLocaleDateString() : new Date(resume.created_at || "").toLocaleDateString()}
                                   </div>
                                 </div>
                               </div>
