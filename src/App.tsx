@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { useAuthStore } from './lib/store';
@@ -42,17 +43,26 @@ function App() {
   const { login, logout } = useAuthStore();
 
   useEffect(() => {
+    // Set up auth state listener first - this ensures we capture all events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        
         if (event === 'SIGNED_IN' && session?.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .maybeSingle();
 
-          if (profile) {
-            login(profile.email || session.user.email || '', '');
+            if (profile) {
+              login(profile.email || session.user.email || '', '');
+            } else if (session.user.email) {
+              login(session.user.email, '');
+            }
+          } catch (error) {
+            console.error('Error fetching user profile:', error);
           }
         } else if (event === 'SIGNED_OUT') {
           logout();
@@ -60,20 +70,30 @@ function App() {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Then check for existing session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       if (session?.user) {
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data: profile }) => {
-            if (profile) {
-              login(profile.email || session.user.email || '', '');
-            }
-          });
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (profile) {
+            login(profile.email || session.user.email || '', '');
+          } else if (session.user.email) {
+            login(session.user.email, '');
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        }
       }
-    });
+    };
+    
+    checkSession();
 
     return () => {
       subscription.unsubscribe();

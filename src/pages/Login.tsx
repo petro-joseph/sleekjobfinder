@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Mail, Lock, AlertCircle, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from "sonner";
@@ -21,13 +22,18 @@ const Login = () => {
   const [verificationEmail, setVerificationEmail] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { login, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     // Clear any existing errors when component mounts
     setError('');
     setNeedsVerification(false);
-  }, []);
+    
+    // Check if user is already authenticated and redirect
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -44,53 +50,41 @@ const Login = () => {
     setIsLoading(true);
     setError('');
 
-    console.log('Login attempt started for email:', email); // Log start of login attempt
+    console.log('Login attempt started for email:', email);
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password
+      // First check if this user exists and email is confirmed
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      // Try to sign in
+      await login(email, password);
+      
+      // If login was successful
+      toast.success("Login successful! Welcome back.", {
+        position: "top-center",
+        duration: 3000,
       });
-
-      console.log('signInWithPassword response:', { data, signInError }); // Log Supabase response
-
-      if (signInError) {
-        console.error('signInWithPassword Error:', signInError); // Log signInError in case of error
-        // Check if the error is due to unconfirmed email
-        if (signInError.message.includes('Email not confirmed')) {
-          setNeedsVerification(true);
-          setVerificationEmail(email);
-          toast.error('Please verify your email address to continue', {
-            position: "top-center",
-            duration: 5000,
-          });
-          setIsLoading(false);
-          return;
-        }
-        throw signInError;
-      }
-
-      if (data.user) {
-        console.log('Login Success Data:', data); // Log success data
-        // Show success toast
-        toast.success("Login successful! Welcome back.", {
-          position: "top-center",
-          duration: 3000,
-        });
-
-        // Update auth store
-        login(data.user.email || '', password);
-
-        // Redirect to dashboard
-        navigate('/dashboard');
-      }
+      
+      // Redirect to dashboard
+      navigate('/dashboard');
     } catch (error: any) {
-      console.error('Login error:', error); // Log error details
-      setError(error.message);
-      toast.error(error.message);
+      console.error('Login error:', error);
+      
+      // Check if the error is due to unconfirmed email
+      if (error.message && error.message.includes('Email not confirmed')) {
+        setNeedsVerification(true);
+        setVerificationEmail(email);
+        toast.error('Please verify your email address to continue', {
+          position: "top-center",
+          duration: 5000,
+        });
+      } else {
+        setError(error.message || 'Failed to login. Please check your credentials.');
+        toast.error(error.message || 'Login failed');
+      }
     } finally {
       setIsLoading(false);
-      console.log('Login attempt finished'); // Log end of login attempt
+      console.log('Login attempt finished');
     }
   };
 
@@ -119,7 +113,7 @@ const Login = () => {
         navigate(`/verify-otp?email=${encodeURIComponent(verificationEmail)}`);
       }
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message || 'Failed to send verification email');
     } finally {
       setIsLoading(false);
     }
@@ -131,8 +125,8 @@ const Login = () => {
       await signInWithGoogle();
       // Auth state will be handled by Supabase's session listener
     } catch (error: any) {
-      setError(error.message);
-      toast.error(error.message);
+      setError(error.message || 'Failed to sign in with Google');
+      toast.error(error.message || 'Failed to sign in with Google');
     }
   };
 
@@ -142,8 +136,8 @@ const Login = () => {
       await signInWithLinkedIn();
       // Auth state will be handled by Supabase's session listener
     } catch (error: any) {
-      setError(error.message);
-      toast.error(error.message);
+      setError(error.message || 'Failed to sign in with LinkedIn');
+      toast.error(error.message || 'Failed to sign in with LinkedIn');
     }
   };
 
@@ -186,7 +180,7 @@ const Login = () => {
                       >
                         {isLoading ? (
                           <>
-                            <div className="loader mr-2" />
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Sending verification...
                           </>
                         ) : (
@@ -271,7 +265,7 @@ const Login = () => {
                     <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
                       {isLoading ? (
                         <>
-                          <div className="loader mr-2" />
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Logging in...
                         </>
                       ) : (
@@ -352,13 +346,6 @@ const Login = () => {
                 </div>
               </CardContent>
             </Card>
-
-            <div className="mt-6 text-center">
-              <div className="text-muted-foreground text-xs">
-                <p>Demo credentials:</p>
-                <p>Email: johndoe@example.com | Password: qwerty@2025</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>

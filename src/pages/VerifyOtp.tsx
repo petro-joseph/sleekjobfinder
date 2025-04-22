@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import Layout from '@/components/Layout';
 import { toast } from 'sonner';
 import { supabase } from '../integrations/supabase/client';
 import { ArrowRight, AlertCircle, Mail, Loader2 } from 'lucide-react';
+import { useAuthStore } from '@/lib/store';
 
 const VerifyOtp = () => {
   const [otp, setOtp] = useState('');
@@ -15,6 +17,7 @@ const VerifyOtp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { login } = useAuthStore();
 
   // Extract email from query params
   const query = new URLSearchParams(location.search);
@@ -25,7 +28,6 @@ const VerifyOtp = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
         if (session?.user?.email_confirmed_at) {
-
           toast.success('Email verified successfully!');
           navigate('/dashboard');
         }
@@ -103,15 +105,25 @@ const VerifyOtp = () => {
 
       if (data.session) {
         console.log('OTP Verification Success:', data.session);
-        toast.success('Email verified successfully!');
-        // Redirect to dashboard only if session is present
-        navigate('/dashboard');
-
+        
+        // Important: Update user metadata and manually set the authentication state
         await supabase.auth.updateUser({
           data: {
             email_confirmed_at: new Date().toISOString(),
           },
         });
+        
+        // Manually update the auth store to ensure the user is logged in
+        // This solves the redirection issue
+        if (data.user) {
+          // Use the login function from the auth store with empty password
+          // as we're already authenticated via OTP
+          await login(data.user.email || '', '');
+        }
+        
+        toast.success('Email verified successfully!');
+        // Redirect to dashboard
+        navigate('/dashboard');
       } else {
         console.log('OTP Verification Failed: No session returned');
         setError('Invalid verification code. Please try again.');
@@ -120,7 +132,7 @@ const VerifyOtp = () => {
       console.error('Verification error:', err);
       setError(err.message || 'Failed to verify code. Please try again.');
     } finally {
-      setIsLoading(false); // Ensure isLoading is set to false in finally block
+      setIsLoading(false);
     }
   };
 

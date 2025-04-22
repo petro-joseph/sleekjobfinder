@@ -148,45 +148,87 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       user: null,
       login: async (email, password) => {
-        const { data: { user }, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        try {
+          if (!password) {
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session?.user) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .maybeSingle();
 
-        if (error) throw error;
-
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-
-          set({ 
-            isAuthenticated: true, 
-            user: {
-              id: user.id,
-              email: user.email!,
-              firstName: profile?.first_name || '',
-              lastName: profile?.last_name || '',
-              avatarUrl: profile?.avatar_url,
-              applications: [],
-              savedJobs: [],
-              alerts: [],
-              resumes: [],
-              settings: {
-                notifications: true,
-                emailUpdates: false,
-                darkMode: false,
-              }
+              set({ 
+                isAuthenticated: true, 
+                user: {
+                  id: session.user.id,
+                  email: session.user.email!,
+                  firstName: profile?.first_name || '',
+                  lastName: profile?.last_name || '',
+                  avatarUrl: profile?.avatar_url,
+                  applications: [],
+                  savedJobs: [],
+                  alerts: [],
+                  resumes: [],
+                  settings: {
+                    notifications: true,
+                    emailUpdates: false,
+                    darkMode: false,
+                  }
+                }
+              });
+              return;
             }
-          });
+          }
+
+          if (email && password) {
+            const { data, error } = await supabase.auth.signInWithPassword({
+              email,
+              password,
+            });
+
+            if (error) throw error;
+
+            if (data.user) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', data.user.id)
+                .maybeSingle();
+
+              set({ 
+                isAuthenticated: true, 
+                user: {
+                  id: data.user.id,
+                  email: data.user.email!,
+                  firstName: profile?.first_name || '',
+                  lastName: profile?.last_name || '',
+                  avatarUrl: profile?.avatar_url,
+                  applications: [],
+                  savedJobs: [],
+                  alerts: [],
+                  resumes: [],
+                  settings: {
+                    notifications: true,
+                    emailUpdates: false,
+                    darkMode: false,
+                  }
+                }
+              });
+            }
+          }
+        } catch (error: any) {
+          console.error("Login error:", error);
+          throw error;
         }
       },
       logout: async () => {
         try {
           set({ isAuthenticated: false, user: null });
-          await supabase.auth.signOut();
+          setTimeout(async () => {
+            await supabase.auth.signOut();
+          }, 0);
         } catch (error) {
           console.error("Error during logout:", error);
         }
@@ -200,7 +242,7 @@ export const useAuthStore = create<AuthState>()(
               first_name: userData.firstName,
               last_name: userData.lastName,
             },
-            emailRedirectTo: `${window.location.origin}/auth/callback`
+            emailRedirectTo: `${window.location.origin}/verify-otp?email=${encodeURIComponent(userData.email)}`
           }
         });
 
