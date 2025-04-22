@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Job } from '@/data/jobs';
@@ -107,7 +108,7 @@ export interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   register: (userData: UserRegistration) => Promise<void>;
   saveJob: (job: Job) => void;
   removeJob: (jobId: string) => void;
@@ -183,8 +184,20 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       logout: async () => {
-        await supabase.auth.signOut();
-        set({ isAuthenticated: false, user: null });
+        try {
+          // Call signOut but don't wait for it to complete before updating the UI state
+          const promise = supabase.auth.signOut();
+          
+          // Immediately update the UI state
+          set({ isAuthenticated: false, user: null });
+          
+          // Still wait for the promise to complete in the background
+          await promise;
+        } catch (error) {
+          console.error("Error during logout:", error);
+          // Still set auth state to logged out even if there was an error
+          set({ isAuthenticated: false, user: null });
+        }
       },
       register: async (userData) => {
         const { data: { user }, error } = await supabase.auth.signUp({

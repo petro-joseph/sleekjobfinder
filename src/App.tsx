@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { useAuthStore } from './lib/store';
@@ -40,9 +41,11 @@ function App() {
   const { login, logout } = useAuthStore();
 
   useEffect(() => {
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session?.user) {
+          // Get user profile data
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
@@ -50,20 +53,34 @@ function App() {
             .single();
 
           if (profile) {
-            login(profile.email, '');
+            // Set authenticated state
+            login(profile.email || session.user.email || '', '');
           }
         } else if (event === 'SIGNED_OUT') {
+          // Handle sign out event
           logout();
         }
       }
     );
 
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        login(session.user.email!, '');
+        // Get user profile data
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data: profile }) => {
+            if (profile) {
+              login(profile.email || session.user.email || '', '');
+            }
+          });
       }
     });
 
+    // Clean up subscription
     return () => {
       subscription.unsubscribe();
     };
