@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,22 +6,21 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import Layout from '@/components/Layout';
 import { Card, CardContent } from '@/components/ui/card';
-import { toast } from "sonner";
+import { toast } from 'sonner';
 import { User, Mail, Lock, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
-import { useAuthStore, signInWithGoogle, signInWithLinkedIn } from '@/lib/store';
+import { supabase } from '../integrations/supabase/client';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    agreeToTerms: false
+    agreeToTerms: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { register } = useAuthStore();
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -30,53 +28,104 @@ const Signup = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCheckboxChange = (checked: boolean) => {
-    setFormData(prev => ({ ...prev, agreeToTerms: checked }));
+    setFormData((prev) => ({ ...prev, agreeToTerms: checked }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setError('');
+
+    // Validate form inputs
     if (!formData.name || !formData.email || !formData.password) {
       setError('Please fill in all fields');
       return;
     }
-    
+
     if (!formData.agreeToTerms) {
       setError('Please agree to the terms and conditions');
       return;
     }
-    
+
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
     setIsLoading(true);
-    setError('');
-    
+
     try {
       // Parse name into first and last name
       const nameParts = formData.name.trim().split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
-      
-      // Register the user with Supabase
-      await register({
-        firstName,
-        lastName,
+
+      // Register user with Supabase
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          },
+        },
       });
-      
+
+      if (signUpError) {
+        console.error('Error during registration:', signUpError);
+        setError(signUpError.message || 'Failed to create account. Please try again.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Insert user data into profiles table
+      // if (data.user) {
+      //   const { error: profileError } = await supabase.from('profiles').upsert({
+      //     id: data.user.id,
+      //     email: formData.email,
+      //     first_name: firstName,
+      //     last_name: lastName,
+      //     is_email_verified: false,
+      //   });
+
+      //   if (profileError) {
+      //     console.error('Error creating profile:', profileError);
+      //     setError('Failed to create user profile. Please try again.');
+      //     setIsLoading(false);
+      //     return;
+      //   }
+      // }
+
+      // Send OTP for email verification
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: formData.email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/verify-otp?email=${encodeURIComponent(formData.email)}`,
+        },
+      });
+
+      if (otpError) {
+        console.error('Error sending OTP:', otpError);
+        setError(otpError.message || 'Failed to send OTP. Please try again.');
+        setIsLoading(false);
+        return;
+      }
+
       // Show success toast and redirect
-      toast.success("Account created successfully! Welcome to SleekJobs.", {
-        position: "top-center",
+      toast.success('Account created successfully! Please check your email for the OTP.', {
+        position: 'top-center',
         duration: 3000,
       });
-      
-      // Redirect to dashboard
-      navigate('/dashboard');
-    } catch (error: any) {
-      setError(error.message || 'Something went wrong during registration');
+
+      // Redirect to OTP verification page
+      navigate(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
+    } catch (err: any) {
+      console.error('Unexpected error:', err);
+      setError(err.message || 'An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }
   };
@@ -84,8 +133,11 @@ const Signup = () => {
   const handleGoogleSignIn = async () => {
     try {
       setError('');
-      await signInWithGoogle();
-      // Auth state will be handled by Supabase's session listener
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/dashboard` },
+      });
+      if (error) throw error;
     } catch (error: any) {
       setError(error.message || 'Failed to sign in with Google');
     }
@@ -94,8 +146,11 @@ const Signup = () => {
   const handleLinkedInSignIn = async () => {
     try {
       setError('');
-      await signInWithLinkedIn();
-      // Auth state will be handled by Supabase's session listener
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin',
+        options: { redirectTo: `${window.location.origin}/dashboard` },
+      });
+      if (error) throw error;
     } catch (error: any) {
       setError(error.message || 'Failed to sign in with LinkedIn');
     }
@@ -107,12 +162,12 @@ const Signup = () => {
         <div className="container mx-auto px-6">
           <div className="max-w-md mx-auto">
             <div className="text-center mb-8">
-              <h1 className="heading-lg mb-2 text-gradient bg-gradient-to-r from-primary to-primary/70">Create your account</h1>
-              <p className="paragraph">
-                Start your journey to finding your dream job
-              </p>
+              <h1 className="heading-lg mb-2 text-gradient bg-gradient-to-r from-primary to-primary/70">
+                Create your account
+              </h1>
+              <p className="paragraph">Start your journey to finding your dream job</p>
             </div>
-            
+
             <Card className="overflow-hidden glass hover backdrop-blur-xl">
               <CardContent className="p-8">
                 {error && (
@@ -121,10 +176,12 @@ const Signup = () => {
                     {error}
                   </div>
                 )}
-                
+
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-base">Full Name</Label>
+                    <Label htmlFor="name" className="text-base">
+                      Full Name
+                    </Label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
                       <Input
@@ -138,9 +195,11 @@ const Signup = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-base">Email</Label>
+                    <Label htmlFor="email" className="text-base">
+                      Email
+                    </Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
                       <Input
@@ -155,15 +214,17 @@ const Signup = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-base">Password</Label>
+                    <Label htmlFor="password" className="text-base">
+                      Password
+                    </Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
                       <Input
                         id="password"
                         name="password"
-                        type={showPassword ? "text" : "password"}
+                        type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         value={formData.password}
                         onChange={handleChange}
@@ -176,20 +237,15 @@ const Signup = () => {
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                         tabIndex={-1}
                       >
-                        {showPassword ? 
-                          <EyeOff className="h-5 w-5" /> : 
-                          <Eye className="h-5 w-5" />
-                        }
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>
                     </div>
-                    <p className="text-xs text-muted-foreground ml-1">
-                      Must be at least 8 characters
-                    </p>
+                    <p className="text-xs text-muted-foreground ml-1">Must be at least 8 characters</p>
                   </div>
-                  
+
                   <div className="flex items-start space-x-2">
-                    <Checkbox 
-                      id="terms" 
+                    <Checkbox
+                      id="terms"
                       checked={formData.agreeToTerms}
                       onCheckedChange={handleCheckboxChange}
                     />
@@ -204,7 +260,7 @@ const Signup = () => {
                       </Link>
                     </Label>
                   </div>
-                  
+
                   <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
                     {isLoading ? (
                       <>
@@ -219,7 +275,7 @@ const Signup = () => {
                     )}
                   </Button>
                 </form>
-                
+
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-border/50"></div>
@@ -228,14 +284,9 @@ const Signup = () => {
                     <span className="px-2 bg-card text-muted-foreground">Or continue with</span>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4 mt-6">
-                  <Button 
-                    variant="outline" 
-                    type="button"
-                    className="w-full"
-                    onClick={handleGoogleSignIn}
-                  >
+                  <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignIn}>
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                       <path
                         fill="currentColor"
@@ -257,8 +308,8 @@ const Signup = () => {
                     Continue with Google
                   </Button>
 
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     type="button"
                     className="w-full"
                     onClick={handleLinkedInSignIn}
@@ -272,7 +323,7 @@ const Signup = () => {
                     Continue with LinkedIn
                   </Button>
                 </div>
-                
+
                 <div className="mt-6 text-center">
                   <p className="text-sm text-muted-foreground">
                     Already have an account?{' '}

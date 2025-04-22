@@ -29,6 +29,7 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Support from './pages/Support';
 import Callback from './pages/auth/Callback';
+import VerifyOtp from './pages/VerifyOtp';
 import './index.css';
 import './styles/mobile.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -86,6 +87,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:id" element={<BlogDetail />} />
