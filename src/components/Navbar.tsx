@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Sparkles, User, LogOut } from 'lucide-react';
+import { Menu, X, Sparkles, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
+import UserAvatar from './UserAvatar';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -26,7 +26,6 @@ const Navbar = () => {
     navigate('/');
   };
 
-  // Hide navbar on certain routes for mobile
   const hideNavbarOnMobile = isAuthenticated;
 
   return (
@@ -39,14 +38,12 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between">
-          {/* Logo */}
           <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center space-x-2 group">
             <span className="text-xl font-bold text-gradient font-display">
               SleekJobs
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <NavLink href="/jobs">Find Jobs</NavLink>
             <NavLink href="/resume-builder">Resume Builder</NavLink>
@@ -57,18 +54,16 @@ const Navbar = () => {
             {isAuthenticated && <NavLink href="/progress">Applications</NavLink>}
           </nav>
 
-          {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <Button 
                   asChild 
                   variant="ghost" 
-                  className="font-medium flex items-center gap-2"
+                  className="font-medium flex items-center gap-2 p-0"
                 >
                   <Link to="/profile">
-                    <User className="w-4 h-4" />
-                    Profile
+                    <UserAvatar className="h-8 w-8" />
                   </Link>
                 </Button>
                 <Button 
@@ -95,7 +90,6 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button - Hide on certain routes when logged in */}
           {!hideNavbarOnMobile && (
             <button
               className="p-2 md:hidden rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300"
@@ -112,7 +106,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden glassmorphism animate-in slide-in">
           <div className="container mx-auto px-6 py-4 space-y-4">
@@ -204,7 +197,6 @@ const Navbar = () => {
   );
 };
 
-// Desktop Nav Link
 const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
   return (
     <Link 
@@ -216,7 +208,6 @@ const NavLink = ({ href, children }: { href: string; children: React.ReactNode }
   );
 };
 
-// Mobile Nav Link
 const MobileNavLink = ({ 
   href, 
   onClick, 

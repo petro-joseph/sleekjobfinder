@@ -1,6 +1,7 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { useAuthStore } from './lib/store';
+import { supabase } from './integrations/supabase/client';
 import Home from './pages/Index';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -29,7 +30,6 @@ import Terms from './pages/Terms';
 import Support from './pages/Support';
 import './index.css';
 import './styles/mobile.css';
-import { useAuthStore } from './lib/store';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import UserPreferences from './pages/UserPreferences';
@@ -37,11 +37,42 @@ import CareerAssistant from './pages/CareerAssistant';
 import { ThemeProvider } from 'next-themes';
 
 function App() {
+  const { login, logout } = useAuthStore();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profile) {
+            login(profile.email, '');
+          }
+        } else if (event === 'SIGNED_OUT') {
+          logout();
+        }
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        login(session.user.email!, '');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [login, logout]);
+
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <Router>
         <Routes>
-          {/* Public routes */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
@@ -55,20 +86,17 @@ function App() {
           <Route path="/faq" element={<FAQ />} />
           <Route path="/support" element={<Support />} />
           
-          {/* Company pages */}
           <Route path="/about" element={<About />} />
           <Route path="/careers" element={<Careers />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
 
-          {/* Job-related routes */}
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
           <Route path="/apply/:id" element={<Apply />} />
           <Route path="/saved-jobs" element={<SavedJobs />} />
 
-          {/* User-specific routes */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/progress" element={<Progress />} />
@@ -76,7 +104,6 @@ function App() {
           <Route path="/preferences" element={<UserPreferences />} />
           <Route path="/career-assistant" element={<CareerAssistant />} />
 
-          {/* 404 Route - must be last */}
           <Route path="*" element={<NotFound />} />
         </Routes>
         <SonnerToaster position="bottom-right" />

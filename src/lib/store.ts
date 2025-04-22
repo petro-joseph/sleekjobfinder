@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Job } from '@/data/jobs';
 import { Resume as BaseResume } from '@/types/resume';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface User {
   id: string;
@@ -146,30 +147,79 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       user: null,
       login: async (email, password) => {
-        set({ isAuthenticated: true, user: defaultUser });
+        const { data: { user }, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          set({ 
+            isAuthenticated: true, 
+            user: {
+              id: user.id,
+              email: user.email!,
+              firstName: profile?.first_name || '',
+              lastName: profile?.last_name || '',
+              avatarUrl: profile?.avatar_url,
+              applications: [],
+              savedJobs: [],
+              alerts: [],
+              resumes: [],
+              settings: {
+                notifications: true,
+                emailUpdates: false,
+                darkMode: false,
+              }
+            }
+          });
+        }
       },
-      logout: () => {
+      logout: async () => {
+        await supabase.auth.signOut();
         set({ isAuthenticated: false, user: null });
       },
       register: async (userData) => {
-        const newUser: User = {
-          id: Math.random().toString(),
-          firstName: userData.firstName,
-          lastName: userData.lastName,
+        const { data: { user }, error } = await supabase.auth.signUp({
           email: userData.email,
-          applications: [],
-          savedJobs: [],
-          alerts: [],
-          resumes: [],
-          onboardingStep: 1,
-          isOnboardingComplete: false,
-          settings: {
-            notifications: true,
-            emailUpdates: false,
-            darkMode: false,
+          password: userData.password,
+          options: {
+            data: {
+              first_name: userData.firstName,
+              last_name: userData.lastName,
+            }
           }
-        };
-        set({ isAuthenticated: true, user: newUser });
+        });
+
+        if (error) throw error;
+
+        if (user) {
+          set({ 
+            isAuthenticated: true, 
+            user: {
+              id: user.id,
+              email: user.email!,
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              applications: [],
+              savedJobs: [],
+              alerts: [],
+              resumes: [],
+              settings: {
+                notifications: true,
+                emailUpdates: false,
+                darkMode: false,
+              }
+            }
+          });
+        }
       },
       saveJob: (job) => {
         set((state) => {
@@ -227,3 +277,23 @@ function randomUUID(): string {
     return v.toString(16);
   });
 }
+
+export const signInWithGoogle = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
+    },
+  });
+  if (error) throw error;
+};
+
+export const signInWithLinkedIn = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'linkedin_oidc',
+  });
+  if (error) throw error;
+};
