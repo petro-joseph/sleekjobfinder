@@ -107,7 +107,6 @@ export interface AuthState {
 
 const defaultUser: User = {
   id: randomUUID(),
-  // id: '12345',
   firstName: 'John',
   lastName: 'Doe',
   email: 'john.doe@example.com',
@@ -139,18 +138,14 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       user: null,
       login: async (email, password) => {
-        // Here you would typically make an API call to authenticate the user
-        // For this example, we'll just simulate a successful login
         set({ isAuthenticated: true, user: defaultUser });
       },
       logout: () => {
         set({ isAuthenticated: false, user: null });
       },
       register: async (userData) => {
-        // Here you would typically make an API call to register the user
-        // For this example, we'll just simulate a successful registration
         const newUser: User = {
-          id: Math.random().toString(), // Generate a random ID
+          id: Math.random().toString(),
           firstName: userData.firstName,
           lastName: userData.lastName,
           email: userData.email,
@@ -172,7 +167,6 @@ export const useAuthStore = create<AuthState>()(
         set((state) => {
           if (!state.user) return state;
           
-          // Check if job is already saved
           const isJobSaved = state.user.savedJobs.some(j => j.id === job.id);
           if (isJobSaved) return state;
           
@@ -217,6 +211,7 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
 function randomUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0;
@@ -224,4 +219,3 @@ function randomUUID(): string {
     return v.toString(16);
   });
 }
-

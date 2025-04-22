@@ -1,3 +1,4 @@
+
 export interface Resume {
   id: string;
   user_id?: string; // Make user_id optional if not always present in Zustand model
@@ -19,7 +20,6 @@ export interface Resume {
   workExperiences?: WorkExperience[];
   education?: Education[];
   projects?: Project[];
-  filePath?: string; // from store.ts
   uploadDate?: Date; // from store.ts
 }
 

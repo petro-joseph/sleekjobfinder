@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './pages/Index';
@@ -33,52 +34,55 @@ import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import UserPreferences from './pages/UserPreferences';
 import CareerAssistant from './pages/CareerAssistant';
+import { ThemeProvider } from 'next-themes';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:id" element={<BlogDetail />} />
-        <Route path="/career-guides" element={<CareerGuides />} />
-        <Route path="/guides/resume" element={<ResumeGuide />} />
-        <Route path="/guides/interview" element={<InterviewGuide />} />
-        <Route path="/guides/salary" element={<SalaryGuide />} />
-        <Route path="/faq" element={<FAQ />} />
-        <Route path="/support" element={<Support />} />
-        
-        {/* Company pages */}
-        <Route path="/about" element={<About />} />
-        <Route path="/careers" element={<Careers />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <Router>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:id" element={<BlogDetail />} />
+          <Route path="/career-guides" element={<CareerGuides />} />
+          <Route path="/guides/resume" element={<ResumeGuide />} />
+          <Route path="/guides/interview" element={<InterviewGuide />} />
+          <Route path="/guides/salary" element={<SalaryGuide />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/support" element={<Support />} />
+          
+          {/* Company pages */}
+          <Route path="/about" element={<About />} />
+          <Route path="/careers" element={<Careers />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
 
-        {/* Job-related routes */}
-        <Route path="/jobs" element={<Jobs />} />
-        <Route path="/jobs/:id" element={<JobDetail />} />
-        <Route path="/apply/:id" element={<Apply />} />
-        <Route path="/saved-jobs" element={<SavedJobs />} />
+          {/* Job-related routes */}
+          <Route path="/jobs" element={<Jobs />} />
+          <Route path="/jobs/:id" element={<JobDetail />} />
+          <Route path="/apply/:id" element={<Apply />} />
+          <Route path="/saved-jobs" element={<SavedJobs />} />
 
-        {/* User-specific routes */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/progress" element={<Progress />} />
-        <Route path="/resume-builder" element={<ResumeBuilder />} />
-        <Route path="/preferences" element={<UserPreferences />} />
-        <Route path="/career-assistant" element={<CareerAssistant />} />
+          {/* User-specific routes */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/progress" element={<Progress />} />
+          <Route path="/resume-builder" element={<ResumeBuilder />} />
+          <Route path="/preferences" element={<UserPreferences />} />
+          <Route path="/career-assistant" element={<CareerAssistant />} />
 
-        {/* 404 Route - must be last */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <SonnerToaster position="bottom-right" />
-      <Toaster />
-    </Router>
+          {/* 404 Route - must be last */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <SonnerToaster position="bottom-right" />
+        <Toaster />
+      </Router>
+    </ThemeProvider>
   );
 }
 
