@@ -15,6 +15,7 @@ interface ApplyConfirmationModalProps {
   onConfirm: () => void;
   jobTitle: string;
   company: string;
+  isConfirming?: boolean;
 }
 
 const ApplyConfirmationModal = ({

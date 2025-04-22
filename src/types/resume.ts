@@ -1,18 +1,26 @@
 export interface Resume {
+  id: string;
+  user_id?: string; // Make user_id optional if not always present in Zustand model
   name: string;
-  contactInfo: {
+  file_path: string; // Path in Supabase storage
+  isPrimary: boolean;
+  created_at?: string; // Optional from DB
+  updated_at?: string; // Optional from DB
+  contactInfo?: {
     phone: string;
     email: string;
     linkedin: string;
   };
-  jobTitle: string;
-  yearsOfExperience: number;
-  industries: string[];
-  skills: string[];
-  summary: string;
-  workExperiences: WorkExperience[];
-  education: Education[];
-  projects: Project[];
+  jobTitle?: string;
+  yearsOfExperience?: number;
+  industries?: string[];
+  skills?: string[];
+  summary?: string;
+  workExperiences?: WorkExperience[];
+  education?: Education[];
+  projects?: Project[];
+  filePath?: string; // from store.ts
+  uploadDate?: Date; // from store.ts
 }
 
 export interface WorkExperience {

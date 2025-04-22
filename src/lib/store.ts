@@ -1,7 +1,7 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Job } from '@/data/jobs';
+import { Resume as BaseResume } from '@/types/resume';
 
 export interface User {
   id: string;
@@ -85,15 +85,7 @@ export interface Alert {
   createdAt: string;
 }
 
-export interface Resume {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  filePath?: string;
-  isPrimary?: boolean;
-  uploadDate?: Date;
-}
+export interface Resume extends Pick<BaseResume, "id" | "name" | "created_at" | "updated_at" | "file_path" | "isPrimary" | "uploadDate"> {}
 
 export interface UserRegistration {
   firstName: string;
@@ -114,7 +106,8 @@ export interface AuthState {
 }
 
 const defaultUser: User = {
-  id: '1',
+  id: randomUUID(),
+  // id: '12345',
   firstName: 'John',
   lastName: 'Doe',
   email: 'john.doe@example.com',
@@ -224,3 +217,11 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+function randomUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
