@@ -8,6 +8,8 @@ import { useAuthStore } from '@/lib/store';
 import MobileProfileBar from './MobileProfileBar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import BottomNav from './BottomNav';
+import { SkeletonTheme } from 'react-loading-skeleton';
+import { useTheme } from 'next-themes';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,6 +20,7 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
   const location = useLocation();
   const { isAuthenticated } = useAuthStore();
   const isMobile = useIsMobile();
+  const { theme } = useTheme();
   const isDashboardOrPreferences = 
     location.pathname === '/dashboard' || 
     location.pathname === '/user-preferences';
@@ -56,23 +59,29 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="fixed bottom-6 right-6 z-50 md:bottom-6 mb-16 md:mb-0">
-        <DarkModeToggle className="w-12 h-12 scale-110" />
+    <SkeletonTheme
+      baseColor={theme === 'dark' ? '#2a2a2a' : '#ebebeb'}
+      highlightColor={theme === 'dark' ? '#333333' : '#f5f5f5'}
+    >
+      <div className="flex flex-col min-h-screen">
+        <div className="fixed bottom-6 right-6 z-50 md:bottom-6 mb-16 md:mb-0">
+          <DarkModeToggle className="w-12 h-12 scale-110" />
+        </div>
+        <Navbar />
+        {isAuthenticated && isMobile && <MobileProfileBar />}
+        <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${
+          !isMobile ? 'pt-12' : 'pt-14 mt-4'
+        } ${
+          isDashboardOrPreferences && !isMobile ? 'pt-20' : ''
+        }`}>
+          {children}
+        </main>
+        {!hideFooter && <Footer />}
+        {isAuthenticated && <BottomNav />}
       </div>
-      <Navbar />
-      {isAuthenticated && isMobile && <MobileProfileBar />}
-      <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${
-        !isMobile ? 'pt-12' : 'pt-14 mt-4'
-      } ${
-        isDashboardOrPreferences && !isMobile ? 'pt-20' : ''
-      }`}>
-        {children}
-      </main>
-      {!hideFooter && <Footer />}
-      {isAuthenticated && <BottomNav />}
-    </div>
+    </SkeletonTheme>
   );
 };
 
 export default Layout;
+
