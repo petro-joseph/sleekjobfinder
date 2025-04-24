@@ -19,6 +19,17 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchJobs, JobFilters } from "@/api/jobs";
 
+// Update FilterValues interface to match JobFilters
+interface FilterValues {
+  jobTypes: Record<string, boolean>;
+  experienceLevels: Record<string, boolean>;
+  salaryRange: [number, number]; 
+  searchTerm: string;
+  industry: string;
+  location: string;
+  sortBy: 'newest' | 'relevant';
+}
+
 const Jobs = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 6;

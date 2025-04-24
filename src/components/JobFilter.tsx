@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -6,25 +5,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Search } from 'lucide-react';
+import { JobFilters } from '@/api/jobs';
 
 interface FilterValues {
-  jobTypes: {
-    fullTime: boolean;
-    partTime: boolean;
-    contract: boolean;
-    remote: boolean;
-  };
-  experienceLevels: {
-    entry: boolean;
-    mid: boolean;
-    senior: boolean;
-  };
+  jobTypes: Record<string, boolean>;
+  experienceLevels: Record<string, boolean>;
   salaryRange: number[];
   searchTerm: string;
 }
 
 interface JobFilterProps {
-  onFilterChange: (filters: FilterValues) => void;
+  onFilterChange: (filters: Partial<JobFilters>) => void;
 }
 
 const JobFilter = ({ onFilterChange }: JobFilterProps) => {

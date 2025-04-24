@@ -64,8 +64,8 @@ const Dashboard = () => {
   const currentJobs = allJobs.slice(indexOfFirstJob, indexOfLastJob);
   const totalPages = Math.ceil(allJobs.length / jobsPerPage);
 
-  // Onboarding status
-  const isOnboardingComplete = user?.is_onboarding_complete || false;
+  // Onboarding status - fixed property name
+  const isOnboardingComplete = user?.isOnboardingComplete || false;
 
   // Handle bookmark toggle
   const handleBookmarkToggle = async (jobId: string) => {
