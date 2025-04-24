@@ -1,6 +1,5 @@
-
-import { Job, JobSearchResponse } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { Job, JobSearchResponse } from '@/types';
 
 export interface JobFilters {
   jobTypes: string[];
@@ -21,7 +20,7 @@ export const fetchJobs = async (filters: Partial<JobFilters> = {}): Promise<JobS
   console.log('Fetching jobs with filters:', filters);
   
   // Start building the query
-  let query = supabase.from('jobs').select('*');
+  let query = supabase.from('jobs').select('*', { count: 'exact' });
   
   // Apply filters if they exist
   if (filters.industry) {
@@ -59,10 +58,8 @@ export const fetchJobs = async (filters: Partial<JobFilters> = {}): Promise<JobS
   const from = (page - 1) * limit;
   const to = from + limit - 1;
   
-  // Fixed: use correct parameter format for count
-  const { data: jobs, error, count } = await query
-    .range(from, to)
-    .select('*', { count: 'exact' });
+  // Execute the query
+  const { data: jobs, error, count } = await query.range(from, to);
   
   if (error) {
     console.error('Error fetching jobs:', error);
