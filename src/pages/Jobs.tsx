@@ -1,3 +1,4 @@
+
 // pages/Jobs.tsx
 import { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
@@ -16,6 +17,7 @@ import { analytics } from '@/lib/analytics';
 import { JOBS_PER_PAGE } from '@/constants';
 import type { Job } from '@/types';
 import { fetchJobs } from '@/api/jobs';
+import { seedJobs } from '@/utils/seed';
 
 const Jobs = () => {
   // Custom hooks for managing state and functionality
@@ -42,6 +44,11 @@ const Jobs = () => {
   const queryClient = useQueryClient();
   const jobListingsRef = useRef<HTMLDivElement>(null);
 
+  // Run seeding once on initial load
+  useEffect(() => {
+    seedJobs().catch(err => console.error('Error seeding jobs:', err));
+  }, []);
+
   // Infinite scroll setup
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0.5,
@@ -52,7 +59,7 @@ const Jobs = () => {
     if (inView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [inView, hasNextPage, isFetchingNextPage]);
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Prefetch next page of results
   useEffect(() => {

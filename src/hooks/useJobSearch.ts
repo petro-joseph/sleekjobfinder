@@ -1,6 +1,7 @@
 
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { fetchJobs, JobFilters, JobSearchResponse } from '@/api/jobs';
+import { fetchJobs, JobFilters } from '@/api/jobs';
+import { JobSearchResponse } from '@/types';
 
 export const useJobSearch = (filters: JobFilters) => {
   const { 
@@ -12,7 +13,11 @@ export const useJobSearch = (filters: JobFilters) => {
     isFetchingNextPage 
   } = useInfiniteQuery({
     queryKey: ['jobs', filters],
-    queryFn: ({ pageParam = 1 }) => fetchJobs({ ...filters, page: pageParam as number }),
+    queryFn: ({ pageParam = 1 }) => fetchJobs({ 
+      ...filters, 
+      page: pageParam as number,
+      limit: 10 // You can adjust this or make it configurable
+    }),
     getNextPageParam: (lastPage: JobSearchResponse) => {
       return lastPage.hasMore ? lastPage.nextPage : undefined;
     },

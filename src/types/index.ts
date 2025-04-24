@@ -14,6 +14,7 @@ export interface Job {
   industry: string;
   url?: string;
   tags: string[];
+  posted_at?: string;
   created_at?: string;
 }
 
@@ -26,6 +27,34 @@ export interface User {
   savedJobs: Job[];
   resumes?: any[];
   applications?: any[];
+  skills?: string[];
+  avatarUrl?: string;
+  bio?: string;
+  location?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  country?: string;
+  title?: string;
+  company?: string;
+  website?: string;
+  onboardingStep?: number;
+  jobPreferences?: {
+    locations: string[];
+    jobTypes: string[];
+    industries: string[];
+    salaryRange?: {
+      min: number;
+      max: number;
+    };
+  };
+  settings?: {
+    notifications: boolean;
+    emailUpdates: boolean;
+    darkMode: boolean;
+  };
 }
 
 export interface JobSearchResponse {
