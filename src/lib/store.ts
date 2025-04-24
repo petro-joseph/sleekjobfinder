@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Job } from '@/data/jobs';
@@ -271,13 +270,13 @@ export const useAuthStore = create<AuthState>()(
       },
       saveJob: async (job) => {
         try {
-          const { user: authUser } = await supabase.auth.getUser();
+          const { data, error: userError } = await supabase.auth.getUser();
           
-          if (!authUser?.id) throw new Error('User not authenticated');
+          if (userError || !data.user) throw new Error('User not authenticated');
           
           const { error } = await supabase
             .from('saved_jobs')
-            .insert([{ user_id: authUser.id, job_id: job.id }]);
+            .insert([{ user_id: data.user.id, job_id: job.id }]);
 
           if (error) throw error;
 
@@ -296,15 +295,15 @@ export const useAuthStore = create<AuthState>()(
       },
       removeJob: async (jobId) => {
         try {
-          const { user: authUser } = await supabase.auth.getUser();
+          const { data, error: userError } = await supabase.auth.getUser();
           
-          if (!authUser?.id) throw new Error('User not authenticated');
+          if (userError || !data.user) throw new Error('User not authenticated');
           
           const { error } = await supabase
             .from('saved_jobs')
             .delete()
             .eq('job_id', jobId)
-            .eq('user_id', authUser.id);
+            .eq('user_id', data.user.id);
 
           if (error) throw error;
 
