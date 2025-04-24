@@ -1,11 +1,12 @@
+
 import { Briefcase, MapPin, Clock, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Job } from '@/data/jobs';
 import { Badge } from '@/components/ui/badge';
-import { useAuthStore } from '@/store/auth';
-import { toast } from 'react-toastify';
+import { useAuthStore } from '@/lib/store';
+import { toast } from 'sonner';
 
 interface JobCardProps {
   job: Job;

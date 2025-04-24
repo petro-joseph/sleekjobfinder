@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Job } from '@/data/jobs';
@@ -241,21 +242,21 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       register: async (userData) => {
-        const { data: { user }, error } = await supabase.auth.signUp({
-          email: userData.email,
-          password: userData.password,
-          options: {
-            data: {
-              first_name: userData.firstName,
-              last_name: userData.lastName,
-            },
-            emailRedirectTo: `${window.location.origin}/verify-otp?email=${encodeURIComponent(userData.email)}`
-          }
-        });
+        try {
+          const { error } = await supabase.auth.signUp({
+            email: userData.email,
+            password: userData.password,
+            options: {
+              data: {
+                first_name: userData.firstName,
+                last_name: userData.lastName,
+              },
+              emailRedirectTo: `${window.location.origin}/verify-otp?email=${encodeURIComponent(userData.email)}`
+            }
+          });
 
-        if (error) throw error;
+          if (error) throw error;
 
-        if (user) {
           toast.success(
             "Please check your email to verify your account.",
             {
@@ -263,13 +264,20 @@ export const useAuthStore = create<AuthState>()(
               duration: 5000,
             }
           );
+        } catch (error: any) {
+          console.error("Registration error:", error);
+          throw error;
         }
       },
       saveJob: async (job) => {
         try {
+          const { user: authUser } = await supabase.auth.getUser();
+          
+          if (!authUser?.id) throw new Error('User not authenticated');
+          
           const { error } = await supabase
             .from('saved_jobs')
-            .insert([{ user_id: supabase.auth.getUser().data.user?.id, job_id: job.id }]);
+            .insert([{ user_id: authUser.id, job_id: job.id }]);
 
           if (error) throw error;
 
@@ -288,11 +296,15 @@ export const useAuthStore = create<AuthState>()(
       },
       removeJob: async (jobId) => {
         try {
+          const { user: authUser } = await supabase.auth.getUser();
+          
+          if (!authUser?.id) throw new Error('User not authenticated');
+          
           const { error } = await supabase
             .from('saved_jobs')
             .delete()
             .eq('job_id', jobId)
-            .eq('user_id', supabase.auth.getUser().data.user?.id);
+            .eq('user_id', authUser.id);
 
           if (error) throw error;
 
