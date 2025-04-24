@@ -1,3 +1,4 @@
+
 import { Job, JobSearchResponse } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -58,7 +59,7 @@ export const fetchJobs = async (filters: Partial<JobFilters> = {}): Promise<JobS
   const from = (page - 1) * limit;
   const to = from + limit - 1;
   
-  // Fixed: use a single object for count configuration
+  // Fixed: use correct parameter format for count
   const { data: jobs, error, count } = await query
     .range(from, to)
     .select('*', { count: 'exact' });

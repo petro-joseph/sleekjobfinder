@@ -5,7 +5,9 @@ import { Check, AlertTriangle, ArrowRight, FileText, Building, CheckCircle, XCir
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Resume, JobPosting, MatchData } from '@/types/resume';
-import { Resume as StoreResume } from '@/lib/store';
+// Fix import from store, using BaseResume instead of Resume
+import { User } from '@/lib/store';
+import { Resume as StoreResume } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import {

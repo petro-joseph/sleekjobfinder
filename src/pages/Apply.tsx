@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Job } from "@/types";
@@ -20,7 +19,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchJobById } from '@/api/jobs';
 import { uploadResumeFile } from '@/integrations/supabase/uploadResume';
 import { supabase } from '@/integrations/supabase/client';
-import { Resume, Application } from "@/types";
+import { Resume as BaseResume, Application } from "@/types";
 
 // Define a type for the application object stored in Supabase
 interface ApplicationRecord {
@@ -257,7 +256,7 @@ const Apply = () => {
   return (
     <Layout>
       <div className="container py-12">
-        <Link to={`/jobs/${job.id}`} className="inline-flex items-center mb-4 text-blue-500 hover:underline">
+        <Link to={`/jobs/${job?.id}`} className="inline-flex items-center mb-4 text-blue-500 hover:underline">
           <ChevronLeft className="mr-2 h-4 w-4" />
           Back to Job Details
         </Link>
@@ -373,6 +372,9 @@ const Apply = () => {
         isOpen={isConfirmationModalOpen}
         onConfirm={handleSubmit}
         onCancel={handleCancelApply}
+        onClose={handleCancelApply}
+        jobTitle={job?.title}
+        company={job?.company}
       />
     </Layout>
   );

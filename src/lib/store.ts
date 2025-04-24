@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Job, Resume, Application } from '@/types';
+import { Job, Resume as BaseResume, Application } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -27,7 +27,7 @@ export interface User {
   applications: Application[];
   savedJobs: Job[];
   alerts: Alert[];
-  resumes: Resume[];
+  resumes: BaseResume[];
   onboardingStep?: number;
   isOnboardingComplete?: boolean;
   jobPreferences?: {
@@ -45,6 +45,8 @@ export interface User {
     darkMode: boolean;
   }
 }
+
+export type Resume = BaseResume;
 
 export interface DbProfile {
   id: string;
@@ -134,7 +136,7 @@ export interface AuthState {
   fetchUserProfile: () => Promise<void>;
 }
 
-export function mapProfileToUser(profile: DbProfile, savedJobs: Job[] = [], resumes: Resume[] = [], applications: Application[] = []): User {
+export function mapProfileToUser(profile: DbProfile, savedJobs: Job[] = [], resumes: BaseResume[] = [], applications: Application[] = []): User {
   return {
     id: profile.id,
     firstName: profile.first_name || '',
