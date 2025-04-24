@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +35,10 @@ const JobsHeader = ({
     onFilterChange({ searchTerm: e.target.value });
   };
 
+  const handleCheckedChange = (checked: boolean, handler: (id: string, checked: boolean) => void, id: string) => {
+    handler(id, checked);
+  };
+
   return (
     <div className="flex flex-col md:flex-row items-center justify-between gap-4">
       <div className="relative w-full md:w-auto">
@@ -65,7 +70,9 @@ const JobsHeader = ({
                   <Checkbox
                     id="full-time"
                     checked={activeJobTypes['full-time'] || false}
-                    onCheckedChange={(checked) => onJobTypeToggle('full-time', checked || false)}
+                    onCheckedChange={(checked) => 
+                      handleCheckedChange(checked === true, onJobTypeToggle, 'full-time')
+                    }
                   />
                   <Label htmlFor="full-time">Full-time</Label>
                 </div>
@@ -73,7 +80,9 @@ const JobsHeader = ({
                   <Checkbox
                     id="part-time"
                     checked={activeJobTypes['part-time'] || false}
-                    onCheckedChange={(checked) => onJobTypeToggle('part-time', checked || false)}
+                    onCheckedChange={(checked) => 
+                      handleCheckedChange(checked === true, onJobTypeToggle, 'part-time')
+                    }
                   />
                   <Label htmlFor="part-time">Part-time</Label>
                 </div>
@@ -81,7 +90,9 @@ const JobsHeader = ({
                   <Checkbox
                     id="contract"
                     checked={activeJobTypes.contract || false}
-                    onCheckedChange={(checked) => onJobTypeToggle('contract', checked || false)}
+                    onCheckedChange={(checked) => 
+                      handleCheckedChange(checked === true, onJobTypeToggle, 'contract')
+                    }
                   />
                   <Label htmlFor="contract">Contract</Label>
                 </div>
@@ -89,7 +100,9 @@ const JobsHeader = ({
                   <Checkbox
                     id="remote"
                     checked={activeJobTypes.remote || false}
-                    onCheckedChange={(checked) => onJobTypeToggle('remote', checked || false)}
+                    onCheckedChange={(checked) => 
+                      handleCheckedChange(checked === true, onJobTypeToggle, 'remote')
+                    }
                   />
                   <Label htmlFor="remote">Remote</Label>
                 </div>
@@ -103,7 +116,9 @@ const JobsHeader = ({
                   <Checkbox
                     id="entry"
                     checked={activeExpLevels.entry || false}
-                    onCheckedChange={(checked) => onExpLevelToggle('entry', checked || false)}
+                    onCheckedChange={(checked) => 
+                      handleCheckedChange(checked === true, onExpLevelToggle, 'entry')
+                    }
                   />
                   <Label htmlFor="entry">Entry Level</Label>
                 </div>
@@ -111,7 +126,9 @@ const JobsHeader = ({
                   <Checkbox
                     id="mid"
                     checked={activeExpLevels.mid || false}
-                    onCheckedChange={(checked) => onExpLevelToggle('mid', checked || false)}
+                    onCheckedChange={(checked) => 
+                      handleCheckedChange(checked === true, onExpLevelToggle, 'mid')
+                    }
                   />
                   <Label htmlFor="mid">Mid Level</Label>
                 </div>
@@ -119,14 +136,16 @@ const JobsHeader = ({
                   <Checkbox
                     id="senior"
                     checked={activeExpLevels.senior || false}
-                    onCheckedChange={(checked) => onExpLevelToggle('senior', checked || false)}
+                    onCheckedChange={(checked) => 
+                      handleCheckedChange(checked === true, onExpLevelToggle, 'senior')
+                    }
                   />
                   <Label htmlFor="senior">Senior Level</Label>
                 </div>
               </div>
             </div>
           </div>
-          <Button variant="primary" onClick={() => setIsFilterOpen(false)}>
+          <Button variant="default" onClick={() => setIsFilterOpen(false)}>
             Apply filters
           </Button>
         </DialogContent>

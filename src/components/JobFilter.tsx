@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -8,9 +9,9 @@ import { Search } from 'lucide-react';
 import { JobFilters } from '@/api/jobs';
 
 interface FilterValues {
-  jobTypes: Record<string, boolean>;
-  experienceLevels: Record<string, boolean>;
-  salaryRange: number[];
+  jobTypes: string[];
+  experienceLevels: string[];
+  salaryRange: [number, number];
   searchTerm: string;
 }
 
@@ -19,48 +20,88 @@ interface JobFilterProps {
 }
 
 const JobFilter = ({ onFilterChange }: JobFilterProps) => {
-  const [jobTypes, setJobTypes] = useState({
+  const [jobTypesState, setJobTypesState] = useState({
     fullTime: false,
     partTime: false,
     contract: false,
     remote: false,
   });
 
-  const [experienceLevels, setExperienceLevels] = useState({
+  const [experienceLevelsState, setExperienceLevelsState] = useState({
     entry: false,
     mid: false,
     senior: false,
   });
 
-  const [salaryRange, setSalaryRange] = useState([50, 150]);
+  const [salaryRange, setSalaryRange] = useState<[number, number]>([50, 150]);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleJobTypeChange = (type: keyof typeof jobTypes) => {
-    const updatedJobTypes = { ...jobTypes, [type]: !jobTypes[type] };
-    setJobTypes(updatedJobTypes);
-    applyFilters(updatedJobTypes, experienceLevels, salaryRange, searchTerm);
+  const handleJobTypeChange = (type: keyof typeof jobTypesState) => {
+    const updatedJobTypes = { ...jobTypesState, [type]: !jobTypesState[type] };
+    setJobTypesState(updatedJobTypes);
+    
+    // Convert object to array of selected job types
+    const jobTypesArray = Object.entries(updatedJobTypes)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([type]) => mapTypeKeys(type));
+      
+    applyFilters(jobTypesArray, getExperienceLevelsArray(), salaryRange, searchTerm);
   };
 
-  const handleExperienceChange = (level: keyof typeof experienceLevels) => {
-    const updatedLevels = { ...experienceLevels, [level]: !experienceLevels[level] };
-    setExperienceLevels(updatedLevels);
-    applyFilters(jobTypes, updatedLevels, salaryRange, searchTerm);
+  const handleExperienceChange = (level: keyof typeof experienceLevelsState) => {
+    const updatedLevels = { ...experienceLevelsState, [level]: !experienceLevelsState[level] };
+    setExperienceLevelsState(updatedLevels);
+    
+    // Convert object to array of selected experience levels
+    const expLevelsArray = Object.entries(updatedLevels)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([level]) => level);
+      
+    applyFilters(getJobTypesArray(), expLevelsArray, salaryRange, searchTerm);
   };
 
   const handleSalaryChange = (value: number[]) => {
-    setSalaryRange(value);
-    applyFilters(jobTypes, experienceLevels, value, searchTerm);
+    // Ensure the value has exactly two elements to satisfy the [number, number] type
+    const typedSalaryRange: [number, number] = value.length >= 2 
+      ? [value[0], value[1]] 
+      : [value[0] || 50, value[1] || 150];
+      
+    setSalaryRange(typedSalaryRange);
+    applyFilters(getJobTypesArray(), getExperienceLevelsArray(), typedSalaryRange, searchTerm);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    applyFilters(jobTypes, experienceLevels, salaryRange, e.target.value);
+    applyFilters(getJobTypesArray(), getExperienceLevelsArray(), salaryRange, e.target.value);
+  };
+
+  // Helper to convert internal state to filter array format
+  const getJobTypesArray = (): string[] => {
+    return Object.entries(jobTypesState)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([type]) => mapTypeKeys(type));
+  };
+
+  // Helper to convert internal state to filter array format
+  const getExperienceLevelsArray = (): string[] => {
+    return Object.entries(experienceLevelsState)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([level]) => level);
+  };
+
+  // Map frontend keys to backend keys if needed
+  const mapTypeKeys = (key: string): string => {
+    const mapping: Record<string, string> = {
+      fullTime: "full-time",
+      partTime: "part-time",
+    };
+    return mapping[key as keyof typeof mapping] || key;
   };
 
   const applyFilters = (
-    types: typeof jobTypes,
-    levels: typeof experienceLevels,
-    salary: number[],
+    types: string[],
+    levels: string[],
+    salary: [number, number],
     search: string
   ) => {
     onFilterChange({
@@ -72,13 +113,13 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
   };
 
   const clearFilters = () => {
-    setJobTypes({
+    setJobTypesState({
       fullTime: false,
       partTime: false,
       contract: false,
       remote: false,
     });
-    setExperienceLevels({
+    setExperienceLevelsState({
       entry: false,
       mid: false,
       senior: false,
@@ -87,17 +128,8 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
     setSearchTerm('');
     
     onFilterChange({
-      jobTypes: {
-        fullTime: false,
-        partTime: false,
-        contract: false,
-        remote: false,
-      },
-      experienceLevels: {
-        entry: false,
-        mid: false,
-        senior: false,
-      },
+      jobTypes: [],
+      experienceLevels: [],
       salaryRange: [50, 150],
       searchTerm: '',
     });
@@ -124,7 +156,7 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="full-time" 
-                checked={jobTypes.fullTime}
+                checked={jobTypesState.fullTime}
                 onCheckedChange={() => handleJobTypeChange('fullTime')}
               />
               <Label htmlFor="full-time">Full-time</Label>
@@ -132,7 +164,7 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="part-time" 
-                checked={jobTypes.partTime}
+                checked={jobTypesState.partTime}
                 onCheckedChange={() => handleJobTypeChange('partTime')}
               />
               <Label htmlFor="part-time">Part-time</Label>
@@ -140,7 +172,7 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="contract" 
-                checked={jobTypes.contract}
+                checked={jobTypesState.contract}
                 onCheckedChange={() => handleJobTypeChange('contract')}
               />
               <Label htmlFor="contract">Contract</Label>
@@ -148,7 +180,7 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="remote" 
-                checked={jobTypes.remote}
+                checked={jobTypesState.remote}
                 onCheckedChange={() => handleJobTypeChange('remote')}
               />
               <Label htmlFor="remote">Remote</Label>
@@ -180,7 +212,7 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="entry"
-                checked={experienceLevels.entry}
+                checked={experienceLevelsState.entry}
                 onCheckedChange={() => handleExperienceChange('entry')}
               />
               <Label htmlFor="entry">Entry Level</Label>
@@ -188,7 +220,7 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="mid"
-                checked={experienceLevels.mid}
+                checked={experienceLevelsState.mid}
                 onCheckedChange={() => handleExperienceChange('mid')}
               />
               <Label htmlFor="mid">Mid Level</Label>
@@ -196,7 +228,7 @@ const JobFilter = ({ onFilterChange }: JobFilterProps) => {
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="senior"
-                checked={experienceLevels.senior}
+                checked={experienceLevelsState.senior}
                 onCheckedChange={() => handleExperienceChange('senior')}
               />
               <Label htmlFor="senior">Senior Level</Label>
