@@ -1,4 +1,3 @@
-
 import { Job, JobSearchResponse } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -113,7 +112,6 @@ export const fetchJobById = async (jobId: string): Promise<Job | null> => {
   };
 };
 
-// Insert a new job (admin functionality)
 export const createJob = async (jobData: Omit<Job, 'id' | 'postedAt' | 'created_at'>): Promise<Job> => {
   const { data, error } = await supabase
     .from('jobs')
@@ -134,7 +132,6 @@ export const createJob = async (jobData: Omit<Job, 'id' | 'postedAt' | 'created_
   };
 };
 
-// Update an existing job (admin functionality)
 export const updateJob = async (jobId: string, jobData: Partial<Job>): Promise<Job> => {
   const { data, error } = await supabase
     .from('jobs')
@@ -156,7 +153,6 @@ export const updateJob = async (jobId: string, jobData: Partial<Job>): Promise<J
   };
 };
 
-// Delete a job (admin functionality)
 export const deleteJob = async (jobId: string): Promise<void> => {
   const { error } = await supabase
     .from('jobs')
@@ -169,7 +165,6 @@ export const deleteJob = async (jobId: string): Promise<void> => {
   }
 };
 
-// Helper function to format posted date
 const formatPostedAt = (dateString: string): string => {
   const date = new Date(dateString);
   const now = new Date();

@@ -116,10 +116,15 @@ export interface Project {
 export interface Application {
   id: string;
   jobId?: string;
+  job_id?: string;
   position: string;
   company: string;
   status: 'applied' | 'interview' | 'offer' | 'rejected' | 'reviewed' | 'accepted' | 'archived' | 'offer_received';
   createdAt: string;
   updatedAt: string;
   appliedAt?: string;
+  created_at?: string;
+  updated_at?: string;
+  applied_at?: string;
+  user_id?: string;
 }

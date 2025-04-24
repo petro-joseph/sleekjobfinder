@@ -1,4 +1,5 @@
-export { Resume, WorkExperience, Education, Project } from '../types/index';
+
+export type { Resume, WorkExperience, Education, Project } from '../types/index';
 
 export interface JobPosting {
   title: string;
