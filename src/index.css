@@ -1,10 +1,11 @@
+@import url('https://rsms.me/inter/inter.css');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://rsms.me/inter/inter.css');
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 
 @layer base {
   :root {
@@ -93,7 +94,8 @@
     @apply border-border selection:bg-primary/10 selection:text-primary;
   }
 
-  html, body {
+  html,
+  body {
     @apply antialiased scroll-smooth;
   }
 
@@ -101,44 +103,50 @@
     @apply bg-background text-foreground;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02";
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display font-semibold tracking-tight;
   }
 }
 
 @layer components {
+
   /* Glass Card Styles */
   .glass-card {
     @apply bg-white/50 backdrop-blur-md border border-white/20 shadow-glass rounded-xl transition-all duration-300 hover:shadow-lg;
   }
-  
+
   .dark .glass-card {
     @apply bg-black/30 border-white/10;
   }
-  
+
   /* Neumorphism Styles */
   .neu-card {
     @apply bg-white rounded-xl shadow-neu transition-all duration-300;
   }
-  
+
   .dark .neu-card {
     @apply bg-gray-800 shadow-neu-dark;
   }
-  
+
   /* Text Styles */
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .link-hover {
     @apply relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-full after:origin-bottom-right after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:origin-bottom-left hover:after:scale-x-100;
   }
-  
+
   .heading-xl {
     @apply text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-balance font-display;
   }
-  
+
   .heading-lg {
     @apply text-3xl sm:text-4xl font-bold tracking-tight text-balance font-display;
   }
@@ -146,25 +154,25 @@
   .heading-md {
     @apply text-2xl sm:text-3xl font-bold tracking-tight text-balance font-display;
   }
-  
+
   .heading-sm {
     @apply text-xl font-semibold tracking-tight text-balance font-display;
   }
-  
+
   .paragraph {
     @apply text-base text-muted-foreground;
   }
-  
+
   /* Gradient Text */
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-teal-blue animate-gradient-shift bg-[length:200%_auto];
   }
-  
+
   /* Button Overrides */
   .btn-gradient {
     @apply bg-gradient-teal-blue hover:shadow-lg hover:translate-y-[-2px] transition-all duration-300 text-white font-medium;
   }
-  
+
   /* Card Overrides */
   .card-hover {
     @apply transition-all duration-300 hover:shadow-lg hover:translate-y-[-5px];
@@ -181,6 +189,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -199,7 +208,7 @@
   animation-delay: 0.3s;
 }
 
-/* Loader animation */
+/* Bar Loader animation */
 .loader {
   width: 45px;
   aspect-ratio: 0.75;
@@ -210,11 +219,25 @@
 }
 
 @keyframes loading {
-  0%   {background-size: 20% 100%, 20% 100%, 20% 100%}
-  33%  {background-size: 20% 10%, 20% 100%, 20% 100%}
-  50%  {background-size: 20% 100%, 20% 10%, 20% 100%}
-  66%  {background-size: 20% 100%, 20% 100%, 20% 10%}
-  100% {background-size: 20% 100%, 20% 100%, 20% 100%}
+  0% {
+    background-size: 20% 100%, 20% 100%, 20% 100%
+  }
+
+  33% {
+    background-size: 20% 10%, 20% 100%, 20% 100%
+  }
+
+  50% {
+    background-size: 20% 100%, 20% 10%, 20% 100%
+  }
+
+  66% {
+    background-size: 20% 100%, 20% 100%, 20% 10%
+  }
+
+  100% {
+    background-size: 20% 100%, 20% 100%, 20% 100%
+  }
 }
 
 /* Glassmorphism */
@@ -230,27 +253,27 @@
 .bg-gradient-mesh {
   background-color: hsla(196, 100%, 50%, 0.1);
   background-image: radial-gradient(at 40% 20%, hsla(196, 100%, 50%, 0.1) 0px, transparent 50%),
-                    radial-gradient(at 80% 0%, hsla(196, 50%, 50%, 0.1) 0px, transparent 50%),
-                    radial-gradient(at 0% 50%, hsla(196, 100%, 50%, 0.1) 0px, transparent 50%),
-                    radial-gradient(at 80% 50%, hsla(196, 50%, 50%, 0.1) 0px, transparent 50%),
-                    radial-gradient(at 0% 100%, hsla(196, 100%, 50%, 0.1) 0px, transparent 50%),
-                    radial-gradient(at 80% 100%, hsla(196, 50%, 50%, 0.1) 0px, transparent 50%),
-                    radial-gradient(at 50% 50%, hsla(196, 100%, 50%, 0.1) 0px, transparent 50%);
+    radial-gradient(at 80% 0%, hsla(196, 50%, 50%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(196, 100%, 50%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, hsla(196, 50%, 50%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(196, 100%, 50%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, hsla(196, 50%, 50%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, hsla(196, 100%, 50%, 0.1) 0px, transparent 50%);
 }
 
 .dark .bg-gradient-mesh {
   background-color: hsla(196, 100%, 50%, 0.05);
   background-image: radial-gradient(at 40% 20%, hsla(196, 100%, 50%, 0.05) 0px, transparent 50%),
-                    radial-gradient(at 80% 0%, hsla(196, 50%, 50%, 0.05) 0px, transparent 50%),
-                    radial-gradient(at 0% 50%, hsla(196, 100%, 50%, 0.05) 0px, transparent 50%),
-                    radial-gradient(at 80% 50%, hsla(196, 50%, 50%, 0.05) 0px, transparent 50%),
-                    radial-gradient(at 0% 100%, hsla(196, 100%, 50%, 0.05) 0px, transparent 50%),
-                    radial-gradient(at 80% 100%, hsla(196, 50%, 50%, 0.05) 0px, transparent 50%),
-                    radial-gradient(at 50% 50%, hsla(196, 100%, 50%, 0.05) 0px, transparent 50%);
+    radial-gradient(at 80% 0%, hsla(196, 50%, 50%, 0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, hsla(196, 100%, 50%, 0.05) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, hsla(196, 50%, 50%, 0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(196, 100%, 50%, 0.05) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, hsla(196, 50%, 50%, 0.05) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, hsla(196, 100%, 50%, 0.05) 0px, transparent 50%);
 }
 
-
-.loader {
+/* Spinner Loader */
+.loader-spinner {
   border: 2px solid #f3f3f3;
   border-top: 2px solid #3498db;
   border-radius: 50%;
