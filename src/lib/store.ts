@@ -197,6 +197,13 @@ export const useAuthStore = create<AuthState>()(
                 .eq('id', data.user.id)
                 .maybeSingle();
 
+              const { data: savedJobsData, error: savedJobsError } = await supabase
+                .from('saved_jobs')
+                .select('jobs(*)')
+                .eq('user_id', data.user.id);
+
+              const savedJobs = savedJobsError ? [] : savedJobsData.map((item: any) => item.jobs);
+
               set({ 
                 isAuthenticated: true, 
                 user: {
@@ -206,7 +213,7 @@ export const useAuthStore = create<AuthState>()(
                   lastName: profile?.last_name || '',
                   avatarUrl: profile?.avatar_url,
                   applications: [],
-                  savedJobs: [],
+                  savedJobs,
                   alerts: [],
                   resumes: [],
                   settings: {
@@ -258,34 +265,49 @@ export const useAuthStore = create<AuthState>()(
           );
         }
       },
-      saveJob: (job) => {
-        set((state) => {
-          if (!state.user) return state;
-          
-          const isJobSaved = state.user.savedJobs.some(j => j.id === job.id);
-          if (isJobSaved) return state;
-          
-          return {
-            ...state,
-            user: {
-              ...state.user,
-              savedJobs: [...state.user.savedJobs, job]
-            }
-          };
-        });
+      saveJob: async (job) => {
+        try {
+          const { error } = await supabase
+            .from('saved_jobs')
+            .insert([{ user_id: supabase.auth.getUser().data.user?.id, job_id: job.id }]);
+
+          if (error) throw error;
+
+          set((state) => ({
+            user: state.user
+              ? {
+                  ...state.user,
+                  savedJobs: [...(state.user.savedJobs || []), job],
+                }
+              : null,
+          }));
+        } catch (error) {
+          console.error('Error saving job:', error);
+          throw error;
+        }
       },
-      removeJob: (jobId) => {
-        set((state) => {
-          if (!state.user) return state;
-          
-          return {
-            ...state,
-            user: {
-              ...state.user,
-              savedJobs: state.user.savedJobs.filter(job => job.id !== jobId)
-            }
-          };
-        });
+      removeJob: async (jobId) => {
+        try {
+          const { error } = await supabase
+            .from('saved_jobs')
+            .delete()
+            .eq('job_id', jobId)
+            .eq('user_id', supabase.auth.getUser().data.user?.id);
+
+          if (error) throw error;
+
+          set((state) => ({
+            user: state.user
+              ? {
+                  ...state.user,
+                  savedJobs: state.user.savedJobs.filter((job) => job.id !== jobId),
+                }
+              : null,
+          }));
+        } catch (error) {
+          console.error('Error removing job:', error);
+          throw error;
+        }
       },
       updateUser: (userData) => {
         set((state) => {

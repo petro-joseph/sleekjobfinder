@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Job } from '@/data/jobs';
 import { Badge } from '@/components/ui/badge';
+import { useAuthStore } from '@/store/auth';
+import { toast } from 'react-toastify';
 
 interface JobCardProps {
   job: Job;
@@ -12,6 +14,31 @@ interface JobCardProps {
 }
 
 const JobCard = ({ job, className, onIndustryClick }: JobCardProps) => {
+  const { user, saveJob, removeJob } = useAuthStore();
+  const isSaved = user?.savedJobs.some(savedJob => savedJob.id === job.id);
+
+  const handleSave = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user) {
+      toast.error("Please login to save jobs");
+      return;
+    }
+
+    try {
+      if (isSaved) {
+        await removeJob(job.id);
+        toast.success("Job removed from saved jobs");
+      } else {
+        await saveJob(job);
+        toast.success("Job saved to your profile");
+      }
+    } catch (error) {
+      toast.error("Error saving job");
+    }
+  };
+
   return (
     <div
       className={cn(

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +11,6 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Job } from '@/data/jobs';
 import { supabase } from '@/integrations/supabase/client';
 
-// Component for displaying saved jobs from Supabase
 const SavedJobs = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -23,43 +21,47 @@ const SavedJobs = () => {
   useEffect(() => {
     if (!user) return;
     setLoading(true);
-    // Fetch joined saved_jobs and jobs
+    
     supabase
-      .from("saved_jobs")
-      .select("job_id, jobs(*)")
-      .eq("user_id", user.id)
-      .then(async ({ data, error }) => {
+      .from('saved_jobs')
+      .select('job_id, jobs(*)')
+      .eq('user_id', user.id)
+      .then(({ data, error }) => {
         if (error) {
           setLoading(false);
-          toast.error("Error loading saved jobs.");
+          toast.error("Error loading saved jobs");
           return;
         }
-        if (!data) return setJobs([]);
-        // data: [{ job_id, jobs: {...} }]
-        setJobs(
-          data
-            .map((r: any) => r.jobs)
-            .filter((j: Job | null) => !!j)
-        );
+        
+        if (!data) {
+          setJobs([]);
+          setLoading(false);
+          return;
+        }
+        
+        setJobs(data.map((r: any) => r.jobs).filter((j: Job | null) => !!j));
         setLoading(false);
       });
   }, [user]);
 
-  // Remove saved job in Supabase
   const handleRemoveJob = async (jobId: string) => {
     if (!user) return;
-    const { error } = await supabase.from("saved_jobs").delete().eq("job_id", jobId).eq("user_id", user.id);
+    
+    const { error } = await supabase
+      .from('saved_jobs')
+      .delete()
+      .eq('job_id', jobId)
+      .eq('user_id', user.id);
+
     if (error) {
-      toast.error("Error removing job from saved list.");
+      toast.error("Error removing job from saved list");
       return;
     }
+
     setJobs((jobs) => jobs.filter((job) => job.id !== jobId));
-    toast.success("Job removed from saved jobs", {
-      position: "top-center"
-    });
+    toast.success("Job removed from saved jobs");
   };
 
-  // Search filter
   const filteredJobs = searchTerm
     ? jobs.filter(job =>
         job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -112,7 +114,6 @@ const SavedJobs = () => {
   );
 };
 
-// Empty state (reuse)
 const EmptyState = ({ searchTerm, navigate }: { searchTerm: string, navigate: (path: string) => void }) => (
   <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg animate-fade-in">
     <CardContent className="p-8 flex flex-col items-center text-center">
@@ -142,7 +143,6 @@ const EmptyState = ({ searchTerm, navigate }: { searchTerm: string, navigate: (p
   </Card>
 );
 
-// Reuse SavedJobCard
 const SavedJobCard = ({ 
   job, 
   onRemove, 
@@ -201,7 +201,6 @@ const SavedJobCard = ({
   );
 };
 
-// Protect route
 const ProtectedSavedJobsPage = () => (
   <ProtectedRoute>
     <SavedJobs />
