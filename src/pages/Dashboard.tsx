@@ -1,6 +1,7 @@
+
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart, Rocket, Clock, MapPin, Building, Bot } from 'lucide-react';
@@ -12,6 +13,30 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchJobs } from '@/api/jobs';
 import { Job } from '@/data/jobs';
 import { DashboardSkeleton, JobCardSkeleton, TableSkeleton } from '@/components/skeletons/Skeletons';
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from '@/components/ui/pagination';
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+};
 
 const Dashboard = () => {
   const { user, isAuthenticated, saveJob, removeJob } = useAuthStore();
@@ -19,12 +44,46 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 4;
 
+  // Sample recent activities - in a real app, these would come from an API or user data
+  const recentActivities = [
+    { id: 1, position: 'Frontend Developer', company: 'TechCorp', date: '2024-03-22', status: 'interview' },
+    { id: 2, position: 'UX Designer', company: 'DesignHub', date: '2024-03-18', status: 'applied' },
+    { id: 3, position: 'Product Manager', company: 'ProductX', date: '2024-03-15', status: 'rejected' }
+  ];
+
   const { data: allJobs = [], isLoading: isLoadingJobs } = useQuery({
     queryKey: ['dashboardJobs'],
     queryFn: async () => {
       return fetchJobs();
     },
   });
+
+  // Calculate current jobs to display based on pagination
+  const indexOfLastJob = currentPage * jobsPerPage;
+  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
+  const currentJobs = allJobs.slice(indexOfFirstJob, indexOfLastJob);
+  const totalPages = Math.ceil(allJobs.length / jobsPerPage);
+
+  // Onboarding status
+  const isOnboardingComplete = user?.is_onboarding_complete || false;
+
+  // Handle bookmark toggle
+  const handleBookmarkToggle = async (jobId: string) => {
+    const jobToToggle = allJobs.find(job => job.id === jobId);
+    if (!jobToToggle) return;
+
+    try {
+      if (user.savedJobs.some(j => j.id === jobId)) {
+        await removeJob(jobId);
+        toast.info("Job removed from saved jobs");
+      } else {
+        await saveJob(jobToToggle);
+        toast.success("Job saved successfully");
+      }
+    } catch (error) {
+      toast.error("Failed to update saved job");
+    }
+  };
 
   if (!user) {
     return null;
@@ -299,41 +358,43 @@ const Dashboard = () => {
                   {isLoadingJobs ? (
                     <TableSkeleton />
                   ) : (
-                    recentActivities.map(activity => (
-                      <motion.div 
-                        key={activity.id} 
-                        className="flex items-start pb-4 border-b border-border/50 last:border-0 last:pb-0"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <div className="w-2 h-2 mt-2 rounded-full bg-primary flex-shrink-0"></div>
-                        <div className="ml-3">
-                          <div className="font-medium">{activity.position}</div>
-                          <div className="text-sm text-muted-foreground">{activity.company}</div>
-                          <div className="text-xs text-muted-foreground/70 mt-1">
-                            {new Date(activity.date).toLocaleDateString()}
+                    <>
+                      {recentActivities.map(activity => (
+                        <motion.div 
+                          key={activity.id} 
+                          className="flex items-start pb-4 border-b border-border/50 last:border-0 last:pb-0"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <div className="w-2 h-2 mt-2 rounded-full bg-primary flex-shrink-0"></div>
+                          <div className="ml-3">
+                            <div className="font-medium">{activity.position}</div>
+                            <div className="text-sm text-muted-foreground">{activity.company}</div>
+                            <div className="text-xs text-muted-foreground/70 mt-1">
+                              {new Date(activity.date).toLocaleDateString()}
+                            </div>
                           </div>
-                        </div>
-                        <div className="ml-auto">
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            activity.status === 'interview' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                            activity.status === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
-                            'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-                          }`}>
-                            {activity.status}
-                          </span>
-                        </div>
-                      </motion.div>
-                    ))}
-                    
-                    <Button 
-                      onClick={() => navigate('/progress')} 
-                      variant="ghost" 
-                      className="w-full text-primary justify-center mt-2 touch-button"
-                    >
-                      View all activity
-                    </Button>
+                          <div className="ml-auto">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              activity.status === 'interview' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                              activity.status === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                              'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                            }`}>
+                              {activity.status}
+                            </span>
+                          </div>
+                        </motion.div>
+                      ))}
+                      
+                      <Button 
+                        onClick={() => navigate('/progress')} 
+                        variant="ghost" 
+                        className="w-full text-primary justify-center mt-2 touch-button"
+                      >
+                        View all activity
+                      </Button>
+                    </>
                   )}
                 </CardContent>
               </Card>
