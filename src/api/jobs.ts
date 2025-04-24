@@ -1,6 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Job } from "@/data/jobs";
+import { DateTime } from 'luxon';
 
 export interface JobFilters {
   industry?: string;
@@ -13,6 +13,14 @@ export interface JobFilters {
   featured?: boolean;
 }
 
+// Helper function to format posted_at date like Carbon's diffForHumans
+function diffForHumans(postedAt: string): string {
+  if (!postedAt) return '';
+  const postedDate = DateTime.fromISO(postedAt);
+  if (!postedDate.isValid) return '';
+  return postedDate.toRelative() || '';
+}
+
 export const fetchJobs = async (filters?: JobFilters): Promise<Job[]> => {
   let query = supabase
     .from("jobs")
@@ -22,16 +30,16 @@ export const fetchJobs = async (filters?: JobFilters): Promise<Job[]> => {
   // Add filters if provided
   if (filters) {
     if (filters.industry) query = query.eq("industry", filters.industry);
-    
+
     // Job Types filter
     if (filters.jobTypes && filters.jobTypes.length > 0) {
       query = query.in("type", filters.jobTypes);
     }
 
     // Experience Levels (assuming there's a way to map this in the jobs table)
-    if (filters.experienceLevels && filters.experienceLevels.length > 0) {
-      query = query.in("experience_level", filters.experienceLevels);
-    }
+    // if (filters.experienceLevels && filters.experienceLevels.length > 0) {
+    //   query = query.in("experience_level", filters.experienceLevels);
+    // }
 
     // Location filter
     if (filters.location) query = query.ilike("location", `%${filters.location}%`);
@@ -51,7 +59,7 @@ export const fetchJobs = async (filters?: JobFilters): Promise<Job[]> => {
         `description.ilike.%${filters.searchTerm}%`
       );
     }
-    
+
     // Featured filter
     if (filters.featured === true) {
       query = query.eq("featured", true);
@@ -59,15 +67,15 @@ export const fetchJobs = async (filters?: JobFilters): Promise<Job[]> => {
   }
 
   const { data, error } = await query;
-  
+
   if (error) {
     throw new Error(error.message);
   }
-  
+
   // Transform data to match Job interface expectations
   const transformedData = data.map(job => ({
     ...job,
-    postedAt: formatPostedDate(job.posted_at)
+    postedAt: diffForHumans(job.posted_at)
   })) as Job[];
 
   // Sort jobs to show featured jobs first
@@ -80,51 +88,20 @@ export const fetchJobs = async (filters?: JobFilters): Promise<Job[]> => {
   return transformedData;
 };
 
-// Helper function to format the posted_at date into a human-readable string
-function formatPostedDate(postedAt: string): string {
-  if (!postedAt) return "";
-  
-  const postedDate = new Date(postedAt);
-  const now = new Date();
-  const diffMs = now.getTime() - postedDate.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 0) {
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    if (diffHours === 0) {
-      const diffMinutes = Math.floor(diffMs / (1000 * 60));
-      return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
-    }
-    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-  }
-  
-  if (diffDays < 7) {
-    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-  }
-  
-  if (diffDays < 30) {
-    const diffWeeks = Math.floor(diffDays / 7);
-    return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffMonths = Math.floor(diffDays / 30);
-  return `${diffMonths} month${diffMonths !== 1 ? 's' : ''} ago`;
-}
-
 export const fetchJobById = async (jobId: string): Promise<Job | null> => {
   const { data, error } = await supabase
     .from("jobs")
     .select("*")
     .eq("id", jobId)
     .maybeSingle();
-  
+
   if (error) throw new Error(error.message);
-  
+
   if (!data) return null;
-  
+
   // Transform to match Job interface
   return {
     ...data,
-    postedAt: formatPostedDate(data.posted_at)
+    postedAt: diffForHumans(data.posted_at)
   } as Job;
 };
