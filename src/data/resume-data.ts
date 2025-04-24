@@ -69,3 +69,6 @@ export const sampleResume: Resume = {
     }
   ]
 };
+
+// Export sampleResume as defaultResume to fix the import in ResumeTailoringFlow.tsx
+export const defaultResume = sampleResume;

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Job } from "@/types";
@@ -50,24 +51,20 @@ const Apply = () => {
   const [tailoredResumeContent, setTailoredResumeContent] = useState<string | null>(null);
   const [isApplyButtonLoading, setIsApplyButtonLoading] = useState(false);
 
-  // Access user and resumes from Zustand store
+  // Access user from Zustand store
   const user = useAuthStore((state) => state.user);
-  const resumes = useAuthStore((state) => state.resumes);
   const userId = user?.id;
 
   // Fetch job details using react-query
-  const { data: job, isLoading: isJobLoading, isError: isJobError } = useQuery(
-    ['job', id],
-    () => fetchJobById(id!),
-    {
-      enabled: !!id, // Ensure job ID is available before fetching
-      retry: false, // Disable retries
-    }
-  );
+  const { data: job, isLoading: isJobLoading, isError: isJobError } = useQuery({
+    queryKey: ['job', id],
+    queryFn: () => fetchJobById(id!),
+    enabled: !!id, // Ensure job ID is available before fetching
+  });
 
   // Mutation for submitting the application
-  const submitApplicationMutation = useMutation(
-    async (applicationData: ApplicationRecord) => {
+  const submitApplicationMutation = useMutation({
+    mutationFn: async (applicationData: ApplicationRecord) => {
       const { data, error } = await supabase
         .from('applications')
         .insert([applicationData]);
@@ -79,30 +76,28 @@ const Apply = () => {
 
       return data;
     },
-    {
-      onSuccess: () => {
-        // Invalidate queries to update the cache
-        queryClient.invalidateQueries(['applications', userId]);
-        queryClient.invalidateQueries(['user']);
+    onSuccess: () => {
+      // Invalidate queries to update the cache
+      queryClient.invalidateQueries({ queryKey: ['applications', userId] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
 
-        // Show success message
-        toast.success('Application submitted successfully!');
-        setIsConfirmationModalOpen(false);
-        navigate('/progress');
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to submit application: ${error.message}`);
-      },
-      onSettled: () => {
-        setIsApplyButtonLoading(false); // Stop loading regardless of success or failure
-      },
-    }
-  );
+      // Show success message
+      toast.success('Application submitted successfully!');
+      setIsConfirmationModalOpen(false);
+      navigate('/progress');
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to submit application: ${error.message}`);
+    },
+    onSettled: () => {
+      setIsApplyButtonLoading(false); // Stop loading regardless of success or failure
+    },
+  });
 
   // Check if the user has already applied for the job
-  const { data: existingApplication, isLoading: isExistingApplicationLoading } = useQuery(
-    ['applications', userId, id],
-    async () => {
+  const { data: existingApplication, isLoading: isExistingApplicationLoading } = useQuery({
+    queryKey: ['applications', userId, id],
+    queryFn: async () => {
       if (!userId || !id) return null;
 
       const { data, error } = await supabase
@@ -119,10 +114,8 @@ const Apply = () => {
 
       return data;
     },
-    {
-      enabled: !!userId && !!id, // Only run the query if userId and id are available
-    }
-  );
+    enabled: !!userId && !!id, // Only run the query if userId and id are available
+  });
 
   // Handler for submitting the application
   const handleSubmit = async () => {
@@ -156,27 +149,15 @@ const Apply = () => {
 
   // Handler for uploading a new resume
   const handleResumeUpload = async (file: File) => {
+    if (!userId) {
+      toast.error('You must be logged in to upload a resume.');
+      return;
+    }
+    
     setUploading(true);
     try {
-      const filePath = await uploadResumeFile(file, userId!);
+      const filePath = await uploadResumeFile(file, userId);
       setResumeFile(file);
-
-      // Optimistically update the resumes in the Zustand store
-      useAuthStore.setState((state) => ({
-        resumes: [
-          ...state.resumes,
-          {
-            id: 'temp_' + Date.now(), // Temporary ID
-            name: file.name,
-            file_path: filePath,
-            isPrimary: false,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            uploadDate: new Date(),
-            user_id: userId,
-          },
-        ],
-      }));
 
       toast.success('Resume uploaded successfully!');
     } catch (error: any) {
@@ -213,14 +194,16 @@ const Apply = () => {
 
   // Memoized list of resume options for the select component
   const resumeOptions = useMemo(
-    () =>
-      resumes
-        ? resumes.map((resume) => ({
+    () => {
+      if (user && user.resumes) {
+        return user.resumes.map((resume) => ({
           value: resume.id,
           label: resume.name,
-        }))
-        : [],
-    [resumes]
+        }));
+      }
+      return [];
+    },
+    [user]
   );
 
   // Check if the component is still loading data
@@ -378,11 +361,13 @@ const Apply = () => {
         </Card>
       </div>
 
-      <TailorResumeModal
-        job={job}
-        isOpen={isTailorModalOpen}
-        onClose={handleTailorModalClose}
-      />
+      {job && (
+        <TailorResumeModal
+          job={job}
+          isOpen={isTailorModalOpen}
+          onClose={handleTailorModalClose}
+        />
+      )}
 
       <ApplyConfirmationModal
         isOpen={isConfirmationModalOpen}

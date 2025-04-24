@@ -1,5 +1,9 @@
 
-export type { Resume, WorkExperience, Education, Project } from '../types/index';
+import { Resume as BaseResume, WorkExperience, Education, Project } from '../types/index';
+
+// Re-export the types from index.ts
+export type { WorkExperience, Education, Project };
+export type Resume = BaseResume;
 
 export interface JobPosting {
   title: string;
