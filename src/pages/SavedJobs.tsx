@@ -94,7 +94,7 @@ const SavedJobs = () => {
           </div>
         </div>
         {loading ? (
-          <div className="p-8 text-center text-muted-foreground">Loading saved jobs...</div>
+          <SavedJobsSkeleton />
         ) : filteredJobs.length === 0 ? (
           <EmptyState searchTerm={searchTerm} navigate={navigate} />
         ) : (
