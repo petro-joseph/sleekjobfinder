@@ -2,13 +2,14 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Job } from "@/data/jobs";
 
-interface JobFilters {
+export interface JobFilters {
   industry?: string;
-  type?: string;
+  jobTypes?: string[];
+  experienceLevels?: string[];
   location?: string;
-  salary?: string;
-  posted_at?: string;
+  salaryRange?: [number, number];
   searchTerm?: string;
+  sortBy?: 'newest' | 'relevant';
   featured?: boolean;
 }
 
@@ -21,16 +22,44 @@ export const fetchJobs = async (filters?: JobFilters): Promise<Job[]> => {
   // Add filters if provided
   if (filters) {
     if (filters.industry) query = query.eq("industry", filters.industry);
-    if (filters.type) query = query.eq("type", filters.type);
-    if (filters.searchTerm) query = query.ilike("title", `%${filters.searchTerm}%`);
-    if (filters.featured !== undefined) query = query.eq("featured", filters.featured);
+    
+    // Job Types filter
+    if (filters.jobTypes && filters.jobTypes.length > 0) {
+      query = query.in("type", filters.jobTypes);
+    }
+
+    // Experience Levels (assuming there's a way to map this in the jobs table)
+    if (filters.experienceLevels && filters.experienceLevels.length > 0) {
+      query = query.in("experience_level", filters.experienceLevels);
+    }
+
+    // Location filter
     if (filters.location) query = query.ilike("location", `%${filters.location}%`);
-    if (filters.salary) query = query.ilike("salary", `%${filters.salary}%`);
-    if (filters.posted_at) query = query.ilike("posted_at", `%${filters.posted_at}%`);
-    if (filters.type) query = query.ilike("type", `%${filters.type}%`);
+
+    // Salary Range filter
+    if (filters.salaryRange) {
+      const [min, max] = filters.salaryRange;
+      if (min > 0) query = query.gte("salary", min.toString());
+      if (max > 0) query = query.lte("salary", max.toString());
+    }
+
+    // Search Term filter
+    if (filters.searchTerm) {
+      query = query.or(
+        `title.ilike.%${filters.searchTerm}%,` +
+        `company.ilike.%${filters.searchTerm}%,` +
+        `description.ilike.%${filters.searchTerm}%`
+      );
+    }
+    
+    // Featured filter
+    if (filters.featured === true) {
+      query = query.eq("featured", true);
+    }
   }
 
   const { data, error } = await query;
+  
   if (error) {
     throw new Error(error.message);
   }
@@ -38,39 +67,17 @@ export const fetchJobs = async (filters?: JobFilters): Promise<Job[]> => {
   // Transform data to match Job interface expectations
   const transformedData = data.map(job => ({
     ...job,
-    postedAt: formatPostedDate(job.posted_at) // Add postedAt property for UI components
+    postedAt: formatPostedDate(job.posted_at)
   })) as Job[];
 
   // Sort jobs to show featured jobs first
   transformedData.sort((a, b) => {
-    if (a.featured && !b.featured) {
-      return -1;
-    }
-    if (!a.featured && b.featured) {
-      return 1;
-    }
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
     return 0;
   });
 
   return transformedData;
-};
-
-export const fetchJobById = async (jobId: string): Promise<Job | null> => {
-  const { data, error } = await supabase
-    .from("jobs")
-    .select("*")
-    .eq("id", jobId)
-    .maybeSingle();
-  
-  if (error) throw new Error(error.message);
-  
-  if (!data) return null;
-  
-  // Transform to match Job interface
-  return {
-    ...data,
-    postedAt: formatPostedDate(data.posted_at)
-  } as Job;
 };
 
 // Helper function to format the posted_at date into a human-readable string
@@ -103,3 +110,21 @@ function formatPostedDate(postedAt: string): string {
   const diffMonths = Math.floor(diffDays / 30);
   return `${diffMonths} month${diffMonths !== 1 ? 's' : ''} ago`;
 }
+
+export const fetchJobById = async (jobId: string): Promise<Job | null> => {
+  const { data, error } = await supabase
+    .from("jobs")
+    .select("*")
+    .eq("id", jobId)
+    .maybeSingle();
+  
+  if (error) throw new Error(error.message);
+  
+  if (!data) return null;
+  
+  // Transform to match Job interface
+  return {
+    ...data,
+    postedAt: formatPostedDate(data.posted_at)
+  } as Job;
+};

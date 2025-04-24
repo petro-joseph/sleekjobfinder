@@ -40,7 +40,6 @@ const JobDetail = () => {
   const navigate = useNavigate();
   const [tailorModalOpen, setTailorModalOpen] = useState(false);
 
-  // Fetch this job directly from Supabase
   const { data: job, isLoading } = useQuery({
     queryKey: ['job', id],
     queryFn: () => fetchJobById(id as string),
@@ -56,15 +55,19 @@ const JobDetail = () => {
   const { user, saveJob, removeJob } = useAuthStore();
   const isSaved = user?.savedJobs.some(j => j.id === id) || false;
 
-  const handleSaveJob = () => {
+  const handleSaveJob = async () => {
     if (!job) return;
     
-    if (isSaved) {
-      removeJob(job.id);
-      toast("Job removed from saved jobs");
-    } else {
-      saveJob(job);
-      toast("Job saved to your profile");
+    try {
+      if (isSaved) {
+        await removeJob(job.id);
+        toast("Job removed from saved jobs");
+      } else {
+        await saveJob(job);
+        toast("Job saved to your profile");
+      }
+    } catch (error) {
+      toast.error("Error saving job");
     }
   };
 

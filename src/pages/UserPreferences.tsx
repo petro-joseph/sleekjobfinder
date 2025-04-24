@@ -1,4 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { User, Resume, DbProfile, mapProfileToUser } from '@/lib/store';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +11,6 @@ import { Label } from '@/components/ui/label';
 import { 
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -18,14 +21,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore, Resume } from '@/lib/store';
-import { Check, ChevronsUpDown, Trash2, Upload, X } from 'lucide-react';
+import { ChevronsUpDown, Check, X, Trash2, Upload } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 
 const countries = [
   { value: 'US', label: 'United States' },
@@ -67,88 +67,169 @@ const formSchema = z.object({
   locations: z.array(z.string()).min(1, 'Select at least one location'),
   jobTypes: z.array(z.string()).min(1, 'Select at least one job type'),
   industries: z.array(z.string()).min(1, 'Select at least one industry'),
-  salaryMin: z.string().min(1, 'Minimum salary is required'),
-  salaryMax: z.string().min(1, 'Maximum salary is required')
+  salaryMin: z.string().refine(val => !isNaN(parseInt(val)), { message: "Minimum salary must be a number" }),
+  salaryMax: z.string().refine(val => !isNaN(parseInt(val)), { message: "Maximum salary must be a number" }),
 });
 
 const UserPreferences = () => {
-  const { user, updateUser, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
   const [openCountry, setOpenCountry] = useState(false);
   const [openIndustry, setOpenIndustry] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [resumeFiles, setResumeFiles] = useState<Resume[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [notificationSettings, setNotificationSettings] = useState({
+    notifications: false,
+    emailUpdates: false,
+    darkMode: false
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      locations: user?.jobPreferences?.locations || [],
-      jobTypes: user?.jobPreferences?.jobTypes || [],
-      industries: user?.jobPreferences?.industries || [],
-      salaryMin: user?.jobPreferences?.salaryRange?.min.toString() || '50000',
-      salaryMax: user?.jobPreferences?.salaryRange?.max.toString() || '100000'
+      locations: [],
+      jobTypes: [],
+      industries: [],
+      salaryMin: '50000',
+      salaryMax: '100000'
     }
   });
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      toast.error("Please log in to access preferences", {
-        description: "You've been redirected to the login page"
-      });
-      navigate('/login');
-      return;
-    }
-
-    if (user) {
-      if (user.jobPreferences?.locations) {
-        setSelectedLocations(user.jobPreferences.locations);
-      }
-      
-      if (user.jobPreferences?.industries) {
-        setSelectedIndustries(user.jobPreferences.industries);
-      }
-      
-      if (user.resumes) {
-        setResumeFiles(user.resumes);
-      }
-      
-      form.reset({
-        locations: user.jobPreferences?.locations || [],
-        jobTypes: user.jobPreferences?.jobTypes || [],
-        industries: user.jobPreferences?.industries || [],
-        salaryMin: user.jobPreferences?.salaryRange?.min.toString() || '50000',
-        salaryMax: user.jobPreferences?.salaryRange?.max.toString() || '100000'
-      });
-    }
-  }, [user, isAuthenticated, navigate, form]);
-
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    if (!user) return;
-
-    const updatedUser = {
-      ...user,
-      jobPreferences: {
-        locations: data.locations,
-        jobTypes: data.jobTypes,
-        industries: data.industries,
-        salaryRange: {
-          min: parseInt(data.salaryMin),
-          max: parseInt(data.salaryMax)
+    const fetchUserProfile = async () => {
+      try {
+        setLoading(true);
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        
+        if (!authUser) {
+          toast.error("Please log in to access preferences");
+          navigate('/login');
+          return;
         }
-      },
-      onboardingStep: 3,
-      isOnboardingComplete: true
+
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .maybeSingle();
+
+        if (error) {
+          toast.error("Error fetching user profile");
+          return;
+        }
+
+        const profile = profileData as DbProfile;
+
+        const { data: resumesData, error: resumesError } = await supabase
+          .from('resumes')
+          .select('*')
+          .eq('user_id', authUser.id);
+
+        if (resumesError) {
+          toast.error("Error fetching resumes");
+        }
+
+        const resumes = resumesError ? [] : resumesData.map(resume => ({
+          id: resume.id,
+          name: resume.name,
+          file_path: resume.file_path,
+          isPrimary: resume.is_primary,
+          created_at: resume.created_at,
+          updated_at: resume.updated_at,
+          uploadDate: resume.upload_date || resume.created_at
+        }));
+
+        const settings = profile.settings || {
+          notifications: false,
+          emailUpdates: false,
+          darkMode: false
+        };
+
+        setNotificationSettings(settings);
+        setResumeFiles(resumes);
+
+        const userModel = mapProfileToUser(profile, resumes);
+        setUser(userModel);
+
+        const jobPreferences = profile.job_preferences || {
+          locations: [],
+          job_types: [],
+          industries: [],
+          salary_range: { min: 50000, max: 100000 }
+        };
+        
+        const locations = jobPreferences.locations || [];
+        const jobTypes = jobPreferences.job_types || [];
+        const industries = jobPreferences.industries || [];
+        
+        form.reset({
+          locations: locations,
+          jobTypes: jobTypes,
+          industries: industries,
+          salaryMin: jobPreferences.salary_range?.min?.toString() || '50000',
+          salaryMax: jobPreferences.salary_range?.max?.toString() || '100000'
+        });
+
+        setSelectedLocations(locations);
+        setSelectedIndustries(industries);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        toast.error("Failed to load user data");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    updateUser(updatedUser);
-    
-    toast.success("Preferences updated successfully");
-    navigate('/dashboard');
+    fetchUserProfile();
+  }, [navigate]);
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("User not authenticated");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          job_preferences: {
+            locations: data.locations,
+            job_types: data.jobTypes,
+            industries: data.industries,
+            salary_range: {
+              min: parseInt(data.salaryMin),
+              max: parseInt(data.salaryMax)
+            }
+          },
+          settings: {
+            ...notificationSettings,
+          },
+          onboarding_step: 3,
+          is_onboarding_complete: true
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error("Update error:", error);
+        toast.error("Failed to update preferences");
+        return;
+      }
+
+      toast.success("Preferences updated successfully");
+      navigate('/dashboard');
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error("An unexpected error occurred");
+    }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     
@@ -175,75 +256,170 @@ const UserPreferences = () => {
       return;
     }
     
-    setUploading(true);
-    
-    setTimeout(() => {
+    try {
+      setUploading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("User not authenticated");
+        return;
+      }
+
+      const fileName = `${user.id}/${Date.now()}-${file.name}`;
+      const { error: uploadError, data: uploadData } = await supabase.storage
+        .from('resumes')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(fileName);
+
+      const fileUrl = urlData.publicUrl;
+
+      const isPrimary = resumeFiles.length === 0;
+      const { error: dbError, data: resumeData } = await supabase
+        .from('resumes')
+        .insert([{
+          user_id: user.id,
+          name: file.name,
+          file_path: fileUrl,
+          is_primary: isPrimary,
+          upload_date: new Date().toISOString()
+        }])
+        .select()
+        .single();
+
+      if (dbError) {
+        throw new Error(dbError.message);
+      }
+
       const newResume: Resume = {
-        id: Date.now().toString(),
+        id: resumeData.id,
         name: file.name,
-        file_path: URL.createObjectURL(file),
-        isPrimary: resumeFiles.length === 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        uploadDate: new Date()
+        file_path: fileUrl,
+        isPrimary,
+        created_at: resumeData.created_at,
+        updated_at: resumeData.updated_at,
+        uploadDate: resumeData.upload_date || resumeData.created_at
       };
       
       const updatedResumes = [...resumeFiles, newResume];
       setResumeFiles(updatedResumes);
       
       if (user) {
-        updateUser({
-          ...user,
-          resumes: updatedResumes
+        setUser(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            resumes: updatedResumes
+          };
         });
       }
       
-      setUploading(false);
       toast.success("Resume uploaded successfully");
-    }, 1500);
+    } catch (error) {
+      console.error("Resume upload error:", error);
+      toast.error("Failed to upload resume");
+    } finally {
+      setUploading(false);
+    }
   };
 
-  const handleDeleteResume = (id: string) => {
-    const updatedResumes = resumeFiles.filter(resume => resume.id !== id);
-    
-    if (resumeFiles.find(r => r.id === id)?.isPrimary && updatedResumes.length > 0) {
-      updatedResumes[0].isPrimary = true;
+  const handleDeleteResume = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('resumes')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      const updatedResumes = resumeFiles.filter(resume => resume.id !== id);
+      
+      if (resumeFiles.find(r => r.id === id)?.isPrimary && updatedResumes.length > 0) {
+        await supabase
+          .from('resumes')
+          .update({ is_primary: true })
+          .eq('id', updatedResumes[0].id);
+          
+        updatedResumes[0].isPrimary = true;
+      }
+      
+      setResumeFiles(updatedResumes);
+      
+      if (user) {
+        setUser(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            resumes: updatedResumes
+          };
+        });
+      }
+      
+      toast.success("Resume deleted successfully");
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete resume");
     }
-    
-    setResumeFiles(updatedResumes);
-    
-    if (user) {
-      updateUser({
-        ...user,
-        resumes: updatedResumes
-      });
-    }
-    
-    toast.success("Resume deleted successfully");
   };
 
-  const handleSetPrimaryResume = (id: string) => {
-    const updatedResumes = resumeFiles.map(resume => ({
-      ...resume,
-      isPrimary: resume.id === id
-    }));
-    
-    setResumeFiles(updatedResumes);
-    
-    if (user) {
-      updateUser({
-        ...user,
-        resumes: updatedResumes
-      });
+  const handleSetPrimaryResume = async (id: string) => {
+    try {
+      await supabase
+        .from('resumes')
+        .update({ is_primary: false })
+        .eq('user_id', user?.id);
+      
+      await supabase
+        .from('resumes')
+        .update({ is_primary: true })
+        .eq('id', id);
+
+      const updatedResumes = resumeFiles.map(resume => ({
+        ...resume,
+        isPrimary: resume.id === id
+      }));
+      
+      setResumeFiles(updatedResumes);
+      
+      if (user) {
+        setUser(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            resumes: updatedResumes
+          };
+        });
+      }
+      
+      toast.success("Primary resume updated");
+    } catch (error) {
+      console.error("Primary resume update error:", error);
+      toast.error("Failed to update primary resume");
     }
-    
-    toast.success("Primary resume updated");
   };
 
-  if (!user) {
-    return null;
+  if (loading) {
+    return (
+      <Layout>
+        <div className="min-h-[calc(100vh-160px)] bg-white dark:bg-background">
+          <div className="container mx-auto px-4 py-8">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex justify-center items-center h-64">
+                <p>Loading preferences...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
   }
-  
+
   return (
     <Layout>
       <div className="min-h-[calc(100vh-160px)] bg-white dark:bg-background">
@@ -374,7 +550,7 @@ const UserPreferences = () => {
                         <FormField
                           control={form.control}
                           name="industries"
-                          render={() => (
+                          render={({ field }) => (
                             <FormItem>
                               <FormLabel>Industries</FormLabel>
                               <Popover open={openIndustry} onOpenChange={setOpenIndustry}>
@@ -538,7 +714,10 @@ const UserPreferences = () => {
                                 <div>
                                   <div className="font-medium">{resume.name}</div>
                                   <div className="text-xs text-muted-foreground">
-                                    Uploaded {resume.uploadDate ? new Date(resume.uploadDate).toLocaleDateString() : new Date(resume.created_at || "").toLocaleDateString()}
+                                    Uploaded {typeof resume.uploadDate === 'string' 
+                                      ? new Date(resume.uploadDate).toLocaleDateString() 
+                                      : resume.uploadDate?.toLocaleDateString() || 
+                                      new Date(resume.created_at || "").toLocaleDateString()}
                                   </div>
                                 </div>
                               </div>
@@ -588,15 +767,12 @@ const UserPreferences = () => {
                           </div>
                           <Switch 
                             id="notifications" 
-                            checked={user.settings?.notifications} 
+                            checked={notificationSettings.notifications} 
                             onCheckedChange={(checked) => {
-                              updateUser({
-                                ...user,
-                                settings: {
-                                  ...user.settings,
-                                  notifications: checked
-                                }
-                              });
+                              setNotificationSettings(prev => ({
+                                ...prev,
+                                notifications: checked
+                              }));
                             }}
                           />
                         </div>
@@ -612,15 +788,12 @@ const UserPreferences = () => {
                           </div>
                           <Switch 
                             id="email-updates" 
-                            checked={user.settings?.emailUpdates} 
+                            checked={notificationSettings.emailUpdates} 
                             onCheckedChange={(checked) => {
-                              updateUser({
-                                ...user,
-                                settings: {
-                                  ...user.settings,
-                                  emailUpdates: checked
-                                }
-                              });
+                              setNotificationSettings(prev => ({
+                                ...prev,
+                                emailUpdates: checked
+                              }));
                             }}
                           />
                         </div>

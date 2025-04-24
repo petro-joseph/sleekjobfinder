@@ -47,6 +47,45 @@ export interface User {
   }
 }
 
+export interface DbProfile {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  country?: string;
+  title?: string;
+  company?: string;
+  bio?: string;
+  avatar_url?: string;
+  location?: string;
+  website?: string;
+  created_at: string;
+  updated_at: string;
+  skills?: string[];
+  is_email_verified?: boolean;
+  is_onboarding_complete?: boolean;
+  onboarding_step?: number;
+  settings?: {
+    notifications: boolean;
+    emailUpdates: boolean;
+    darkMode: boolean;
+  };
+  job_preferences?: {
+    locations: string[];
+    job_types: string[];
+    industries: string[];
+    salary_range?: {
+      min: number;
+      max: number;
+    };
+  };
+}
+
 export interface Experience {
   id: string;
   title: string;
@@ -113,6 +152,45 @@ export interface AuthState {
   saveJob: (job: Job) => void;
   removeJob: (jobId: string) => void;
   updateUser: (userData: Partial<User>) => void;
+}
+
+export function mapProfileToUser(profile: DbProfile, resumes: Resume[] = [], savedJobs: Job[] = []): User {
+  return {
+    id: profile.id,
+    firstName: profile.first_name || '',
+    lastName: profile.last_name || '',
+    email: profile.email || '',
+    phone: profile.phone,
+    address: profile.address,
+    city: profile.city,
+    state: profile.state,
+    zip: profile.zip,
+    country: profile.country,
+    title: profile.title,
+    company: profile.company,
+    bio: profile.bio,
+    avatarUrl: profile.avatar_url,
+    location: profile.location,
+    website: profile.website,
+    skills: profile.skills || [],
+    applications: [],
+    savedJobs,
+    alerts: [],
+    resumes,
+    onboardingStep: profile.onboarding_step,
+    isOnboardingComplete: profile.is_onboarding_complete,
+    jobPreferences: profile.job_preferences ? {
+      locations: profile.job_preferences.locations || [],
+      jobTypes: profile.job_preferences.job_types || [],
+      industries: profile.job_preferences.industries || [],
+      salaryRange: profile.job_preferences.salary_range
+    } : undefined,
+    settings: profile.settings || {
+      notifications: true,
+      emailUpdates: false,
+      darkMode: false,
+    }
+  };
 }
 
 const defaultUser: User = {
@@ -197,6 +275,13 @@ export const useAuthStore = create<AuthState>()(
                 .eq('id', data.user.id)
                 .maybeSingle();
 
+              const { data: savedJobsData, error: savedJobsError } = await supabase
+                .from('saved_jobs')
+                .select('jobs(*)')
+                .eq('user_id', data.user.id);
+
+              const savedJobs = savedJobsError ? [] : savedJobsData.map((item: any) => item.jobs);
+
               set({ 
                 isAuthenticated: true, 
                 user: {
@@ -206,7 +291,7 @@ export const useAuthStore = create<AuthState>()(
                   lastName: profile?.last_name || '',
                   avatarUrl: profile?.avatar_url,
                   applications: [],
-                  savedJobs: [],
+                  savedJobs,
                   alerts: [],
                   resumes: [],
                   settings: {
@@ -234,21 +319,21 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       register: async (userData) => {
-        const { data: { user }, error } = await supabase.auth.signUp({
-          email: userData.email,
-          password: userData.password,
-          options: {
-            data: {
-              first_name: userData.firstName,
-              last_name: userData.lastName,
-            },
-            emailRedirectTo: `${window.location.origin}/verify-otp?email=${encodeURIComponent(userData.email)}`
-          }
-        });
+        try {
+          const { error } = await supabase.auth.signUp({
+            email: userData.email,
+            password: userData.password,
+            options: {
+              data: {
+                first_name: userData.firstName,
+                last_name: userData.lastName,
+              },
+              emailRedirectTo: `${window.location.origin}/verify-otp?email=${encodeURIComponent(userData.email)}`
+            }
+          });
 
-        if (error) throw error;
+          if (error) throw error;
 
-        if (user) {
           toast.success(
             "Please check your email to verify your account.",
             {
@@ -256,36 +341,62 @@ export const useAuthStore = create<AuthState>()(
               duration: 5000,
             }
           );
+        } catch (error: any) {
+          console.error("Registration error:", error);
+          throw error;
         }
       },
-      saveJob: (job) => {
-        set((state) => {
-          if (!state.user) return state;
+      saveJob: async (job) => {
+        try {
+          const { data, error: userError } = await supabase.auth.getUser();
           
-          const isJobSaved = state.user.savedJobs.some(j => j.id === job.id);
-          if (isJobSaved) return state;
+          if (userError || !data.user) throw new Error('User not authenticated');
           
-          return {
-            ...state,
-            user: {
-              ...state.user,
-              savedJobs: [...state.user.savedJobs, job]
-            }
-          };
-        });
+          const { error } = await supabase
+            .from('saved_jobs')
+            .insert([{ user_id: data.user.id, job_id: job.id }]);
+
+          if (error) throw error;
+
+          set((state) => ({
+            user: state.user
+              ? {
+                  ...state.user,
+                  savedJobs: [...(state.user.savedJobs || []), job],
+                }
+              : null,
+          }));
+        } catch (error) {
+          console.error('Error saving job:', error);
+          throw error;
+        }
       },
-      removeJob: (jobId) => {
-        set((state) => {
-          if (!state.user) return state;
+      removeJob: async (jobId) => {
+        try {
+          const { data, error: userError } = await supabase.auth.getUser();
           
-          return {
-            ...state,
-            user: {
-              ...state.user,
-              savedJobs: state.user.savedJobs.filter(job => job.id !== jobId)
-            }
-          };
-        });
+          if (userError || !data.user) throw new Error('User not authenticated');
+          
+          const { error } = await supabase
+            .from('saved_jobs')
+            .delete()
+            .eq('job_id', jobId)
+            .eq('user_id', data.user.id);
+
+          if (error) throw error;
+
+          set((state) => ({
+            user: state.user
+              ? {
+                  ...state.user,
+                  savedJobs: state.user.savedJobs.filter((job) => job.id !== jobId),
+                }
+              : null,
+          }));
+        } catch (error) {
+          console.error('Error removing job:', error);
+          throw error;
+        }
       },
       updateUser: (userData) => {
         set((state) => {
