@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { User, Resume } from '@/lib/store';
+import { User, Resume, DbProfile, mapProfileToUser } from '@/lib/store';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,16 +63,6 @@ const industries = [
   { value: 'construction', label: 'Construction' },
 ].sort((a, b) => a.label.localeCompare(b.label));
 
-interface JobPreferences {
-  locations?: string[];
-  job_types?: string[];
-  industries?: string[];
-  salary_range?: {
-    min: number;
-    max: number;
-  };
-}
-
 const formSchema = z.object({
   locations: z.array(z.string()).min(1, 'Select at least one location'),
   jobTypes: z.array(z.string()).min(1, 'Select at least one job type'),
@@ -94,6 +84,7 @@ const UserPreferences = () => {
   const [notificationSettings, setNotificationSettings] = useState({
     notifications: false,
     emailUpdates: false,
+    darkMode: false
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -111,29 +102,31 @@ const UserPreferences = () => {
     const fetchUserProfile = async () => {
       try {
         setLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user: authUser } } = await supabase.auth.getUser();
         
-        if (!user) {
+        if (!authUser) {
           toast.error("Please log in to access preferences");
           navigate('/login');
           return;
         }
 
-        const { data: profile, error } = await supabase
+        const { data: profileData, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', user.id)
-          .single();
+          .eq('id', authUser.id)
+          .maybeSingle();
 
         if (error) {
           toast.error("Error fetching user profile");
           return;
         }
 
+        const profile = profileData as DbProfile;
+
         const { data: resumesData, error: resumesError } = await supabase
           .from('resumes')
           .select('*')
-          .eq('user_id', user.id);
+          .eq('user_id', authUser.id);
 
         if (resumesError) {
           toast.error("Error fetching resumes");
@@ -149,41 +142,35 @@ const UserPreferences = () => {
           uploadDate: resume.upload_date || resume.created_at
         }));
 
-        setUser({
-          id: user.id,
-          firstName: profile?.first_name || '',
-          lastName: profile?.last_name || '',
-          email: user.email || '',
-          applications: [],
-          savedJobs: [],
-          alerts: [],
-          resumes: resumes,
-          settings: {
-            notifications: profile?.settings?.notifications || false,
-            emailUpdates: profile?.settings?.emailUpdates || false,
-            darkMode: profile?.settings?.darkMode || false
-          }
-        });
+        const settings = profile.settings || {
+          notifications: false,
+          emailUpdates: false,
+          darkMode: false
+        };
 
-        setNotificationSettings({
-          notifications: profile?.settings?.notifications || false,
-          emailUpdates: profile?.settings?.emailUpdates || false
-        });
-
+        setNotificationSettings(settings);
         setResumeFiles(resumes);
 
-        const jobPreferences = profile?.job_preferences as JobPreferences || {};
+        const userModel = mapProfileToUser(profile, resumes);
+        setUser(userModel);
+
+        const jobPreferences = profile.job_preferences || {
+          locations: [],
+          job_types: [],
+          industries: [],
+          salary_range: { min: 50000, max: 100000 }
+        };
         
-        const locations = jobPreferences?.locations || [];
-        const jobTypes = jobPreferences?.job_types || [];
-        const industries = jobPreferences?.industries || [];
+        const locations = jobPreferences.locations || [];
+        const jobTypes = jobPreferences.job_types || [];
+        const industries = jobPreferences.industries || [];
         
         form.reset({
           locations: locations,
           jobTypes: jobTypes,
           industries: industries,
-          salaryMin: jobPreferences?.salary_range?.min?.toString() || '50000',
-          salaryMax: jobPreferences?.salary_range?.max?.toString() || '100000'
+          salaryMin: jobPreferences.salary_range?.min?.toString() || '50000',
+          salaryMax: jobPreferences.salary_range?.max?.toString() || '100000'
         });
 
         setSelectedLocations(locations);
@@ -317,16 +304,19 @@ const UserPreferences = () => {
         isPrimary,
         created_at: resumeData.created_at,
         updated_at: resumeData.updated_at,
-        uploadDate: new Date()
+        uploadDate: resumeData.upload_date || resumeData.created_at
       };
       
       const updatedResumes = [...resumeFiles, newResume];
       setResumeFiles(updatedResumes);
       
       if (user) {
-        setUser({
-          ...user,
-          resumes: updatedResumes
+        setUser(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            resumes: updatedResumes
+          };
         });
       }
       
@@ -362,9 +352,12 @@ const UserPreferences = () => {
       setResumeFiles(updatedResumes);
       
       if (user) {
-        setUser({
-          ...user,
-          resumes: updatedResumes
+        setUser(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            resumes: updatedResumes
+          };
         });
       }
       
@@ -395,9 +388,12 @@ const UserPreferences = () => {
       setResumeFiles(updatedResumes);
       
       if (user) {
-        setUser({
-          ...user,
-          resumes: updatedResumes
+        setUser(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            resumes: updatedResumes
+          };
         });
       }
       
@@ -718,7 +714,10 @@ const UserPreferences = () => {
                                 <div>
                                   <div className="font-medium">{resume.name}</div>
                                   <div className="text-xs text-muted-foreground">
-                                    Uploaded {resume.uploadDate ? new Date(resume.uploadDate).toLocaleDateString() : new Date(resume.created_at || "").toLocaleDateString()}
+                                    Uploaded {typeof resume.uploadDate === 'string' 
+                                      ? new Date(resume.uploadDate).toLocaleDateString() 
+                                      : resume.uploadDate?.toLocaleDateString() || 
+                                      new Date(resume.created_at || "").toLocaleDateString()}
                                   </div>
                                 </div>
                               </div>

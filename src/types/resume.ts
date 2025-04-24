@@ -20,7 +20,7 @@ export interface Resume {
   workExperiences?: WorkExperience[];
   education?: Education[];
   projects?: Project[];
-  uploadDate?: Date; // from store.ts
+  uploadDate?: string | Date; // Allow both string and Date
 }
 
 export interface WorkExperience {

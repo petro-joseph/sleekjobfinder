@@ -30,7 +30,6 @@ export const fetchJobs = async (filters?: JobFilters): Promise<Job[]> => {
 
     // Experience Levels (assuming there's a way to map this in the jobs table)
     if (filters.experienceLevels && filters.experienceLevels.length > 0) {
-      // You might need to adjust this based on how experience levels are stored in your jobs table
       query = query.in("experience_level", filters.experienceLevels);
     }
 
@@ -40,8 +39,8 @@ export const fetchJobs = async (filters?: JobFilters): Promise<Job[]> => {
     // Salary Range filter
     if (filters.salaryRange) {
       const [min, max] = filters.salaryRange;
-      query = query.gte("salary", min.toString())
-               .lte("salary", max.toString());
+      if (min > 0) query = query.gte("salary", min.toString());
+      if (max > 0) query = query.lte("salary", max.toString());
     }
 
     // Search Term filter

@@ -47,6 +47,45 @@ export interface User {
   }
 }
 
+export interface DbProfile {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  country?: string;
+  title?: string;
+  company?: string;
+  bio?: string;
+  avatar_url?: string;
+  location?: string;
+  website?: string;
+  created_at: string;
+  updated_at: string;
+  skills?: string[];
+  is_email_verified?: boolean;
+  is_onboarding_complete?: boolean;
+  onboarding_step?: number;
+  settings?: {
+    notifications: boolean;
+    emailUpdates: boolean;
+    darkMode: boolean;
+  };
+  job_preferences?: {
+    locations: string[];
+    job_types: string[];
+    industries: string[];
+    salary_range?: {
+      min: number;
+      max: number;
+    };
+  };
+}
+
 export interface Experience {
   id: string;
   title: string;
@@ -113,6 +152,45 @@ export interface AuthState {
   saveJob: (job: Job) => void;
   removeJob: (jobId: string) => void;
   updateUser: (userData: Partial<User>) => void;
+}
+
+export function mapProfileToUser(profile: DbProfile, resumes: Resume[] = [], savedJobs: Job[] = []): User {
+  return {
+    id: profile.id,
+    firstName: profile.first_name || '',
+    lastName: profile.last_name || '',
+    email: profile.email || '',
+    phone: profile.phone,
+    address: profile.address,
+    city: profile.city,
+    state: profile.state,
+    zip: profile.zip,
+    country: profile.country,
+    title: profile.title,
+    company: profile.company,
+    bio: profile.bio,
+    avatarUrl: profile.avatar_url,
+    location: profile.location,
+    website: profile.website,
+    skills: profile.skills || [],
+    applications: [],
+    savedJobs,
+    alerts: [],
+    resumes,
+    onboardingStep: profile.onboarding_step,
+    isOnboardingComplete: profile.is_onboarding_complete,
+    jobPreferences: profile.job_preferences ? {
+      locations: profile.job_preferences.locations || [],
+      jobTypes: profile.job_preferences.job_types || [],
+      industries: profile.job_preferences.industries || [],
+      salaryRange: profile.job_preferences.salary_range
+    } : undefined,
+    settings: profile.settings || {
+      notifications: true,
+      emailUpdates: false,
+      darkMode: false,
+    }
+  };
 }
 
 const defaultUser: User = {

@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/pagination';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { fetchJobs } from "@/api/jobs";
+import { fetchJobs, JobFilters } from "@/api/jobs";
 
 const Jobs = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,16 +25,21 @@ const Jobs = () => {
   const jobListingsRef = useRef<HTMLDivElement>(null);
 
   const initialFilters = {
-    jobTypes: {} as Record<string, boolean>,
-    experienceLevels: { entry: false, mid: false, senior: false } as Record<string, boolean>,
+    jobTypes: [] as string[],
+    experienceLevels: [] as string[],
     salaryRange: [50, 150] as [number, number],
     searchTerm: '',
     industry: '',
-    datePosted: '',
     location: '',
-    sortBy: 'relevant',
+    sortBy: 'relevant' as 'newest' | 'relevant',
   };
-  const [activeFilters, setActiveFilters] = useState(initialFilters);
+  const [activeFilters, setActiveFilters] = useState<JobFilters>(initialFilters);
+  const [activeJobTypes, setActiveJobTypes] = useState<Record<string, boolean>>({});
+  const [activeExpLevels, setActiveExpLevels] = useState<Record<string, boolean>>({ 
+    entry: false, 
+    mid: false, 
+    senior: false 
+  });
 
   useEffect(() => {
     const selectedIndustry = localStorage.getItem('selectedIndustry');
@@ -46,6 +51,25 @@ const Jobs = () => {
       localStorage.removeItem('selectedIndustry');
     }
   }, []);
+
+  // Effect to sync checkboxes state with filter arrays
+  useEffect(() => {
+    // Convert job type checkboxes to array for API
+    const jobTypesArray = Object.entries(activeJobTypes)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([type]) => type);
+
+    // Convert experience level checkboxes to array for API
+    const expLevelsArray = Object.entries(activeExpLevels)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([level]) => level);
+
+    setActiveFilters(prev => ({
+      ...prev,
+      jobTypes: jobTypesArray,
+      experienceLevels: expLevelsArray
+    }));
+  }, [activeJobTypes, activeExpLevels]);
 
   const parsePostedDate = (postedStr: string): Date => {
     const now = new Date();
@@ -73,13 +97,28 @@ const Jobs = () => {
     return now;
   };
 
-  const handleFilterChange = (filters: Partial<typeof activeFilters>) => {
-    const newFilters = { ...activeFilters, ...filters };
-    setActiveFilters(newFilters);
+  const handleFilterChange = (filters: Partial<JobFilters>) => {
+    setActiveFilters(prev => ({ ...prev, ...filters }));
+  };
+
+  const handleJobTypeToggle = (type: string, isSelected: boolean) => {
+    setActiveJobTypes(prev => ({
+      ...prev,
+      [type]: isSelected
+    }));
+  };
+
+  const handleExpLevelToggle = (level: string, isSelected: boolean) => {
+    setActiveExpLevels(prev => ({
+      ...prev,
+      [level]: isSelected
+    }));
   };
 
   const handleResetFilters = () => {
     setActiveFilters(initialFilters);
+    setActiveJobTypes({});
+    setActiveExpLevels({ entry: false, mid: false, senior: false });
   };
 
   const handleSortChange = (sortType: 'newest' | 'relevant') => {
@@ -124,6 +163,10 @@ const Jobs = () => {
               activeFilters={activeFilters}
               onFilterChange={handleFilterChange}
               onResetFilters={handleResetFilters}
+              onJobTypeToggle={handleJobTypeToggle}
+              onExpLevelToggle={handleExpLevelToggle}
+              activeJobTypes={activeJobTypes}
+              activeExpLevels={activeExpLevels}
             />
 
             <div className="w-full">
