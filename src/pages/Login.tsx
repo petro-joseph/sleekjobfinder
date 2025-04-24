@@ -50,8 +50,6 @@ const Login = () => {
     setIsLoading(true);
     setError('');
 
-    console.log('Login attempt started for email:', email);
-
     try {
       // First check if this user exists and email is confirmed
       const { data: { user }, error: userError } = await supabase.auth.getUser();
