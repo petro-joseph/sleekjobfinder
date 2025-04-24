@@ -44,7 +44,8 @@ export const fetchJobs = async (filters: Partial<JobFilters> = {}): Promise<JobS
       postedAt: "2 days ago",
       featured: true,
       industry: "Technology",
-      url: "/jobs/1"
+      url: "/jobs/1",
+      tags: ["React", "TypeScript", "Remote"]
     },
     {
       id: "2",
@@ -57,7 +58,8 @@ export const fetchJobs = async (filters: Partial<JobFilters> = {}): Promise<JobS
       requirements: ["3+ years experience", "Figma", "User Research"],
       postedAt: "1 week ago",
       industry: "Design",
-      url: "/jobs/2"
+      url: "/jobs/2",
+      tags: ["UX", "Figma", "Design"]
     }
   ];
   
@@ -90,7 +92,8 @@ export const fetchJobById = async (jobId: string): Promise<Job | null> => {
     postedAt: "2 days ago",
     featured: true,
     industry: "Technology",
-    url: `/jobs/${jobId}`
+    url: `/jobs/${jobId}`,
+    tags: ["React", "TypeScript", "Remote"]
   };
   
   return mockJob;

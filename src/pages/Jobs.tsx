@@ -15,6 +15,7 @@ import { ErrorState } from '@/components/jobs/ErrorState';
 import { analytics } from '@/lib/analytics';
 import { JOBS_PER_PAGE } from '@/constants';
 import type { Job } from '@/types';
+import { fetchJobs } from '@/api/jobs';
 
 const Jobs = () => {
   // Custom hooks for managing state and functionality

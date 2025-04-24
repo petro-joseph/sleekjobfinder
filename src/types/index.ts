@@ -13,7 +13,8 @@ export interface Job {
   featured?: boolean;
   industry: string;
   url?: string;
-  tags?: string[];
+  tags: string[];
+  created_at?: string;
 }
 
 export interface User {
