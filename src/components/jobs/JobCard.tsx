@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { Job } from '@/data/jobs';
+import { Job } from '@/types';
 
 interface JobCardProps {
   job: Job;

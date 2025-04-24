@@ -1,7 +1,9 @@
-// components/jobs/JobsList.tsx
+
 import { memo } from 'react';
 import { JobCard } from './JobCard';
-import { LoadingState } from './LoadingState';
+import { LoadingState, LoadingSpinner } from './LoadingState';
+import { EmptyState } from './EmptyState';
+import { Job } from '@/types';
 
 interface JobsListProps {
     jobs: Job[];
