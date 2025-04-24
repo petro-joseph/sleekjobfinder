@@ -25,8 +25,8 @@ export interface User {
   lastName?: string;
   isOnboardingComplete?: boolean;
   savedJobs: Job[];
-  resumes?: any[];
-  applications?: any[];
+  resumes?: Resume[];
+  applications?: Application[];
   skills?: string[];
   avatarUrl?: string;
   bio?: string;
@@ -62,4 +62,25 @@ export interface JobSearchResponse {
   total: number;
   hasMore: boolean;
   nextPage?: number;
+}
+
+export interface Resume {
+  id: string;
+  name: string;
+  file_path: string;
+  isPrimary: boolean;
+  created_at: string;
+  updated_at: string;
+  uploadDate: string | Date;
+}
+
+export interface Application {
+  id: string;
+  jobId?: string;
+  position: string;
+  company: string;
+  status: 'applied' | 'interview' | 'offer' | 'rejected' | 'reviewed' | 'accepted' | 'archived' | 'offer_received';
+  createdAt: string;
+  updatedAt: string;
+  appliedAt?: string;
 }

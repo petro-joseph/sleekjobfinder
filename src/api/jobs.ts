@@ -1,4 +1,3 @@
-
 import { Job, JobSearchResponse } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -61,8 +60,7 @@ export const fetchJobs = async (filters: Partial<JobFilters> = {}): Promise<JobS
   
   const { data: jobs, error, count } = await query
     .range(from, to)
-    .select('*', { count: 'exact' })
-    .returns<Job[]>();
+    .select('*', { count: 'exact' });
   
   if (error) {
     console.error('Error fetching jobs:', error);

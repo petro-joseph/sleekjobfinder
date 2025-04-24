@@ -1,8 +1,6 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Job } from '@/types';
-import { Resume as BaseResume } from '@/types/resume';
+import { Job, Application, Resume } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -318,12 +316,12 @@ export const useAuthStore = create<AuthState>()(
           if (applicationsError) throw applicationsError;
           
           // Map DB formats to application format
-          const formattedApplications = applications?.map(app => ({
+          const formattedApplications: Application[] = applications?.map(app => ({
             id: app.id,
             jobId: app.job_id,
             position: app.position,
             company: app.company,
-            status: app.status,
+            status: app.status as Application['status'], // Type assertion to ensure compatibility
             createdAt: app.created_at,
             updatedAt: app.updated_at,
             appliedAt: app.applied_at
@@ -334,9 +332,13 @@ export const useAuthStore = create<AuthState>()(
             userProfile, 
             savedJobs, 
             resumes?.map(r => ({
-              ...r,
+              id: r.id,
+              name: r.name,
+              file_path: r.file_path,
               isPrimary: r.is_primary,
-              uploadDate: r.upload_date ? new Date(r.upload_date) : undefined
+              created_at: r.created_at,
+              updated_at: r.updated_at,
+              uploadDate: r.upload_date || r.created_at
             })) || [],
             formattedApplications
           );
@@ -517,7 +519,6 @@ export const useAuthStore = create<AuthState>()(
   )
 );
 
-// Helper function to format posted date
 const formatPostedAt = (dateString: string): string => {
   const date = new Date(dateString);
   const now = new Date();
