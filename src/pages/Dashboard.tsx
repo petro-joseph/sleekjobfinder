@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { fetchJobs } from '@/api/jobs';
-import { Job } from '@/data/jobs';
 import { DashboardSkeleton, JobCardSkeleton, TableSkeleton } from '@/components/skeletons/Skeletons';
 import { 
   Pagination, 
@@ -42,7 +41,7 @@ const Dashboard = () => {
   const { user, isAuthenticated, saveJob, removeJob } = useAuthStore();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  const jobsPerPage = 4;
+  const jobsPerPage = 3;
 
   // Sample recent activities - in a real app, these would come from an API or user data
   const recentActivities = [

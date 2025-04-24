@@ -3,13 +3,14 @@ import { Job } from "@/data/jobs";
 import { DateTime } from 'luxon';
 
 export interface JobFilters {
-  industry?: string;
-  jobTypes?: string[];
-  experienceLevels?: string[];
-  location?: string;
-  salaryRange?: [number, number];
-  searchTerm?: string;
-  sortBy?: 'newest' | 'relevant';
+  jobTypes: string[];
+  experienceLevels: string[];
+  salaryRange: [number, number];
+  searchTerm: string;
+  industry: string;
+  location: string;
+  sortBy: 'newest' | 'relevant';
+  datePosted: string;
   featured?: boolean;
 }
 
