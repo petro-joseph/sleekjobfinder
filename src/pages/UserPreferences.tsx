@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { User, Resume } from '@/lib/store';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { 
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -18,14 +20,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore, Resume } from '@/lib/store';
-import { Check, ChevronsUpDown, Trash2, Upload, X } from 'lucide-react';
+import { ChevronsUpDown, Check, X, Trash2, Upload } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 
 const countries = [
   { value: 'US', label: 'United States' },
@@ -67,13 +66,13 @@ const formSchema = z.object({
   locations: z.array(z.string()).min(1, 'Select at least one location'),
   jobTypes: z.array(z.string()).min(1, 'Select at least one job type'),
   industries: z.array(z.string()).min(1, 'Select at least one industry'),
-  salaryMin: z.string().min(1, 'Minimum salary is required'),
-  salaryMax: z.string().min(1, 'Maximum salary is required')
+  salaryMin: z.string().refine(val => !isNaN(parseInt(val)), { message: "Minimum salary must be a number" }),
+  salaryMax: z.string().refine(val => !isNaN(parseInt(val)), { message: "Maximum salary must be a number" }),
 });
 
 const UserPreferences = () => {
-  const { user, updateUser, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
   const [openCountry, setOpenCountry] = useState(false);
   const [openIndustry, setOpenIndustry] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
@@ -84,66 +83,80 @@ const UserPreferences = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      locations: user?.jobPreferences?.locations || [],
-      jobTypes: user?.jobPreferences?.jobTypes || [],
-      industries: user?.jobPreferences?.industries || [],
-      salaryMin: user?.jobPreferences?.salaryRange?.min.toString() || '50000',
-      salaryMax: user?.jobPreferences?.salaryRange?.max.toString() || '100000'
+      locations: [],
+      jobTypes: [],
+      industries: [],
+      salaryMin: '50000',
+      salaryMax: '100000'
     }
   });
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      toast.error("Please log in to access preferences", {
-        description: "You've been redirected to the login page"
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("Please log in to access preferences");
+        navigate('/login');
+        return;
+      }
+
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        toast.error("Error fetching user profile");
+        return;
+      }
+
+      form.reset({
+        locations: profile?.job_preferences?.locations || [],
+        jobTypes: profile?.job_preferences?.job_types || [],
+        industries: profile?.job_preferences?.industries || [],
+        salaryMin: profile?.job_preferences?.salary_range?.min?.toString() || '50000',
+        salaryMax: profile?.job_preferences?.salary_range?.max?.toString() || '100000'
       });
-      navigate('/login');
+
+      setSelectedLocations(profile?.job_preferences?.locations || []);
+      setSelectedIndustries(profile?.job_preferences?.industries || []);
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast.error("User not authenticated");
       return;
     }
 
-    if (user) {
-      if (user.jobPreferences?.locations) {
-        setSelectedLocations(user.jobPreferences.locations);
-      }
-      
-      if (user.jobPreferences?.industries) {
-        setSelectedIndustries(user.jobPreferences.industries);
-      }
-      
-      if (user.resumes) {
-        setResumeFiles(user.resumes);
-      }
-      
-      form.reset({
-        locations: user.jobPreferences?.locations || [],
-        jobTypes: user.jobPreferences?.jobTypes || [],
-        industries: user.jobPreferences?.industries || [],
-        salaryMin: user.jobPreferences?.salaryRange?.min.toString() || '50000',
-        salaryMax: user.jobPreferences?.salaryRange?.max.toString() || '100000'
-      });
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        job_preferences: {
+          locations: data.locations,
+          job_types: data.jobTypes,
+          industries: data.industries,
+          salary_range: {
+            min: parseInt(data.salaryMin),
+            max: parseInt(data.salaryMax)
+          }
+        },
+        onboarding_step: 3,
+        is_onboarding_complete: true
+      })
+      .eq('id', user.id);
+
+    if (error) {
+      toast.error("Failed to update preferences");
+      return;
     }
-  }, [user, isAuthenticated, navigate, form]);
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    if (!user) return;
-
-    const updatedUser = {
-      ...user,
-      jobPreferences: {
-        locations: data.locations,
-        jobTypes: data.jobTypes,
-        industries: data.industries,
-        salaryRange: {
-          min: parseInt(data.salaryMin),
-          max: parseInt(data.salaryMax)
-        }
-      },
-      onboardingStep: 3,
-      isOnboardingComplete: true
-    };
-
-    updateUser(updatedUser);
-    
     toast.success("Preferences updated successfully");
     navigate('/dashboard');
   };
@@ -192,7 +205,7 @@ const UserPreferences = () => {
       setResumeFiles(updatedResumes);
       
       if (user) {
-        updateUser({
+        setUser({
           ...user,
           resumes: updatedResumes
         });
@@ -213,7 +226,7 @@ const UserPreferences = () => {
     setResumeFiles(updatedResumes);
     
     if (user) {
-      updateUser({
+      setUser({
         ...user,
         resumes: updatedResumes
       });
@@ -231,7 +244,7 @@ const UserPreferences = () => {
     setResumeFiles(updatedResumes);
     
     if (user) {
-      updateUser({
+      setUser({
         ...user,
         resumes: updatedResumes
       });
@@ -240,10 +253,6 @@ const UserPreferences = () => {
     toast.success("Primary resume updated");
   };
 
-  if (!user) {
-    return null;
-  }
-  
   return (
     <Layout>
       <div className="min-h-[calc(100vh-160px)] bg-white dark:bg-background">
@@ -374,7 +383,7 @@ const UserPreferences = () => {
                         <FormField
                           control={form.control}
                           name="industries"
-                          render={() => (
+                          render={({ field }) => (
                             <FormItem>
                               <FormLabel>Industries</FormLabel>
                               <Popover open={openIndustry} onOpenChange={setOpenIndustry}>
@@ -590,7 +599,7 @@ const UserPreferences = () => {
                             id="notifications" 
                             checked={user.settings?.notifications} 
                             onCheckedChange={(checked) => {
-                              updateUser({
+                              setUser({
                                 ...user,
                                 settings: {
                                   ...user.settings,
@@ -614,7 +623,7 @@ const UserPreferences = () => {
                             id="email-updates" 
                             checked={user.settings?.emailUpdates} 
                             onCheckedChange={(checked) => {
-                              updateUser({
+                              setUser({
                                 ...user,
                                 settings: {
                                   ...user.settings,
