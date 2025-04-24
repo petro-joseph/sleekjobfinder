@@ -72,6 +72,45 @@ export interface Resume {
   created_at: string;
   updated_at: string;
   uploadDate: string | Date;
+  user_id?: string;
+  contactInfo?: {
+    phone: string;
+    email: string;
+    linkedin: string;
+  };
+  jobTitle?: string;
+  yearsOfExperience?: number;
+  industries?: string[];
+  skills?: string[];
+  summary?: string;
+  workExperiences?: WorkExperience[];
+  education?: Education[];
+  projects?: Project[];
+}
+
+export interface WorkExperience {
+  company: string;
+  title: string;
+  location: string;
+  startDate: string;
+  endDate?: string;
+  responsibilities: string[];
+  department?: string;
+}
+
+export interface Education {
+  institution: string;
+  degree: string;
+  field?: string;
+  gpa?: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface Project {
+  title: string;
+  date: string;
+  description: string;
 }
 
 export interface Application {

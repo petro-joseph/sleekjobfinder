@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Job, Application, Resume } from '@/types';
+import { Job, Resume, Application } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -105,17 +105,6 @@ export interface Education {
   description: string;
 }
 
-export interface Application {
-  id: string;
-  jobId?: string;
-  position: string;
-  company: string;
-  status: 'applied' | 'interview' | 'offer' | 'rejected' | 'reviewed' | 'accepted';
-  createdAt: string;
-  updatedAt: string;
-  appliedAt?: string;
-}
-
 export interface Alert {
   id: string;
   query: string;
@@ -124,16 +113,6 @@ export interface Alert {
   frequency: 'daily' | 'weekly' | 'monthly';
   createdAt: string;
 }
-
-export interface Resume extends Pick<BaseResume, 
-  "id" | 
-  "name" | 
-  "file_path" | 
-  "isPrimary" | 
-  "created_at" | 
-  "updated_at" | 
-  "uploadDate"
-> {}
 
 export interface UserRegistration {
   firstName: string;
