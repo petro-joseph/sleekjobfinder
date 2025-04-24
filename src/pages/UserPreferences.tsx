@@ -7,6 +7,7 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   Form,
   FormControl,
@@ -62,6 +63,16 @@ const industries = [
   { value: 'construction', label: 'Construction' },
 ].sort((a, b) => a.label.localeCompare(b.label));
 
+interface JobPreferences {
+  locations?: string[];
+  job_types?: string[];
+  industries?: string[];
+  salary_range?: {
+    min: number;
+    max: number;
+  };
+}
+
 const formSchema = z.object({
   locations: z.array(z.string()).min(1, 'Select at least one location'),
   jobTypes: z.array(z.string()).min(1, 'Select at least one job type'),
@@ -79,6 +90,11 @@ const UserPreferences = () => {
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [resumeFiles, setResumeFiles] = useState<Resume[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [notificationSettings, setNotificationSettings] = useState({
+    notifications: false,
+    emailUpdates: false,
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -93,75 +109,140 @@ const UserPreferences = () => {
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast.error("Please log in to access preferences");
-        navigate('/login');
-        return;
+      try {
+        setLoading(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          toast.error("Please log in to access preferences");
+          navigate('/login');
+          return;
+        }
+
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          toast.error("Error fetching user profile");
+          return;
+        }
+
+        const { data: resumesData, error: resumesError } = await supabase
+          .from('resumes')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (resumesError) {
+          toast.error("Error fetching resumes");
+        }
+
+        const resumes = resumesError ? [] : resumesData.map(resume => ({
+          id: resume.id,
+          name: resume.name,
+          file_path: resume.file_path,
+          isPrimary: resume.is_primary,
+          created_at: resume.created_at,
+          updated_at: resume.updated_at,
+          uploadDate: resume.upload_date || resume.created_at
+        }));
+
+        setUser({
+          id: user.id,
+          firstName: profile?.first_name || '',
+          lastName: profile?.last_name || '',
+          email: user.email || '',
+          applications: [],
+          savedJobs: [],
+          alerts: [],
+          resumes: resumes,
+          settings: {
+            notifications: profile?.settings?.notifications || false,
+            emailUpdates: profile?.settings?.emailUpdates || false,
+            darkMode: profile?.settings?.darkMode || false
+          }
+        });
+
+        setNotificationSettings({
+          notifications: profile?.settings?.notifications || false,
+          emailUpdates: profile?.settings?.emailUpdates || false
+        });
+
+        setResumeFiles(resumes);
+
+        const jobPreferences = profile?.job_preferences as JobPreferences || {};
+        
+        const locations = jobPreferences?.locations || [];
+        const jobTypes = jobPreferences?.job_types || [];
+        const industries = jobPreferences?.industries || [];
+        
+        form.reset({
+          locations: locations,
+          jobTypes: jobTypes,
+          industries: industries,
+          salaryMin: jobPreferences?.salary_range?.min?.toString() || '50000',
+          salaryMax: jobPreferences?.salary_range?.max?.toString() || '100000'
+        });
+
+        setSelectedLocations(locations);
+        setSelectedIndustries(industries);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        toast.error("Failed to load user data");
+      } finally {
+        setLoading(false);
       }
-
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        toast.error("Error fetching user profile");
-        return;
-      }
-
-      form.reset({
-        locations: profile?.job_preferences?.locations || [],
-        jobTypes: profile?.job_preferences?.job_types || [],
-        industries: profile?.job_preferences?.industries || [],
-        salaryMin: profile?.job_preferences?.salary_range?.min?.toString() || '50000',
-        salaryMax: profile?.job_preferences?.salary_range?.max?.toString() || '100000'
-      });
-
-      setSelectedLocations(profile?.job_preferences?.locations || []);
-      setSelectedIndustries(profile?.job_preferences?.industries || []);
     };
 
     fetchUserProfile();
-  }, []);
+  }, [navigate]);
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      toast.error("User not authenticated");
-      return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("User not authenticated");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          job_preferences: {
+            locations: data.locations,
+            job_types: data.jobTypes,
+            industries: data.industries,
+            salary_range: {
+              min: parseInt(data.salaryMin),
+              max: parseInt(data.salaryMax)
+            }
+          },
+          settings: {
+            ...notificationSettings,
+          },
+          onboarding_step: 3,
+          is_onboarding_complete: true
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error("Update error:", error);
+        toast.error("Failed to update preferences");
+        return;
+      }
+
+      toast.success("Preferences updated successfully");
+      navigate('/dashboard');
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error("An unexpected error occurred");
     }
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        job_preferences: {
-          locations: data.locations,
-          job_types: data.jobTypes,
-          industries: data.industries,
-          salary_range: {
-            min: parseInt(data.salaryMin),
-            max: parseInt(data.salaryMax)
-          }
-        },
-        onboarding_step: 3,
-        is_onboarding_complete: true
-      })
-      .eq('id', user.id);
-
-    if (error) {
-      toast.error("Failed to update preferences");
-      return;
-    }
-
-    toast.success("Preferences updated successfully");
-    navigate('/dashboard');
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     
@@ -188,16 +269,54 @@ const UserPreferences = () => {
       return;
     }
     
-    setUploading(true);
-    
-    setTimeout(() => {
+    try {
+      setUploading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("User not authenticated");
+        return;
+      }
+
+      const fileName = `${user.id}/${Date.now()}-${file.name}`;
+      const { error: uploadError, data: uploadData } = await supabase.storage
+        .from('resumes')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(fileName);
+
+      const fileUrl = urlData.publicUrl;
+
+      const isPrimary = resumeFiles.length === 0;
+      const { error: dbError, data: resumeData } = await supabase
+        .from('resumes')
+        .insert([{
+          user_id: user.id,
+          name: file.name,
+          file_path: fileUrl,
+          is_primary: isPrimary,
+          upload_date: new Date().toISOString()
+        }])
+        .select()
+        .single();
+
+      if (dbError) {
+        throw new Error(dbError.message);
+      }
+
       const newResume: Resume = {
-        id: Date.now().toString(),
+        id: resumeData.id,
         name: file.name,
-        file_path: URL.createObjectURL(file),
-        isPrimary: resumeFiles.length === 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        file_path: fileUrl,
+        isPrimary,
+        created_at: resumeData.created_at,
+        updated_at: resumeData.updated_at,
         uploadDate: new Date()
       };
       
@@ -211,47 +330,99 @@ const UserPreferences = () => {
         });
       }
       
-      setUploading(false);
       toast.success("Resume uploaded successfully");
-    }, 1500);
+    } catch (error) {
+      console.error("Resume upload error:", error);
+      toast.error("Failed to upload resume");
+    } finally {
+      setUploading(false);
+    }
   };
 
-  const handleDeleteResume = (id: string) => {
-    const updatedResumes = resumeFiles.filter(resume => resume.id !== id);
-    
-    if (resumeFiles.find(r => r.id === id)?.isPrimary && updatedResumes.length > 0) {
-      updatedResumes[0].isPrimary = true;
+  const handleDeleteResume = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('resumes')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      const updatedResumes = resumeFiles.filter(resume => resume.id !== id);
+      
+      if (resumeFiles.find(r => r.id === id)?.isPrimary && updatedResumes.length > 0) {
+        await supabase
+          .from('resumes')
+          .update({ is_primary: true })
+          .eq('id', updatedResumes[0].id);
+          
+        updatedResumes[0].isPrimary = true;
+      }
+      
+      setResumeFiles(updatedResumes);
+      
+      if (user) {
+        setUser({
+          ...user,
+          resumes: updatedResumes
+        });
+      }
+      
+      toast.success("Resume deleted successfully");
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete resume");
     }
-    
-    setResumeFiles(updatedResumes);
-    
-    if (user) {
-      setUser({
-        ...user,
-        resumes: updatedResumes
-      });
-    }
-    
-    toast.success("Resume deleted successfully");
   };
 
-  const handleSetPrimaryResume = (id: string) => {
-    const updatedResumes = resumeFiles.map(resume => ({
-      ...resume,
-      isPrimary: resume.id === id
-    }));
-    
-    setResumeFiles(updatedResumes);
-    
-    if (user) {
-      setUser({
-        ...user,
-        resumes: updatedResumes
-      });
+  const handleSetPrimaryResume = async (id: string) => {
+    try {
+      await supabase
+        .from('resumes')
+        .update({ is_primary: false })
+        .eq('user_id', user?.id);
+      
+      await supabase
+        .from('resumes')
+        .update({ is_primary: true })
+        .eq('id', id);
+
+      const updatedResumes = resumeFiles.map(resume => ({
+        ...resume,
+        isPrimary: resume.id === id
+      }));
+      
+      setResumeFiles(updatedResumes);
+      
+      if (user) {
+        setUser({
+          ...user,
+          resumes: updatedResumes
+        });
+      }
+      
+      toast.success("Primary resume updated");
+    } catch (error) {
+      console.error("Primary resume update error:", error);
+      toast.error("Failed to update primary resume");
     }
-    
-    toast.success("Primary resume updated");
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="min-h-[calc(100vh-160px)] bg-white dark:bg-background">
+          <div className="container mx-auto px-4 py-8">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex justify-center items-center h-64">
+                <p>Loading preferences...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -597,15 +768,12 @@ const UserPreferences = () => {
                           </div>
                           <Switch 
                             id="notifications" 
-                            checked={user.settings?.notifications} 
+                            checked={notificationSettings.notifications} 
                             onCheckedChange={(checked) => {
-                              setUser({
-                                ...user,
-                                settings: {
-                                  ...user.settings,
-                                  notifications: checked
-                                }
-                              });
+                              setNotificationSettings(prev => ({
+                                ...prev,
+                                notifications: checked
+                              }));
                             }}
                           />
                         </div>
@@ -621,15 +789,12 @@ const UserPreferences = () => {
                           </div>
                           <Switch 
                             id="email-updates" 
-                            checked={user.settings?.emailUpdates} 
+                            checked={notificationSettings.emailUpdates} 
                             onCheckedChange={(checked) => {
-                              setUser({
-                                ...user,
-                                settings: {
-                                  ...user.settings,
-                                  emailUpdates: checked
-                                }
-                              });
+                              setNotificationSettings(prev => ({
+                                ...prev,
+                                emailUpdates: checked
+                              }));
                             }}
                           />
                         </div>

@@ -1,7 +1,8 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Job } from "@/data/jobs";
 
-interface JobFilters {
+export interface JobFilters {
   industry?: string;
   jobTypes?: string[];
   experienceLevels?: string[];
@@ -9,6 +10,7 @@ interface JobFilters {
   salaryRange?: [number, number];
   searchTerm?: string;
   sortBy?: 'newest' | 'relevant';
+  featured?: boolean;
 }
 
 export const fetchJobs = async (filters?: JobFilters): Promise<Job[]> => {
@@ -49,6 +51,11 @@ export const fetchJobs = async (filters?: JobFilters): Promise<Job[]> => {
         `company.ilike.%${filters.searchTerm}%,` +
         `description.ilike.%${filters.searchTerm}%`
       );
+    }
+    
+    // Featured filter
+    if (filters.featured === true) {
+      query = query.eq("featured", true);
     }
   }
 
