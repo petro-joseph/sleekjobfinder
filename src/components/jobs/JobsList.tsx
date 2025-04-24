@@ -1,7 +1,7 @@
 
 import { memo } from 'react';
 import { JobCard } from './JobCard';
-import { LoadingState, LoadingSpinner } from './LoadingState';
+import { JobCardSkeleton, LoadingSpinner } from './LoadingState';
 import { EmptyState } from './EmptyState';
 import { Job } from '@/types';
 
@@ -21,7 +21,13 @@ export const JobsList = memo<JobsListProps>(({
     isFetchingNextPage,
 }) => {
     if (isLoading && !jobs.length) {
-        return <LoadingState />;
+        return (
+            <div className="space-y-6">
+                {[1, 2, 3].map((i) => (
+                    <JobCardSkeleton key={i} />
+                ))}
+            </div>
+        );
     }
 
     if (!jobs.length) {
@@ -41,14 +47,7 @@ export const JobsList = memo<JobsListProps>(({
                 ))}
             </div>
 
-            {isFetchingNextPage && (
-                <div className="py-4 text-center">
-                    <LoadingSpinner />
-                    <p className="text-sm text-muted-foreground mt-2">
-                        Loading more jobs...
-                    </p>
-                </div>
-            )}
+            {isFetchingNextPage && <LoadingSpinner />}
         </div>
     );
 });

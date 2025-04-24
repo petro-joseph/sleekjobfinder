@@ -34,6 +34,8 @@ import { useAuthStore } from '@/lib/store';
 import TailorResumeModal from '@/components/TailorResumeModal';
 import { useQuery } from '@tanstack/react-query';
 import { fetchJobById } from "@/api/jobs";
+import { Skeleton } from '@/components/ui/skeleton';
+import JobDetailSkeleton from '@/components/JobDetailSkeleton';
 
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -131,10 +133,10 @@ const JobDetail = () => {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-4 md:py-8">
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="loader mb-4" />
-            <p className="text-muted-foreground">Loading job details...</p>
+          <div className="mb-4 md:mb-6">
+            <Skeleton className="h-10 w-32" />
           </div>
+          <JobDetailSkeleton />
         </div>
       </Layout>
     );
