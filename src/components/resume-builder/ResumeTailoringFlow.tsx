@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, Dispatch, SetStateAction } from 'react'; // Import React
 // Import necessary icons
 import { Check, X, Info, ArrowRight, ArrowLeft, Download } from 'lucide-react';
@@ -7,7 +8,7 @@ import { useAuthStore } from '../../lib/store'; // Adjusted path
 import { ResumeAnalysisStep } from './ResumeAnalysisStep'; // Adjusted path
 import { ResumeCustomizationStep } from './ResumeCustomizationStep'; // Adjusted path
 import { ResumePreviewStep } from './ResumePreviewStep'; // Correctly import the preview step
-import { defaultResume } from '../../data/resume-data'; // Adjusted path
+import { sampleResume, defaultResume } from '../../data/resume-data'; // Import both sampleResume and defaultResume
 import { Resume, JobPosting, MatchData } from '../../types/resume'; // Adjusted path
 import { useIsMobile } from '../../hooks/use-mobile'; // Adjusted path
 

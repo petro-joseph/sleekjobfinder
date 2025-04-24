@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -150,8 +151,9 @@ const UserPreferences = () => {
 
         setNotificationSettings(settings);
         setResumeFiles(resumes);
-
-        const userModel = mapProfileToUser(profile, resumes);
+        
+        // Pass resumes as third argument, not as first
+        const userModel = mapProfileToUser(profile, [], resumes);
         setUser(userModel);
 
         const jobPreferences = profile.job_preferences || {

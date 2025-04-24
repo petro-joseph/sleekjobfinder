@@ -1,121 +1,74 @@
 
-import { Resume, JobPosting } from '@/types/resume';
+import { Resume } from '@/types';
 
-export const defaultResume: Resume = {
-  id: "default-resume-1",
-  name: "Alex Johnson",
-  file_path: "", // Empty string for default resume
+// Sample resume data that matches the Resume interface
+export const sampleResume: Resume = {
+  id: "1",
+  name: "John Doe Resume",
+  file_path: "/path/to/resume.pdf",
   isPrimary: true,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  uploadDate: new Date(),
   contactInfo: {
     phone: "555-123-4567",
-    email: "alex.johnson@example.com",
-    linkedin: "linkedin.com/in/alexjohnson"
+    email: "john.doe@example.com",
+    linkedin: "linkedin.com/in/johndoe"
   },
-  jobTitle: "Frontend Developer",
-  yearsOfExperience: 4,
-  industries: ["Technology", "E-commerce"],
-  skills: [
-    "JavaScript", 
-    "React", 
-    "TypeScript", 
-    "HTML5", 
-    "CSS3", 
-    "Redux", 
-    "GraphQL"
-  ],
-  summary: "Frontend Developer with 4 years of experience building responsive web applications. Proficient in React, TypeScript, and modern frontend technologies. Passionate about creating intuitive user interfaces and optimizing application performance.",
+  jobTitle: "Software Engineer",
+  yearsOfExperience: 5,
+  industries: ["Technology", "Finance"],
+  skills: ["JavaScript", "React", "Node.js", "TypeScript", "SQL", "Git", "AWS"],
+  summary: "Experienced software engineer with a focus on frontend development using React and TypeScript.",
   workExperiences: [
     {
-      company: "TechFusion Inc.",
-      title: "Senior Frontend Developer",
+      company: "Tech Corp",
+      title: "Senior Frontend Engineer",
       location: "San Francisco, CA",
-      startDate: "Jan 2021",
-      endDate: "Present",
+      startDate: "2020-01-01",
+      endDate: "2023-01-01",
       responsibilities: [
-        "Developed and maintained multiple React applications serving over 50,000 daily users",
-        "Implemented state management using Redux and Context API, reducing code complexity by 30%",
-        "Collaborated with UX designers to implement responsive designs across all device types",
-        "Led a team of 3 developers to deliver projects on time and within scope",
-        "Optimized application performance, reducing load times by 40%"
+        "Led the development of a new customer-facing application using React and TypeScript",
+        "Improved site performance by 40% through code optimization",
+        "Mentored junior developers and conducted code reviews"
       ]
     },
     {
-      company: "Innovate Solutions",
-      title: "Frontend Developer",
-      location: "Seattle, WA",
-      startDate: "Mar 2019",
-      endDate: "Dec 2020",
+      company: "Startup Inc",
+      title: "Software Developer",
+      location: "Austin, TX",
+      startDate: "2018-03-01",
+      endDate: "2019-12-31",
       responsibilities: [
-        "Built interactive UI components using React and TypeScript",
-        "Integrated RESTful APIs and GraphQL to fetch and display data",
-        "Implemented unit tests using Jest, achieving 80% code coverage",
-        "Participated in Agile development processes, including daily standups and sprint planning"
-      ]
-    },
-    {
-      company: "Web Dynamics",
-      title: "Junior Web Developer",
-      location: "Portland, OR",
-      startDate: "Jun 2017",
-      endDate: "Feb 2019",
-      responsibilities: [
-        "Developed responsive websites using HTML5, CSS3, and JavaScript",
-        "Built and maintained WordPress sites for small businesses",
-        "Created interactive forms and validated user inputs using JavaScript",
-        "Collaborated with designers to implement pixel-perfect layouts"
+        "Developed and maintained features for a SaaS product",
+        "Collaborated with UX designers to implement responsive designs",
+        "Participated in agile development cycles"
       ]
     }
   ],
   education: [
     {
-      institution: "University of Washington",
-      degree: "Bachelor of Science in Computer Science",
-      gpa: "3.7",
-      startDate: "Sep 2013",
-      endDate: "Jun 2017"
+      institution: "University of Technology",
+      degree: "Bachelor of Science",
+      field: "Computer Science",
+      gpa: "3.8",
+      startDate: "2014-09-01",
+      endDate: "2018-05-31"
     }
   ],
   projects: [
     {
-      title: "E-commerce Dashboard",
-      date: "2020",
-      description: "Built a React-based dashboard for e-commerce analytics, featuring real-time data visualization and filtering capabilities"
+      title: "Personal Portfolio Website",
+      date: "2022-06-01",
+      description: "Designed and developed a responsive personal website using React, Next.js, and Tailwind CSS."
     },
     {
-      title: "Weather App",
-      date: "2019",
-      description: "Developed a mobile-first weather application using React and OpenWeather API, implementing geolocation and favorites"
+      title: "Task Management App",
+      date: "2021-11-01",
+      description: "Built a task management application with React and Firebase, featuring real-time updates and user authentication."
     }
   ]
 };
 
-export const defaultJobPosting: JobPosting = {
-  title: "Senior Frontend Engineer",
-  company: "NextTech Solutions",
-  location: "San Francisco, CA",
-  salaryRange: "$120,000 - $150,000",
-  employmentType: "Full-time",
-  requiredYearsOfExperience: 5,
-  industries: ["Technology", "SaaS", "Fintech"],
-  requiredSkills: [
-    "JavaScript",
-    "React",
-    "TypeScript",
-    "Redux",
-    "Next.js",
-    "Responsive Design",
-    "CSS-in-JS",
-    "Jest",
-    "Cypress",
-    "Performance Optimization",
-    "RESTful APIs",
-    "Webpack",
-    "Git",
-    "Agile Methodologies",
-    "AWS",
-    "Node.js",
-    "GraphQL",
-    "UI/UX Principles"
-  ],
-  description: "NextTech Solutions is seeking a Senior Frontend Engineer to join our growing team. The ideal candidate will have strong experience with React, TypeScript, and modern frontend technologies. You will be responsible for developing and maintaining high-performance web applications, collaborating with designers and backend engineers, and mentoring junior developers."
-};
+// Export sampleResume as defaultResume for ResumeTailoringFlow.tsx
+export const defaultResume = sampleResume;

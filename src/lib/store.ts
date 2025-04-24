@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Job } from '@/data/jobs';
-import { Resume as BaseResume } from '@/types/resume';
+import { Job, Resume as BaseResume, Application } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -28,7 +27,7 @@ export interface User {
   applications: Application[];
   savedJobs: Job[];
   alerts: Alert[];
-  resumes: Resume[];
+  resumes: BaseResume[];
   onboardingStep?: number;
   isOnboardingComplete?: boolean;
   jobPreferences?: {
@@ -46,6 +45,8 @@ export interface User {
     darkMode: boolean;
   }
 }
+
+export type Resume = BaseResume;
 
 export interface DbProfile {
   id: string;
@@ -106,17 +107,6 @@ export interface Education {
   description: string;
 }
 
-export interface Application {
-  id: string;
-  jobId?: string;
-  position: string;
-  company: string;
-  status: 'applied' | 'interview' | 'offer' | 'rejected' | 'reviewed' | 'accepted';
-  createdAt: string;
-  updatedAt: string;
-  appliedAt?: string;
-}
-
 export interface Alert {
   id: string;
   query: string;
@@ -125,16 +115,6 @@ export interface Alert {
   frequency: 'daily' | 'weekly' | 'monthly';
   createdAt: string;
 }
-
-export interface Resume extends Pick<BaseResume, 
-  "id" | 
-  "name" | 
-  "file_path" | 
-  "isPrimary" | 
-  "created_at" | 
-  "updated_at" | 
-  "uploadDate"
-> {}
 
 export interface UserRegistration {
   firstName: string;
@@ -149,12 +129,14 @@ export interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   register: (userData: UserRegistration) => Promise<void>;
-  saveJob: (job: Job) => void;
-  removeJob: (jobId: string) => void;
-  updateUser: (userData: Partial<User>) => void;
+  saveJob: (job: Job) => Promise<void>;
+  removeJob: (jobId: string) => Promise<void>;
+  updateUser: (userData: Partial<User>) => Promise<void>;
+  fetchSavedJobs: () => Promise<Job[]>;
+  fetchUserProfile: () => Promise<void>;
 }
 
-export function mapProfileToUser(profile: DbProfile, resumes: Resume[] = [], savedJobs: Job[] = []): User {
+export function mapProfileToUser(profile: DbProfile, savedJobs: Job[] = [], resumes: BaseResume[] = [], applications: Application[] = []): User {
   return {
     id: profile.id,
     firstName: profile.first_name || '',
@@ -173,7 +155,7 @@ export function mapProfileToUser(profile: DbProfile, resumes: Resume[] = [], sav
     location: profile.location,
     website: profile.website,
     skills: profile.skills || [],
-    applications: [],
+    applications,
     savedJobs,
     alerts: [],
     resumes,
@@ -193,36 +175,9 @@ export function mapProfileToUser(profile: DbProfile, resumes: Resume[] = [], sav
   };
 }
 
-const defaultUser: User = {
-  id: randomUUID(),
-  firstName: 'John',
-  lastName: 'Doe',
-  email: 'john.doe@example.com',
-  applications: [],
-  savedJobs: [],
-  alerts: [],
-  resumes: [],
-  onboardingStep: 2,
-  isOnboardingComplete: false,
-  jobPreferences: {
-    locations: ['Remote', 'New York, NY'],
-    jobTypes: ['Full-time', 'Remote'],
-    industries: ['Technology'],
-    salaryRange: {
-      min: 50000,
-      max: 120000
-    }
-  },
-  settings: {
-    notifications: true,
-    emailUpdates: false,
-    darkMode: false,
-  }
-};
-
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       isAuthenticated: false,
       user: null,
       login: async (email, password) => {
@@ -231,31 +186,8 @@ export const useAuthStore = create<AuthState>()(
             const { data: { session } } = await supabase.auth.getSession();
             
             if (session?.user) {
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .maybeSingle();
-
-              set({ 
-                isAuthenticated: true, 
-                user: {
-                  id: session.user.id,
-                  email: session.user.email!,
-                  firstName: profile?.first_name || '',
-                  lastName: profile?.last_name || '',
-                  avatarUrl: profile?.avatar_url,
-                  applications: [],
-                  savedJobs: [],
-                  alerts: [],
-                  resumes: [],
-                  settings: {
-                    notifications: true,
-                    emailUpdates: false,
-                    darkMode: false,
-                  }
-                }
-              });
+              // We're already logged in, fetch the user profile
+              await get().fetchUserProfile();
               return;
             }
           }
@@ -269,38 +201,8 @@ export const useAuthStore = create<AuthState>()(
             if (error) throw error;
 
             if (data.user) {
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', data.user.id)
-                .maybeSingle();
-
-              const { data: savedJobsData, error: savedJobsError } = await supabase
-                .from('saved_jobs')
-                .select('jobs(*)')
-                .eq('user_id', data.user.id);
-
-              const savedJobs = savedJobsError ? [] : savedJobsData.map((item: any) => item.jobs);
-
-              set({ 
-                isAuthenticated: true, 
-                user: {
-                  id: data.user.id,
-                  email: data.user.email!,
-                  firstName: profile?.first_name || '',
-                  lastName: profile?.last_name || '',
-                  avatarUrl: profile?.avatar_url,
-                  applications: [],
-                  savedJobs,
-                  alerts: [],
-                  resumes: [],
-                  settings: {
-                    notifications: true,
-                    emailUpdates: false,
-                    darkMode: false,
-                  }
-                }
-              });
+              // Fetch additional user data after login
+              await get().fetchUserProfile();
             }
           }
         } catch (error: any) {
@@ -310,12 +212,13 @@ export const useAuthStore = create<AuthState>()(
       },
       logout: async () => {
         try {
+          const { error } = await supabase.auth.signOut();
+          if (error) throw error;
+          
           set({ isAuthenticated: false, user: null });
-          setTimeout(async () => {
-            await supabase.auth.signOut();
-          }, 0);
         } catch (error) {
           console.error("Error during logout:", error);
+          throw error;
         }
       },
       register: async (userData) => {
@@ -346,71 +249,250 @@ export const useAuthStore = create<AuthState>()(
           throw error;
         }
       },
+      fetchUserProfile: async () => {
+        try {
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          
+          if (userError || !user) {
+            set({ isAuthenticated: false, user: null });
+            return;
+          }
+          
+          // Fetch profile data
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
+            
+          if (profileError) throw profileError;
+          
+          // If no profile exists yet, create a minimal one
+          const userProfile = profile || {
+            id: user.id,
+            first_name: '',
+            last_name: '',
+            email: user.email,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          
+          // Fetch saved jobs
+          const savedJobs = await get().fetchSavedJobs();
+          
+          // Fetch resumes
+          const { data: resumes, error: resumesError } = await supabase
+            .from('resumes')
+            .select('*')
+            .eq('user_id', user.id);
+            
+          if (resumesError) throw resumesError;
+          
+          // Fetch applications
+          const { data: applications, error: applicationsError } = await supabase
+            .from('applications')
+            .select('*')
+            .eq('user_id', user.id);
+            
+          if (applicationsError) throw applicationsError;
+          
+          // Map DB formats to application format
+          const formattedApplications: Application[] = applications?.map(app => ({
+            id: app.id,
+            jobId: app.job_id,
+            position: app.position,
+            company: app.company,
+            status: app.status as Application['status'], // Type assertion to ensure compatibility
+            createdAt: app.created_at,
+            updatedAt: app.updated_at,
+            appliedAt: app.applied_at
+          })) || [];
+          
+          // Map to our User model
+          const mappedUser = mapProfileToUser(
+            userProfile, 
+            savedJobs, 
+            resumes?.map(r => ({
+              id: r.id,
+              name: r.name,
+              file_path: r.file_path,
+              isPrimary: r.is_primary,
+              created_at: r.created_at,
+              updated_at: r.updated_at,
+              uploadDate: r.upload_date || r.created_at
+            })) || [],
+            formattedApplications
+          );
+          
+          set({ isAuthenticated: true, user: mappedUser });
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+          set({ isAuthenticated: false, user: null });
+          throw error;
+        }
+      },
+      fetchSavedJobs: async () => {
+        try {
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          
+          if (userError || !user) return [];
+          
+          const { data: savedJobsData, error: savedJobsError } = await supabase
+            .from('saved_jobs')
+            .select('job_id')
+            .eq('user_id', user.id);
+            
+          if (savedJobsError) throw savedJobsError;
+          
+          if (!savedJobsData?.length) return [];
+          
+          // Get the full job details for each saved job
+          const jobIds = savedJobsData.map(item => item.job_id);
+          const { data: jobs, error: jobsError } = await supabase
+            .from('jobs')
+            .select('*')
+            .in('id', jobIds);
+            
+          if (jobsError) throw jobsError;
+          
+          return jobs.map(job => ({
+            ...job,
+            postedAt: formatPostedAt(job.posted_at || job.created_at),
+            requirements: job.requirements || [],
+            tags: job.tags || []
+          }));
+          
+        } catch (error) {
+          console.error("Error fetching saved jobs:", error);
+          return [];
+        }
+      },
       saveJob: async (job) => {
         try {
-          const { data, error: userError } = await supabase.auth.getUser();
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
           
-          if (userError || !data.user) throw new Error('User not authenticated');
+          if (userError || !user) throw new Error('User not authenticated');
+          
+          // Check if job is already saved
+          const { data: existingJob, error: checkError } = await supabase
+            .from('saved_jobs')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('job_id', job.id)
+            .maybeSingle();
+            
+          if (checkError) throw checkError;
+          
+          if (existingJob) {
+            toast.info("Job already saved");
+            return;
+          }
           
           const { error } = await supabase
             .from('saved_jobs')
-            .insert([{ user_id: data.user.id, job_id: job.id }]);
+            .insert([{ user_id: user.id, job_id: job.id }]);
 
           if (error) throw error;
 
-          set((state) => ({
-            user: state.user
-              ? {
-                  ...state.user,
-                  savedJobs: [...(state.user.savedJobs || []), job],
-                }
-              : null,
-          }));
+          // Update local state
+          const { user: currentUser } = get();
+          if (currentUser) {
+            set({
+              user: {
+                ...currentUser,
+                savedJobs: [...currentUser.savedJobs, job],
+              }
+            });
+          }
+          
+          toast.success("Job saved successfully");
         } catch (error) {
           console.error('Error saving job:', error);
+          toast.error("Failed to save job");
           throw error;
         }
       },
       removeJob: async (jobId) => {
         try {
-          const { data, error: userError } = await supabase.auth.getUser();
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
           
-          if (userError || !data.user) throw new Error('User not authenticated');
+          if (userError || !user) throw new Error('User not authenticated');
           
           const { error } = await supabase
             .from('saved_jobs')
             .delete()
             .eq('job_id', jobId)
-            .eq('user_id', data.user.id);
+            .eq('user_id', user.id);
 
           if (error) throw error;
 
-          set((state) => ({
-            user: state.user
-              ? {
-                  ...state.user,
-                  savedJobs: state.user.savedJobs.filter((job) => job.id !== jobId),
-                }
-              : null,
-          }));
+          // Update local state
+          const { user: currentUser } = get();
+          if (currentUser) {
+            set({
+              user: {
+                ...currentUser,
+                savedJobs: currentUser.savedJobs.filter((job) => job.id !== jobId),
+              }
+            });
+          }
+          
+          toast.success("Job removed from saved list");
         } catch (error) {
           console.error('Error removing job:', error);
+          toast.error("Failed to remove job");
           throw error;
         }
       },
-      updateUser: (userData) => {
-        set((state) => {
-          if (!state.user) return state;
+      updateUser: async (userData) => {
+        try {
+          const { user: currentUser } = get();
+          if (!currentUser) throw new Error('No user logged in');
           
-          return {
-            ...state,
-            user: {
-              ...state.user,
-              ...userData
-            }
-          };
-        });
-      },
+          // Map from our UI model to DB model
+          const dbData: any = {};
+          
+          if (userData.firstName !== undefined) dbData.first_name = userData.firstName;
+          if (userData.lastName !== undefined) dbData.last_name = userData.lastName;
+          if (userData.email !== undefined) dbData.email = userData.email;
+          if (userData.phone !== undefined) dbData.phone = userData.phone;
+          if (userData.address !== undefined) dbData.address = userData.address;
+          if (userData.city !== undefined) dbData.city = userData.city;
+          if (userData.state !== undefined) dbData.state = userData.state;
+          if (userData.zip !== undefined) dbData.zip = userData.zip;
+          if (userData.country !== undefined) dbData.country = userData.country;
+          if (userData.title !== undefined) dbData.title = userData.title;
+          if (userData.company !== undefined) dbData.company = userData.company;
+          if (userData.bio !== undefined) dbData.bio = userData.bio;
+          if (userData.avatarUrl !== undefined) dbData.avatar_url = userData.avatarUrl;
+          if (userData.location !== undefined) dbData.location = userData.location;
+          if (userData.website !== undefined) dbData.website = userData.website;
+          if (userData.skills !== undefined) dbData.skills = userData.skills;
+          if (userData.onboardingStep !== undefined) dbData.onboarding_step = userData.onboardingStep;
+          if (userData.isOnboardingComplete !== undefined) dbData.is_onboarding_complete = userData.isOnboardingComplete;
+          
+          // Only update if we have data to update
+          if (Object.keys(dbData).length > 0) {
+            const { error } = await supabase
+              .from('profiles')
+              .update(dbData)
+              .eq('id', currentUser.id);
+              
+            if (error) throw error;
+          }
+          
+          // Update local state
+          set({
+            user: { ...currentUser, ...userData }
+          });
+          
+          toast.success("Profile updated successfully");
+        } catch (error) {
+          console.error('Error updating user:', error);
+          toast.error("Failed to update profile");
+          throw error;
+        }
+      }
     }),
     {
       name: 'auth-storage',
@@ -418,13 +500,26 @@ export const useAuthStore = create<AuthState>()(
   )
 );
 
-function randomUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
+const formatPostedAt = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+  
+  if (diffInDays === 0) {
+    return 'Today';
+  } else if (diffInDays === 1) {
+    return 'Yesterday';
+  } else if (diffInDays < 7) {
+    return `${diffInDays} days ago`;
+  } else if (diffInDays < 30) {
+    const weeks = Math.floor(diffInDays / 7);
+    return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+  } else {
+    const months = Math.floor(diffInDays / 30);
+    return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+  }
+};
 
 export const signInWithGoogle = async () => {
   const { error } = await supabase.auth.signInWithOAuth({

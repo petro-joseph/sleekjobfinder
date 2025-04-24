@@ -1,3 +1,4 @@
+
 // components/ApplyConfirmationModal.tsx
 import {
   Dialog,
@@ -13,8 +14,9 @@ interface ApplyConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  jobTitle: string;
-  company: string;
+  onCancel: () => void; // Add this prop to match how it's used
+  jobTitle?: string;
+  company?: string;
   isConfirming?: boolean;
 }
 
@@ -22,6 +24,7 @@ const ApplyConfirmationModal = ({
   isOpen,
   onClose,
   onConfirm,
+  onCancel,
   jobTitle,
   company,
 }: ApplyConfirmationModalProps) => {
@@ -31,11 +34,11 @@ const ApplyConfirmationModal = ({
         <DialogHeader>
           <DialogTitle>Did you apply for this job?</DialogTitle>
           <DialogDescription>
-            Did you complete your application for {jobTitle} at {company}?
+            Did you complete your application for {jobTitle || "this position"} at {company || "this company"}?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onCancel || onClose}>
             No, not yet
           </Button>
           <Button onClick={onConfirm}>

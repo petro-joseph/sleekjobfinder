@@ -1,52 +1,9 @@
 
-export interface Resume {
-  id: string;
-  user_id?: string; // Make user_id optional if not always present in Zustand model
-  name: string;
-  file_path: string; // Path in Supabase storage
-  isPrimary: boolean;
-  created_at?: string; // Optional from DB
-  updated_at?: string; // Optional from DB
-  contactInfo?: {
-    phone: string;
-    email: string;
-    linkedin: string;
-  };
-  jobTitle?: string;
-  yearsOfExperience?: number;
-  industries?: string[];
-  skills?: string[];
-  summary?: string;
-  workExperiences?: WorkExperience[];
-  education?: Education[];
-  projects?: Project[];
-  uploadDate?: string | Date; // Allow both string and Date
-}
+import { Resume as BaseResume, WorkExperience, Education, Project } from '../types/index';
 
-export interface WorkExperience {
-  company: string;
-  title: string;
-  location: string;
-  startDate: string;
-  endDate?: string;
-  responsibilities: string[];
-  department?: string;
-}
-
-export interface Education {
-  institution: string;
-  degree: string;
-  field?: string;
-  gpa?: string;
-  startDate: string;
-  endDate: string;
-}
-
-export interface Project {
-  title: string;
-  date: string;
-  description: string;
-}
+// Re-export the types from index.ts
+export type { WorkExperience, Education, Project };
+export type Resume = BaseResume;
 
 export interface JobPosting {
   title: string;
