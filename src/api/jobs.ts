@@ -4,6 +4,7 @@ import { Job } from '@/types';
 export interface JobFilters {
   jobTypes: string[];
   experienceLevels: string[];
+  expLevels?: Record<string, boolean>; // Added for compatibility with JobsHeader
   salaryRange: [number, number];
   searchTerm: string;
   industry: string;
@@ -22,7 +23,7 @@ export interface JobSearchResponse {
 }
 
 // Mock function to fetch jobs - in a real application this would call an API
-export const fetchJobs = async (filters: JobFilters): Promise<JobSearchResponse> => {
+export const fetchJobs = async (filters: Partial<JobFilters> = {}): Promise<JobSearchResponse> => {
   // This is a placeholder implementation - in a real app, you would call your API here
   console.log('Fetching jobs with filters:', filters);
   

@@ -1,4 +1,3 @@
-
 import { ArrowRight, Briefcase, LightbulbIcon, Rocket, Sparkles, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -17,13 +16,25 @@ const Index = () => {
   const isMobile = useIsMobile();
   
   // Fetch featured jobs from Supabase
-  const { data: featuredJobs = [] } = useQuery({
+  const { data: featuredJobsResponse } = useQuery({
     queryKey: ['featuredJobs'],
     queryFn: async () => {
-      const jobs = await fetchJobs({ featured: true });
-      return jobs.slice(0, 5); // Limit to 5 featured jobs
+      const response = await fetchJobs({
+        jobTypes: [], 
+        experienceLevels: [], 
+        salaryRange: [50, 150], 
+        searchTerm: '', 
+        industry: '', 
+        location: '', 
+        sortBy: 'newest', 
+        datePosted: '',
+        featured: true
+      });
+      return response;
     },
   });
+  
+  const featuredJobs = featuredJobsResponse?.jobs || [];
   
   return (
     <Layout>

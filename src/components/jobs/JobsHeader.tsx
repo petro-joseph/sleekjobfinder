@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Search, CalendarDays, Briefcase, DollarSign, MapPin, X, Building } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import { Badge } from '@/components/ui/badge';
 import { JobFilters } from '@/api/jobs';
 
@@ -135,6 +136,17 @@ export const JobsHeader = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Extract experience levels from the expLevels object
+  const updateExperienceLevels = () => {
+    const selectedExperienceLevels = Object.keys(expLevels).filter(key => expLevels[key]);
+    onFilterChange({ experienceLevels: selectedExperienceLevels });
+  };
+
+  const handleExperienceLevelToggle = (level: string) => {
+    onExpLevelToggle(level, !expLevels[level]);
+    updateExperienceLevels();
+  };
+
   return (
     <div className="bg-background sticky top-0 z-10 border-b border-border shadow-lg backdrop-blur-sm bg-opacity-90">
       <div className="container mx-auto px-4 sm:px-6 py-6">
@@ -210,31 +222,19 @@ export const JobsHeader = ({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="bg-background border-border rounded-lg shadow-lg">
                   <DropdownMenuItem
-                    onClick={() =>
-                      onFilterChange({
-                        expLevels: { ...expLevels, entry: !expLevels.entry },
-                      })
-                    }
+                    onClick={() => handleExperienceLevelToggle('entry')}
                     className="hover:bg-secondary/50 transition-all"
                   >
                     Entry Level {expLevels.entry && "✓"}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() =>
-                      onFilterChange({
-                        expLevels: { ...expLevels, mid: !expLevels.mid },
-                      })
-                    }
+                    onClick={() => handleExperienceLevelToggle('mid')}
                     className="hover:bg-secondary/50 transition-all"
                   >
                     Mid Level {expLevels.mid && "✓"}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() =>
-                      onFilterChange({
-                        expLevels: { ...expLevels, senior: !expLevels.senior },
-                      })
-                    }
+                    onClick={() => handleExperienceLevelToggle('senior')}
                     className="hover:bg-secondary/50 transition-all"
                   >
                     Senior Level {expLevels.senior && "✓"}

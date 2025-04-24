@@ -5,11 +5,10 @@ export interface Job {
   company: string;
   location: string;
   salary: string;
-  type: 'Full-time' | 'Part-time' | 'Contract' | 'Remote';
+  type: string;
   description: string;
   requirements: string[];
-  posted_at: string;
-  postedAt?: string; // Formatted date string for UI display
+  postedAt: string;
   logo?: string;
   featured?: boolean;
   industry: string;

@@ -23,6 +23,8 @@ export interface User {
   lastName?: string;
   isOnboardingComplete?: boolean;
   savedJobs: Job[];
+  resumes?: any[];
+  applications?: any[];
 }
 
 export interface JobSearchResponse {

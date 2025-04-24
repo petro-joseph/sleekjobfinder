@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +20,6 @@ import {
   PaginationPrevious 
 } from '@/components/ui/pagination';
 
-// Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -43,7 +41,6 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 3;
 
-  // Sample recent activities - in a real app, these would come from an API or user data
   const recentActivities = [
     { id: 1, position: 'Frontend Developer', company: 'TechCorp', date: '2024-03-22', status: 'interview' },
     { id: 2, position: 'UX Designer', company: 'DesignHub', date: '2024-03-18', status: 'applied' },
@@ -53,20 +50,27 @@ const Dashboard = () => {
   const { data: allJobs = [], isLoading: isLoadingJobs } = useQuery({
     queryKey: ['dashboardJobs'],
     queryFn: async () => {
-      return fetchJobs();
+      const response = await fetchJobs({
+        jobTypes: [],
+        experienceLevels: [],
+        salaryRange: [50, 150],
+        searchTerm: '',
+        industry: '',
+        location: '',
+        sortBy: 'newest',
+        datePosted: ''
+      });
+      return response.jobs;
     },
   });
 
-  // Calculate current jobs to display based on pagination
   const indexOfLastJob = currentPage * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
   const currentJobs = allJobs.slice(indexOfFirstJob, indexOfLastJob);
   const totalPages = Math.ceil(allJobs.length / jobsPerPage);
 
-  // Onboarding status - fixed property name
   const isOnboardingComplete = user?.isOnboardingComplete || false;
 
-  // Handle bookmark toggle
   const handleBookmarkToggle = async (jobId: string) => {
     const jobToToggle = allJobs.find(job => job.id === jobId);
     if (!jobToToggle) return;

@@ -57,7 +57,10 @@ const Jobs = () => {
   useEffect(() => {
     if (hasNextPage) {
       const nextPage = currentPage + 1;
-      queryClient.prefetchQuery(['jobs', filters, nextPage]);
+      queryClient.prefetchQuery({
+        queryKey: ['jobs', filters, nextPage],
+        queryFn: () => fetchJobs({ ...filters, page: nextPage }),
+      });
     }
   }, [currentPage, filters, hasNextPage, queryClient]);
 
