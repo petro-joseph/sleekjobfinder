@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { fetchJobs } from '@/api/jobs';
-import { DashboardSkeleton, JobCardSkeleton, TableSkeleton } from '@/components/skeletons/Skeletons';
+import { JobCardSkeleton, TableSkeleton } from '@/components/jobs/LoadingState';
 import { 
   Pagination, 
   PaginationContent, 

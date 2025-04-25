@@ -157,7 +157,7 @@ export const JobsHeader = ({
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-6 w-6" />
                 <Input
                   className="pl-14 h-14 rounded-xl bg-background border-border shadow-md focus:ring-2 focus:ring-primary/50 transition-all text-base placeholder:text-muted-foreground/70"
-                  placeholder="Search for Product Manager, Developer, or company..."
+                  placeholder="Search for job title, company or location..."
                   value={searchTerm}
                   onChange={handleSearchChange}
                 />

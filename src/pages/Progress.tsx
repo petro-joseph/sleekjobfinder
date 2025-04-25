@@ -19,6 +19,7 @@ import { ChevronRight, Bell, Clock, Filter, PlusCircle, Check, X } from 'lucide-
 import { useAuthStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { ApplicationTableSkeleton } from '@/components/jobs/LoadingState';
 
 // --- Constants and Types (Ideally move to separate files: constants.ts, types.ts) ---
 
@@ -124,9 +125,7 @@ const ApplicationsTab: React.FC<ApplicationsTabProps> = React.memo(({
       </div>
 
       {isLoading ? (
-        <div className="h-40 flex items-center justify-center p-8 border rounded-lg">
-          <div className="loader" /> {/* Assuming you have a CSS loader class */}
-        </div>
+        <ApplicationTableSkeleton />
       ) : (
         <div className="border rounded-lg overflow-auto max-h-[450px]">
           <Table>

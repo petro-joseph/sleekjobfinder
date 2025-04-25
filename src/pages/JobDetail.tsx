@@ -21,7 +21,6 @@ import {
   Mail,
   MessageSquare
 } from 'lucide-react';
-import { Job } from '@/data/jobs';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -34,8 +33,8 @@ import { useAuthStore } from '@/lib/store';
 import TailorResumeModal from '@/components/TailorResumeModal';
 import { useQuery } from '@tanstack/react-query';
 import { fetchJobById } from "@/api/jobs";
-import { Skeleton } from '@/components/ui/skeleton';
-import JobDetailSkeleton from '@/components/JobDetailSkeleton';
+import Skeleton from 'react-loading-skeleton';
+import { JobDetailSkeleton } from '@/components/jobs/LoadingState';
 
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();

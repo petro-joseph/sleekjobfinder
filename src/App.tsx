@@ -33,6 +33,7 @@ import Callback from './pages/auth/Callback';
 import VerifyOtp from './pages/VerifyOtp';
 import './index.css';
 import './styles/mobile.css';
+import 'react-loading-skeleton/dist/skeleton.css'
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as SonnerToaster } from '@/components/ui/sonner';
 import UserPreferences from './pages/UserPreferences';

@@ -11,7 +11,7 @@ import { JobsList } from '@/components/jobs/JobsList';
 import { JobsHeader } from '@/components/jobs/JobsHeader';
 import { JobsMetadata } from '@/components/jobs/JobsMetadata';
 import { JobsErrorBoundary } from '@/components/jobs/JobsErrorBoundary';
-import { LoadingState } from '@/components/jobs/LoadingState';
+// import { LoadingState } from '@/components/jobs/LoadingState';
 import { ErrorState } from '@/components/jobs/ErrorState';
 import { analytics } from '@/lib/analytics';
 import { JOBS_PER_PAGE } from '@/constants';

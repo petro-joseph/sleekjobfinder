@@ -11,6 +11,8 @@
   :root {
     --background: 210 40% 98%;
     --foreground: 222 47% 11%;
+    --skeleton-base-color: #e5e7eb;
+    --skeleton-highlight-color: #f3f4f6;
 
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
@@ -52,6 +54,8 @@
   .dark {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
+    --skeleton-base-color: #374151;
+    --skeleton-highlight-color: #4b5563;
 
     --card: 224 71% 4%;
     --card-foreground: 210 40% 98%;

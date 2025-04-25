@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Job } from '@/data/jobs';
 import { supabase } from '@/integrations/supabase/client';
+import { SavedJobsSkeleton } from '@/components/jobs/LoadingState';
 
 const SavedJobs = () => {
   const { user } = useAuthStore();
