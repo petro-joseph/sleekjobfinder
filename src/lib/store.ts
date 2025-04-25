@@ -82,6 +82,7 @@ export interface DbProfile {
     industries: string[];
     salary_range?: {
       min: number;
+      currency: string;
       max: number;
     };
   };

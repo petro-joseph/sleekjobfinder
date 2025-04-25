@@ -3,6 +3,7 @@ import Skeleton from 'react-loading-skeleton';
 import { Loader2 } from "lucide-react";
 import 'react-loading-skeleton/dist/skeleton.css';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 export const JobCardSkeleton = () => {
   return (
@@ -225,6 +226,81 @@ export const ListSkeleton = ({ count = 5 }: { count?: number }) => {
           <Skeleton width="80%" height={20} />
         </div>
       ))}
+    </div>
+  );
+};
+
+export const UserPreferencesSkeleton: React.FC = () => {
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <Skeleton height={32} width={256} className="mb-6" />
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <Skeleton height={24} width={128} />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Skeleton height={16} width={96} className="mb-2" />
+              <Skeleton height={40} width="100%" />
+            </div>
+            <div>
+              <Skeleton height={16} width={96} className="mb-2" />
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {[...Array(6)].map((_, i) => (
+                  <Skeleton key={i} height={24} width="100%" />
+                ))}
+              </div>
+            </div>
+            <div>
+              <Skeleton height={16} width={96} className="mb-2" />
+              <Skeleton height={40} width="100%" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Skeleton height={16} width={128} className="mb-2" />
+                <Skeleton height={40} width="100%" />
+              </div>
+              <div>
+                <Skeleton height={16} width={128} className="mb-2" />
+                <Skeleton height={40} width="100%" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton height={24} width={128} />
+          </CardHeader>
+          <CardContent>
+            <div className="border-2 border-dashed rounded-lg p-6">
+              <Skeleton height={32} width={32} className="mx-auto mb-2" />
+              <Skeleton height={16} width={256} className="mx-auto mb-1" />
+              <Skeleton height={12} width={192} className="mx-auto" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton height={24} width={128} />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between">
+                <Skeleton height={16} width={160} />
+                <Skeleton height={24} width={40} />
+              </div>
+              <div className="flex justify-between">
+                <Skeleton height={16} width={160} />
+                <Skeleton height={24} width={40} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <div className="flex justify-end">
+          <Skeleton height={48} width={120} />
+        </div>
+      </div>
     </div>
   );
 };

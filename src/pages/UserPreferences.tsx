@@ -14,16 +14,15 @@ import { MultiSelect } from '@/components/ui/MultiSelect';
 import { SalaryRange } from '@/components/ui/SalaryRange';
 import { NotificationSettings } from '@/components/ui/NotificationSettings';
 import ResumeManagement from '@/components/ResumeManagement';
+import { UserPreferencesSkeleton } from '@/components/jobs/LoadingState';
 import { COUNTRIES, JOB_TYPES, INDUSTRIES } from '@/constants';
-import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css';
 
 // Types
 interface JobPreferences {
   locations: string[];
   jobTypes: string[];
   industries: string[];
-  salaryRange: { min: number; max: number };
+  salary_range: { min: number; max: number; currency: string };
 }
 
 interface FormData {
@@ -31,7 +30,7 @@ interface FormData {
   jobTypes: string[];
   industries: string[];
   salaryMin: string;
-  salaryMax: string;
+  currency: string;
 }
 
 interface NotificationSettingsType {
@@ -45,9 +44,12 @@ const formSchema = z.object({
   locations: z.array(z.string()).min(1, 'Select at least one location'),
   jobTypes: z.array(z.string()).min(1, 'Select at least one job type'),
   industries: z.array(z.string()).min(1, 'Select at least one industry'),
-  salaryMin: z.string().refine(val => !isNaN(parseInt(val)), { message: 'Must be a number' }),
-  salaryMax: z.string().refine(val => !isNaN(parseInt(val)), { message: 'Must be a number' }),
+  salaryMin: z.string().refine(val => !isNaN(parseInt(val.replace(/,/g, ''))), { message: 'Must be a number' }),
+  currency: z.string().min(1, 'Select a currency'),
 });
+
+// Utility to clean thousand separators
+const cleanNumber = (value: string): string => value.replace(/,/g, '');
 
 // Main Component
 const UserPreferences = memo(() => {
@@ -68,7 +70,7 @@ const UserPreferences = memo(() => {
       jobTypes: [],
       industries: [],
       salaryMin: '50000',
-      salaryMax: '100000',
+      currency: 'USD',
     },
   });
 
@@ -117,7 +119,7 @@ const UserPreferences = memo(() => {
           jobTypes: profile.job_preferences?.job_types || [],
           industries: profile.job_preferences?.industries || [],
           salaryMin: profile.job_preferences?.salary_range?.min?.toString() || '50000',
-          salaryMax: profile.job_preferences?.salary_range?.max?.toString() || '100000',
+          currency: profile.job_preferences?.salary_range?.currency || 'USD',
         });
       } catch (error) {
         toast.error('Failed to load preferences');
@@ -147,7 +149,7 @@ const UserPreferences = memo(() => {
         data.jobTypes.length > 0 &&
         data.industries.length > 0 &&
         data.salaryMin !== '' &&
-        data.salaryMax !== '' &&
+        data.currency !== '' &&
         resumes.length > 0
       );
 
@@ -157,8 +159,9 @@ const UserPreferences = memo(() => {
           job_types: data.jobTypes,
           industries: data.industries,
           salary_range: {
-            min: parseInt(data.salaryMin),
-            max: parseInt(data.salaryMax),
+            min: parseInt(cleanNumber(data.salaryMin)),
+            max: 100000000, // Assuming a default max value
+            currency: data.currency,
           },
         },
         settings: notificationSettings,
@@ -187,74 +190,7 @@ const UserPreferences = memo(() => {
   if (isLoading) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <Skeleton height={32} width={256} className="mb-6" />
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <Skeleton height={24} width={128} />
-              </CardHeader>
-              <CardContent className="space-y-8">
-                <div>
-                  <Skeleton height={16} width={96} className="mb-2" />
-                  <Skeleton height={40} width="100%" />
-                </div>
-                <div>
-                  <Skeleton height={16} width={96} className="mb-2" />
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {[...Array(6)].map((_, i) => (
-                      <Skeleton key={i} height={24} width="100%" />
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <Skeleton height={16} width={96} className="mb-2" />
-                  <Skeleton height={40} width="100%" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Skeleton height={16} width={128} className="mb-2" />
-                    <Skeleton height={40} width="100%" />
-                  </div>
-                  <div>
-                    <Skeleton height={16} width={128} className="mb-2" />
-                    <Skeleton height={40} width="100%" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <Skeleton height={24} width={128} />
-              </CardHeader>
-              <CardContent>
-                <div className="border-2 border-dashed rounded-lg p-6">
-                  <Skeleton height={32} width={32} className="mx-auto mb-2" />
-                  <Skeleton height={16} width={256} className="mx-auto mb-1" />
-                  <Skeleton height={12} width={192} className="mx-auto" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <Skeleton height={24} width={128} />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-8">
-                  <div className="flex justify-between">
-                    <Skeleton height={16} width={160} />
-                    <Skeleton height={24} width={40} />
-                  </div>
-                  <div className="flex justify-between">
-                    <Skeleton height={16} width={160} />
-                    <Skeleton height={24} width={40} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Skeleton height={40} width={100} className="ml-auto" />
-          </div>
-        </div>
+        <UserPreferencesSkeleton />
       </Layout>
     );
   }
@@ -269,7 +205,7 @@ const UserPreferences = memo(() => {
               <CardHeader>
                 <CardTitle>Preferences</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-8">
+              <CardContent className="space-y-4">
                 <MultiSelect
                   form={form}
                   name="locations"
@@ -321,7 +257,9 @@ const UserPreferences = memo(() => {
               </CardContent>
             </Card>
 
-            <Button type="submit" className="w-full md:w-auto">Save</Button>
+            <div className="flex justify-end">
+              <Button type="submit" className="h-12 text-lg px-6">Save</Button>
+            </div>
           </form>
         </Form>
       </div>
