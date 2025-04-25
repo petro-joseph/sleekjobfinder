@@ -194,7 +194,7 @@ const UserPreferences = memo(() => {
               <CardHeader>
                 <Skeleton height={24} width={128} />
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-8">
                 <div>
                   <Skeleton height={16} width={96} className="mb-2" />
                   <Skeleton height={40} width="100%" />
@@ -240,7 +240,7 @@ const UserPreferences = memo(() => {
                 <Skeleton height={24} width={128} />
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-8">
                   <div className="flex justify-between">
                     <Skeleton height={16} width={160} />
                     <Skeleton height={24} width={40} />
@@ -269,7 +269,7 @@ const UserPreferences = memo(() => {
               <CardHeader>
                 <CardTitle>Preferences</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-8">
                 <MultiSelect
                   form={form}
                   name="locations"
