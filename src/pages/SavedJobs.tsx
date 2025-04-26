@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
 import { Bookmark, ExternalLink, Trash2, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Job } from '@/data/jobs';
 import { supabase } from '@/integrations/supabase/client';
 import { SavedJobsSkeleton } from '@/components/jobs/LoadingState';
@@ -202,10 +201,5 @@ const SavedJobCard = ({
   );
 };
 
-const ProtectedSavedJobsPage = () => (
-  <ProtectedRoute>
-    <SavedJobs />
-  </ProtectedRoute>
-);
 
-export default ProtectedSavedJobsPage;
+export default SavedJobs;

@@ -1,17 +1,13 @@
 
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '@/lib/store';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { useAuthStore } from '../lib/store'
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
+export default function ProtectedRoute() {
+  const { isAuthenticated } = useAuthStore()
+  const location = useLocation()
 
-export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated } = useAuthStore();
-  const location = useLocation();
-  
   useEffect(() => {
     if (!isAuthenticated) {
       toast.error("Please log in to access this page", {
@@ -20,11 +16,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     }
   }, [isAuthenticated]);
 
+  // If not logged in, redirect to login, preserving the attempted URL
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  return <>{children}</>;
-};
-
-export default ProtectedRoute;
+  // Once authenticated, render the child routes (via <Outlet />)
+  return <Outlet />
+}

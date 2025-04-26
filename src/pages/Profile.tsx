@@ -1,59 +1,166 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Layout from '@/components/Layout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { useAuthStore } from '@/lib/store';
 import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { User, Globe, MapPin, FileEdit, LogOut, Settings } from 'lucide-react';
+import ProfileSections from './profile/ProfileSections';
+import EditModal from './profile/EditModal';
+import { Linkedin, User, BookOpen, Briefcase, Wrench, Shield } from 'lucide-react';
 
-const Profile = () => {
-  const { user, updateUser, logout } = useAuthStore();
+const ProfilePage = () => {
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
-  
-  const [formData, setFormData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-    bio: user?.bio || '',
-    location: user?.location || '',
-    website: user?.website || '',
-    settings: {
-      notifications: user?.settings?.notifications || false,
-      emailUpdates: user?.settings?.emailUpdates || false,
-      darkMode: user?.settings?.darkMode || false,
-    }
+
+  const [activeSection, setActiveSection] = useState('personal');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [isScrollingFromClick, setIsScrollingFromClick] = useState(false);
+  const [profileData, setProfileData] = useState({
+    firstName: "Petro Joseph",
+    lastName: "Ghati",
+    email: "josephaley67@gmail.com",
+    phone: "+255-657-824-541",
+    website: "https://linkedin.com/in/petroghati",
+    bio: "Experienced software developer with a passion for building efficient systems. lorem ",
+    location: "Tanzania",
+    education: [
+      {
+        id: "1",
+        school: "Arusha Technical College (ATC)",
+        degree: "Bachelor of Computer Science",
+        fieldOfStudy: "Computer Science",
+        startDate: "2018-11",
+        endDate: "2021-12",
+        description: "GPA: 4.2",
+      },
+    ],
+    experience: [
+      {
+        id: "1",
+        title: "Software Developer",
+        company: "UBX Tanzania Ltd",
+        location: "Tanzania",
+        startDate: "2022-06",
+        endDate: "Present",
+        description: `- Lead the design, development, and implementation of multiple management and payment systems for various authorities in Zanzibar, significantly improving operational efficiency key projects are:
+- ZIDRAS: Tax collection system for Zanzibar Revenue Authorities (ZRA) which helped to increase tax collection by over 82%.
+- SACCOSX System: Digitized operations for a local cooperative microfinance society, integrating with Umoja switch ATMs and mobile channels.
+- ZIBS: Streamlined road-related payments for Zanzibar Road Transport and Safety Authority (ZARTSA).
+- COLA Malipo: Simplified land-related transactions for the Commission of Land (COLA).
+- ZPC Malipo: Centralized payments for Zanzibar Port Corporation (ZPC).
+- Troubleshooting hardware and software issues, implemented new tools, and configured systems.
+- Provided technical support for office equipment and local call center systems.
+- Implemented and maintained network infrastructure, ensuring endpoint safety.
+- Performed regular hardware and software inventories, user needs assessments, and performance tests.
+- Collaborated with IT Administrator on IT project management and new tool implementation.
+- Maintained data analysis and incident reports, ensuring accurate documentation and reporting.`,
+      },
+      {
+        id: "2",
+        title: "Deputy Head of ICT Department",
+        company: "Northern College of Health and Allied Sciences",
+        location: "Tanzania",
+        startDate: "2021-12",
+        endDate: "2022-06",
+        description: `- Developed and optimized the college website.
+- Used Microsoft Excel for data management and report generation.
+- Managed IT infrastructure and supervised social media campaigns.
+- Implemented security measures for the student management system, enhancing data protection and user trust.`,
+      },
+    ],
+    skills: [
+      "Strong analytical skills for data analysis and interpretation",
+      "Proficient in creating dashboards and KPI reports",
+      "Excellent communication and interpersonal skills",
+      "Organized, self-directed, and results-oriented",
+      "Proven leadership in guiding cross-functional teams",
+      "Familiarity with cloud-based data platforms like AWS, Azure, or Google Cloud Platform",
+      "Project management skills, with experience in coordinating and delivering data-driven projects on time and within budget",
+      "Strong communication and collaboration skills, with the ability to explain complex data concepts to non-technical stakeholders",
+      "A continuous learning mindset, with a commitment to staying up-to-date with the latest advancements in data analytics and related technologies",
+      "Hardware maintenance",
+      "Troubleshooting network infrastructure",
+      "MS Office",
+      "Google Workspace",
+      "Data Studio",
+      "Project Management",
+      "Process Improvement",
+      "Process Automation",
+      "PHP",
+      "C",
+      "C++",
+      "Java",
+      "Python",
+      "MS SQL",
+      "SQL",
+      "Oracle",
+      "DNS",
+      "JavaScript",
+      "jQuery",
+      "HTTP",
+      "SSL",
+      "HTML",
+      "CSS",
+      "Proficient in English and Swahili",
+    ],
+    jobPreferences: {
+      locations: ["Tanzania"],
+      jobTypes: ["Full-time"],
+      industries: ["Technology"],
+    },
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const sectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({
+    personal: null,
+    education: null,
+    work: null,
+    skills: null,
+    employment: null,
+  });
+
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  const navHeight = 64; // h-11 (44px) + py-4 (16px)
+  const topOffset = 64; // top-16 (64px)
+  const extraSpace = 32; // Increased from 16px to 32px for more breathing room
+  const totalOffset = navHeight + topOffset + extraSpace;
+
+  const handleNavClick = (section: string) => {
+    setActiveSection(section);
+    setIsScrollingFromClick(true);
+
+    const element = document.getElementById(section);
+    if (element) {
+      window.scrollTo({
+        top: element.getBoundingClientRect().top + window.scrollY - totalOffset,
+        behavior: 'smooth',
+      });
+    }
+
+    // Re-enable observer after scroll completes (approximated with a timeout)
+    setTimeout(() => {
+      setIsScrollingFromClick(false);
+    }, 1000);
   };
 
-  const handleSettingChange = (name: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      settings: {
-        ...prev.settings,
-        [name]: checked
-      }
-    }));
+  const handleEditClick = (section: string) => {
+    setEditingSection(section);
+    setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateUser(formData);
-    
-    toast.success("Profile updated successfully", {
-      position: "top-center"
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setEditingSection(null);
+  };
+
+  const handleSave = (section: string, updatedData: any) => {
+    setProfileData((prev) => ({
+      ...prev,
+      [section === 'work' ? 'experience' : section]: updatedData,
+    }));
+    toast.success(`${section.charAt(0).toUpperCase() + section.slice(1)} section updated successfully`, {
+      position: "top-center",
     });
   };
 
@@ -65,248 +172,166 @@ const Profile = () => {
     navigate('/login');
   };
 
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (isScrollingFromClick) return;
+
+        let highestSection = '';
+        let highestRatio = 0;
+
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio > highestRatio) {
+            highestRatio = entry.intersectionRatio;
+            highestSection = entry.target.id;
+          }
+        });
+
+        if (highestSection) {
+          setActiveSection(highestSection);
+        }
+      },
+      {
+        root: null,
+        rootMargin: `-${totalOffset}px 0px -40% 0px`,
+        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+      }
+    );
+
+    Object.keys(sectionRefs.current).forEach((section) => {
+      const element = sectionRefs.current[section];
+      if (element) {
+        observerRef.current?.observe(element);
+      }
+    });
+
+    return () => {
+      Object.keys(sectionRefs.current).forEach((section) => {
+        const element = sectionRefs.current[section];
+        if (element) {
+          observerRef.current?.unobserve(element);
+        }
+      });
+    };
+  }, [isScrollingFromClick, totalOffset]);
+
   if (!user) return null;
+
+  const navItems = [
+    { label: 'Personal', section: 'personal', icon: User },
+    { label: 'Education', section: 'education', icon: BookOpen },
+    { label: 'Work Experience', section: 'work', icon: Briefcase },
+    { label: 'Skills', section: 'skills', icon: Wrench },
+    { label: 'Equal Employment', section: 'employment', icon: Shield },
+  ];
 
   return (
     <Layout>
       <div className="container mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold mb-6 text-gradient bg-gradient-to-r from-primary to-primary/70">
-          Your Profile
-        </h1>
-        
-        <div className="flex items-center justify-between mb-8">
-          <p className="text-muted-foreground">Manage your personal information and account settings</p>
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/preferences')}
-            className="flex items-center gap-2"
-          >
-            <Settings className="h-4 w-4" />
-            Job Preferences
-          </Button>
-        </div>
-        
-        <div className="grid gap-6 md:grid-cols-12">
-          {/* Profile Info */}
-          <div className="md:col-span-8">
-            <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg animate-fade-in">
-              <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>
-                  Update your personal details and public profile
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                        <Input
-                          id="firstName"
-                          name="firstName"
-                          value={formData.firstName}
-                          onChange={handleInputChange}
-                          className="pl-10 transition-all border-muted/30 focus:border-primary"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                        <Input
-                          id="lastName"
-                          name="lastName"
-                          value={formData.lastName}
-                          onChange={handleInputChange}
-                          className="pl-10 transition-all border-muted/30 focus:border-primary"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="transition-all border-muted/30 focus:border-primary"
-                      disabled
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Your email address is used for login and cannot be changed
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="bio">Bio</Label>
-                    <div className="relative">
-                      <FileEdit className="absolute left-3 top-3 text-muted-foreground h-4 w-4" />
-                      <Textarea
-                        id="bio"
-                        name="bio"
-                        placeholder="Tell us a bit about yourself"
-                        value={formData.bio}
-                        onChange={handleInputChange}
-                        className="pl-10 min-h-[120px] transition-all border-muted/30 focus:border-primary"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="location">Location</Label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                        <Input
-                          id="location"
-                          name="location"
-                          placeholder="Country"
-                          value={formData.location}
-                          onChange={handleInputChange}
-                          className="pl-10 transition-all border-muted/30 focus:border-primary"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="website">Website</Label>
-                      <div className="relative">
-                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                        <Input
-                          id="website"
-                          name="website"
-                          placeholder="https://your-website.com"
-                          value={formData.website}
-                          onChange={handleInputChange}
-                          className="pl-10 transition-all border-muted/30 focus:border-primary"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-end">
-                    <Button 
-                      type="submit" 
-                      className="transition-all duration-300 hover:shadow-lg group"
-                    >
-                      Save Changes
-                      <span className="ml-2 group-hover:rotate-45 transition-transform">
-                        ↗
-                      </span>
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">
+              Profile
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Manage your personal information and job preferences
+            </p>
           </div>
-          
-          {/* Settings & Logout */}
-          <div className="md:col-span-4 space-y-6">
-            <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg">
-              <CardHeader>
-                <CardTitle>Account Settings</CardTitle>
-              </CardHeader>
-              
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="notifications">Notifications</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive job alerts and updates
-                    </p>
-                  </div>
-                  <Switch
-                    id="notifications"
-                    checked={formData.settings.notifications}
-                    onCheckedChange={(checked) => handleSettingChange('notifications', checked)}
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="emailUpdates">Email Updates</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Weekly job recommendations
-                    </p>
-                  </div>
-                  <Switch
-                    id="emailUpdates"
-                    checked={formData.settings.emailUpdates}
-                    onCheckedChange={(checked) => handleSettingChange('emailUpdates', checked)}
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="darkMode">Dark Mode</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Toggle dark/light theme
-                    </p>
-                  </div>
-                  <Switch
-                    id="darkMode"
-                    checked={formData.settings.darkMode}
-                    onCheckedChange={(checked) => handleSettingChange('darkMode', checked)}
-                  />
-                </div>
-              </CardContent>
-              
-              <CardFooter className="pt-2 pb-4 px-6">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-center"
-                  onClick={() => navigate('/user-preferences')}
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Job Preferences
-                </Button>
-              </CardFooter>
-            </Card>
-            
-            <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg">
-              <CardHeader>
-                <CardTitle>Account Actions</CardTitle>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <Button 
-                  variant="destructive" 
-                  className="w-full justify-center"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Log Out
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 to-primary/5">
-              <CardContent className="p-6">
-                <p className="text-sm">
-                  <span className="font-medium">Need help?</span> Contact our support team at support@sleekjobs.com
-                </p>
-              </CardContent>
-            </Card>
+          <div className="mt-4 sm:mt-0">
+            <Button
+              onClick={() => handleEditClick('personal')}
+              variant="default"
+              className="h-11 px-6 rounded-xl shadow-md transition-all text-sm font-medium"
+            >
+              Edit Profile
+            </Button>
           </div>
         </div>
+
+        {/* Navigation */}
+        <div className="bg-background border-b border-border shadow-lg backdrop-blur-sm bg-opacity-90 mb-6 sticky top-16 z-10">
+          <div className="container mx-auto px-4 sm:px-6 py-4">
+            <div className="flex overflow-x-auto gap-3 no-scrollbar">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Button
+                    key={item.section}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleNavClick(item.section)}
+                    className={`h-11 px-5 rounded-xl bg-background border-border shadow-sm transition-all text-sm font-medium flex items-center min-w-[140px] truncate ${activeSection === item.section
+                        ? 'border-primary text-primary hover:bg-secondary/50'
+                        : 'text-muted-foreground hover:bg-secondary/50'
+                      }`}
+                  >
+                    <Icon className="mr-2 h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex flex-col lg:flex-row gap-6 pt-6">
+          {/* Profile Content */}
+          <div className="flex-1">
+            {/* Header */}
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-foreground">
+                {profileData.firstName} {profileData.lastName}
+              </h2>
+              <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
+                <span>{profileData.email}</span>
+                <span>{profileData.phone}</span>
+                <span className="flex items-center gap-1">
+                  <Linkedin className="w-4 h-4" />
+                  LinkedIn
+                </span>
+              </div>
+            </div>
+
+            {/* Sections */}
+            <ProfileSections
+              user={profileData}
+              onEditClick={handleEditClick}
+              sectionRefs={sectionRefs}
+              navOffset={totalOffset}
+            />
+          </div>
+
+          {/* Sidebar */}
+          <div className="w-full lg:w-64 flex flex-col gap-2">
+            <Button variant="outline" className="w-full text-sm">
+              Manage My Resume
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full text-sm"
+              onClick={() => handleEditClick('linkedin')}
+            >
+              Update LinkedIn URL
+            </Button>
+            <Button variant="default" className="w-full text-sm bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
+              Install Extension
+            </Button>
+          </div>
+        </div>
+
+        {/* Edit Modal */}
+        <EditModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          section={editingSection}
+          user={profileData}
+          onSave={handleSave}
+        />
       </div>
     </Layout>
   );
 };
 
-// Wrap with ProtectedRoute component
-const ProtectedProfilePage = () => (
-  <ProtectedRoute>
-    <Profile />
-  </ProtectedRoute>
-);
-
-export default ProtectedProfilePage;
+export default ProfilePage;

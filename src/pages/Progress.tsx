@@ -18,7 +18,6 @@ import { ChevronRight, Bell, Clock, Filter, PlusCircle, Check, X } from 'lucide-
 // Store, Auth, Supabase
 import { useAuthStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { ApplicationTableSkeleton } from '@/components/jobs/LoadingState';
 
 // --- Constants and Types (Ideally move to separate files: constants.ts, types.ts) ---
@@ -617,14 +616,5 @@ const Progress = () => {
     </Layout>
   );
 };
-// #endregion Main Progress Component
 
-
-// Wrap with ProtectedRoute component (remains the same)
-const ProtectedProgressPage = () => (
-  <ProtectedRoute>
-    <Progress />
-  </ProtectedRoute>
-);
-
-export default ProtectedProgressPage;
+export default Progress;

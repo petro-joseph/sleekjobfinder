@@ -309,7 +309,7 @@ export const UserPreferencesSkeleton: React.FC = () => {
 export const LoadingSpinner = () => {
   return (
     <div className="flex items-center justify-center p-4">
-      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <Loader2 className="h-6 w-6 animate-pulse text-primary" />
     </div>
   );
 };
