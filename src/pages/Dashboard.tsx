@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { Sparkles, ArrowRight, Briefcase, BookmarkCheck, Bell, BarChart, Rocket, Clock, MapPin, Building, Bot } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { toast } from "sonner";
@@ -37,9 +37,19 @@ const itemVariants = {
 
 const Dashboard = () => {
   const { user, isAuthenticated, saveJob, removeJob } = useAuthStore();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Initialize navigate
   const [currentPage, setCurrentPage] = useState(1);
   const jobsPerPage = 3;
+
+  // --- Add Effect for Redirect --- 
+  useEffect(() => {
+    // If the component is mounted but the user becomes unauthenticated (e.g., during logout)
+    if (!isAuthenticated) {
+      console.log('[Dashboard Effect] User became unauthenticated, redirecting to /login...');
+      navigate('/login', { replace: true }); // Redirect immediately
+    }
+  }, [isAuthenticated, navigate]); // Run when isAuthenticated changes
+  // --- End Effect --- 
 
   const recentActivities = [
     { id: 1, position: 'Frontend Developer', company: 'TechCorp', date: '2024-03-22', status: 'interview' },
@@ -62,6 +72,7 @@ const Dashboard = () => {
       });
       return response.jobs;
     },
+    // Removed the enabled flag as it caused issues
   });
 
   const indexOfLastJob = currentPage * jobsPerPage;
@@ -72,11 +83,14 @@ const Dashboard = () => {
   const isOnboardingComplete = user?.isOnboardingComplete || false;
 
   const handleBookmarkToggle = async (jobId: string) => {
+    if (!user) {
+      toast.error("You must be logged in to save jobs.");
+      return;
+    }
     const jobToToggle = allJobs.find(job => job.id === jobId);
     if (!jobToToggle) return;
-
     try {
-      if (user.savedJobs.some(j => j.id === jobId)) {
+      if (user.savedJobs.some(j => j.id === jobId)) { 
         await removeJob(jobId);
         toast.info("Job removed from saved jobs");
       } else {
@@ -88,9 +102,15 @@ const Dashboard = () => {
     }
   };
 
-  if (!user) {
-    return null;
+  // --- Updated Initial Guard --- 
+  // If loading or not authenticated during initial render, don't render the main content yet.
+  if (!isAuthenticated || !user) {
+    console.log('[Dashboard Render] Not authenticated or no user, returning null.');
+    return null; // Return null to prevent rendering potentially problematic JSX
   }
+  // --- End Guard --- 
+
+  // If we reach here, isAuthenticated is true and user exists.
 
   return (
     <Layout>
@@ -110,7 +130,7 @@ const Dashboard = () => {
                 <CardContent className="p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                      <h2 className="text-2xl font-bold text-foreground">Welcome back, {user.firstName}</h2>
+                      <h2 className="text-2xl font-bold text-foreground">Welcome back, {user?.firstName || 'User'}</h2>
                       <p className="text-base text-muted-foreground opacity-90">
                         Here's what's happening with your job search today
                       </p>
@@ -146,7 +166,7 @@ const Dashboard = () => {
                 />
                 <MobileStatCard 
                   icon={<Bell className="h-5 w-5 text-yellow-500" />}
-                  value={2}
+                  value={2} 
                   label="Job Alerts"
                   onClick={() => navigate('/progress')}
                 />
@@ -167,7 +187,7 @@ const Dashboard = () => {
               
               {isLoadingJobs ? (
                 <div className="grid gap-4">
-                  {[...Array(4)].map((_, i) => (
+                  {[...Array(jobsPerPage)].map((_, i) => (
                     <JobCardSkeleton key={i} />
                   ))}
                 </div>
@@ -219,7 +239,7 @@ const Dashboard = () => {
                             </div>
                             <div className="flex-shrink-0 flex flex-col items-end gap-2">
                               <BookmarkCheck 
-                                className={`h-5 w-5 cursor-pointer ${user.savedJobs.some(j => j.id === job.id) ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
+                                className={`h-5 w-5 cursor-pointer ${user?.savedJobs?.some(j => j.id === job.id) ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
                                 onClick={() => handleBookmarkToggle(job.id)}
                               />
                               <Badge variant="outline" className="mt-2">
@@ -302,7 +322,7 @@ const Dashboard = () => {
               variants={itemVariants}
             >
               <Card className="overflow-hidden border-primary/20 shadow-lg bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent mb-6 hover:border-primary/40 transition-all duration-300 rounded-xl">
-                <CardContent className="p-6">
+                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
                     <Bot className="h-5 w-5 text-blue-500 mr-2" />
                     <h3 className="font-bold">Career Assistant</h3>
@@ -321,7 +341,7 @@ const Dashboard = () => {
               </Card>
               
               <Card className="overflow-hidden border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent mb-6 hover:border-primary/40 transition-all duration-300 rounded-xl">
-                <CardContent className="p-6">
+                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
                     <Sparkles className="h-5 w-5 text-primary mr-2 animate-pulse" />
                     <h3 className="font-bold">Upgrade to Premium</h3>
@@ -370,7 +390,7 @@ const Dashboard = () => {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ duration: 0.3 }}
                         >
-                          <div className="w-2 h-2 mt-2 rounded-full bg-primary flex-shrink-0"></div>
+                           <div className="w-2 h-2 mt-2 rounded-full bg-primary flex-shrink-0"></div>
                           <div className="ml-3">
                             <div className="font-medium">{activity.position}</div>
                             <div className="text-sm text-muted-foreground">{activity.company}</div>
