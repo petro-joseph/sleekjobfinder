@@ -1,3 +1,4 @@
+
 // src/api/applications.ts
 import { supabase } from '@/integrations/supabase/client';
 import { Application } from '@/types';
@@ -21,6 +22,7 @@ export const fetchApplicationById = async (applicationId: string): Promise<Appli
     if (error) throw new Error(error.message);
     return data as Application;
 };
+
 export const createApplication = async (applicationData: Omit<Application, 'id' | 'created_at' | 'updated_at'>): Promise<Application> => {
     const { data, error } = await supabase
         .from('applications')
@@ -31,7 +33,6 @@ export const createApplication = async (applicationData: Omit<Application, 'id' 
     return data as Application;
 }
 
-//update application status
 export const updateApplicationStatus = async (applicationId: string, status: string): Promise<Application> => {
     const { data, error } = await supabase
         .from('applications')
@@ -42,3 +43,22 @@ export const updateApplicationStatus = async (applicationId: string, status: str
     if (error) throw new Error(error.message);
     return data as Application;
 }
+
+export const updateApplication = async (applicationId: string, applicationData: Partial<Application>): Promise<Application> => {
+    const { data, error } = await supabase
+        .from('applications')
+        .update(applicationData)
+        .eq('id', applicationId)
+        .select()
+        .single();
+    if (error) throw new Error(error.message);
+    return data as Application;
+};
+
+export const deleteApplication = async (applicationId: string): Promise<void> => {
+    const { error } = await supabase
+        .from('applications')
+        .delete()
+        .eq('id', applicationId);
+    if (error) throw new Error(error.message);
+};

@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useTransition } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Job } from "@/data/jobs"; // Assuming this type definition is correct
 import { createApplication } from '@/api/applications';
+import { uploadResume } from '@/api/resumes';
 import Layout from "@/components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, Building, MapPin, ChevronLeft, FileText, Sparkles, Upload, CheckCircle, PenTool, Send, Clock, Loader2 } from 'lucide-react'; // Added Loader2
+import { Briefcase, Building, MapPin, ChevronLeft, FileText, Sparkles, Upload, CheckCircle, PenTool, Send, Clock, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,26 +14,14 @@ import { useAuthStore } from '@/lib/store';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import TailorResumeModal from '@/components/TailorResumeModal'; // Assuming path is correct
-import ApplyConfirmationModal from '../components/ApplyConfirmationModal'; // Assuming path is correct
+import TailorResumeModal from '@/components/TailorResumeModal';
+import ApplyConfirmationModal from '../components/ApplyConfirmationModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchJobById } from '@/api/jobs'; // Assuming path is correct
-import { uploadResumeFile } from '@/integrations/supabase/uploadResume'; // Assuming path is correct
-import { supabase } from '@/integrations/supabase/client';
-import { Resume } from '@/types/resume';
+import { fetchJobById } from '@/api/jobs';
+import { saveJob, removeSavedJob } from '@/api/savedJobs';
+import { Resume } from '@/types';
 
 // Define a type for the application object stored in Zustand/Supabase
-interface Application {
-  id: string;
-  job_id: string;
-  user_id: string;
-  position: string;
-  company: string;
-  status: 'applied';
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface ApplicationRecord {
   id?: string; // Optional from DB before insert
   job_id: string;
@@ -51,6 +39,7 @@ const Apply = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, isAuthenticated, updateUser } = useAuthStore();
+  const [isPending, startTransition] = useTransition();
 
   // State
   const [selectedTab, setSelectedTab] = useState("resume");
@@ -96,59 +85,18 @@ const Apply = () => {
   const uploadResumeMutation = useMutation({
     mutationFn: async (file: File) => {
       if (!user?.id) throw new Error("User not authenticated");
-
-      // 1. Upload to Storage
-      const filePath = await uploadResumeFile(file, user.id); // This should return the storage path
-      if (!filePath) throw new Error("File upload failed");
-
-      // 2. Insert record into 'resumes' table
-      const { data, error } = await supabase
-        .from("resumes")
-        .insert({
-          user_id: user.id,
-          name: file.name,
-          file_path: filePath,
-          is_primary: !(user.resumes && user.resumes.length > 0), // Make first upload primary
-        })
-        .select()
-        .single(); // Expecting a single new record
-
-      if (error) throw error;
-      if (!data) throw new Error("Failed to save resume record");
-
-      // Convert database fields to our Resume type
-      const newResume: Resume = {
-        id: data.id,
-        user_id: data.user_id,
-        name: data.name,
-        file_path: data.file_path,
-        isPrimary: data.is_primary,
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-        uploadDate: data.upload_date ? new Date(data.upload_date) : undefined
-      };
-
-      // Return the newly created resume record
-      return newResume;
+      return await uploadResume(file, user.id);
     },
-
     onSuccess: (newResumeData: Resume) => {
       toast.success(`Resume "${newResumeData.name}" uploaded successfully!`);
       // Update Zustand store
       if (user) {
-
         const updatedResumes: Resume[] = [...(user.resumes || []), newResumeData];
-        // If this was the first resume, make it primary in the store update
-        if (updatedResumes.length === 1) {
-          updatedResumes[0].isPrimary = true;
-        }
         updateUser({ ...user, resumes: updatedResumes });
         setSelectedResumeId(newResumeData.id); // Select the newly uploaded resume
       }
-      // Optionally invalidate queries if resumes are fetched separately
-      // queryClient.invalidateQueries({ queryKey: ['userResumes', user?.id] });
-
-    }, onError: (error: any) => {
+    }, 
+    onError: (error: any) => {
       toast.error("Resume Upload Failed", { description: error.message });
     },
   });
@@ -158,49 +106,46 @@ const Apply = () => {
     mutationFn: async () => {
       if (!job || !user?.id) throw new Error("Job data or user missing");
 
-      const applicationData: ApplicationRecord = {
+      const applicationData = {
         job_id: job.id,
         user_id: user.id,
         position: job.title,
         company: job.company,
-        status: "applied", // Default status when recording application
-        // applied_at is set by default in Supabase or use new Date().toISOString()
+        status: "applied" as const, // Default status when recording application
       };
 
-      const { data, error } = await supabase
-        .from("applications")
-        .insert(applicationData)
-        .select()
-        .single();
-
-      if (error) {
-        // Handle potential duplicate entry (user already applied)
-        if (error.code === '23505') { // Check Supabase docs for exact unique violation code
-          toast.warning("Already Applied", { description: "You have already recorded an application for this job." });
-          // Set success anyway to show the final screen, as the goal (recording) is met
-          return { ...applicationData, id: 'existing' }; // Indicate existing application
+      try {
+        return await createApplication(applicationData);
+      } catch (error: any) {
+        // Check if the error is because user already applied
+        if (error.message.includes('duplicate') || error.message.includes('unique constraint')) {
+          toast.warning("Already Applied", { 
+            description: "You have already recorded an application for this job." 
+          });
+          // Return a mock record to indicate existing application
+          return { ...applicationData, id: 'existing' };
         }
-        throw error; // Rethrow other errors
+        throw error;
       }
-      if (!data) throw new Error("Failed to save application record");
-
-      return data as ApplicationRecord; // Return the saved application data
     },
     onSuccess: (savedApplication) => {
       if (savedApplication.id !== 'existing') { // Only show success toast for new applications
-        toast.success("Application Recorded!", { description: `Your application for ${job?.title} is saved.` });
+        toast.success("Application Recorded!", { 
+          description: `Your application for ${job?.title} is saved.` 
+        });
       }
+      
       // Update Zustand store (only if it's a new application)
       if (user && savedApplication.id !== 'existing') {
-
-        const updatedApplications = [...(user.applications || []), savedApplication as Application];
+        const updatedApplications = [...(user.applications || []), savedApplication];
         updateUser({ ...user, applications: updatedApplications });
       }
+      
       // Invalidate queries related to applications
       queryClient.invalidateQueries({ queryKey: ['applications', user?.id] });
       setIsSuccess(true); // Show the success screen
-
-    },    onError: (error: any) => {
+    },    
+    onError: (error: any) => {
       toast.error("Failed to Record Application", { description: error.message });
       setShowConfirmationModal(false); // Close modal on error
     },
@@ -211,29 +156,19 @@ const Apply = () => {
     mutationFn: async () => {
       if (!job || !user?.id) throw new Error("Job data or user missing");
 
-      console.log("Saving job:", job, user.id);
-      // Insert into 'saved_jobs' table
-      const { data, error } = await supabase
-        .from("saved_jobs")
-        .insert({
-          job_id: job.id,
-          user_id: user.id,
-        })
-        .select()
-        .single();
-
-      if (error) {
+      try {
+        await saveJob(user.id, job.id);
+        return job;
+      } catch (error: any) {
         // Handle potential duplicate entry (job already saved)
-        if (error.code === '23505') {
-          toast.info("Job Already Saved", { description: "This job is already in your saved list." });
-          return { job_id: job.id, user_id: user.id, id: 'existing' }; // Indicate existing saved job
+        if (error.message.includes('duplicate') || error.message.includes('unique constraint')) {
+          toast.info("Job Already Saved", { 
+            description: "This job is already in your saved list." 
+          });
+          return { ...job, id: 'existing' }; // Indicate existing saved job
         }
-        throw error; // Rethrow other errors
+        throw error;
       }
-      if (!data) throw new Error("Failed to save job record");
-
-      // Return job data for Zustand update (or refine as needed)
-      return { ...job, id: data.id }; // Use the DB id if needed
     },
     onSuccess: (savedJobData) => {
       if (savedJobData.id !== 'existing') { // Only show success for newly saved jobs
@@ -274,8 +209,9 @@ const Apply = () => {
       return;
     }
 
-    uploadResumeMutation.mutate(file); // Trigger the mutation
-
+    startTransition(() => {
+      uploadResumeMutation.mutate(file); // Trigger the mutation
+    });
   }, [uploadResumeMutation]);
 
   const generateCoverLetter = useCallback(() => {
@@ -291,33 +227,33 @@ const Apply = () => {
   }, [job, user]);
 
   const handleApplyClick = useCallback(() => {
-    // Basic validation before proceeding
-    if (!selectedResumeId && selectedTab === 'resume' && user?.resumes?.length > 0) {
-      toast.error("Please select a resume");
-      return;
-    }
-    if (!coverLetter && selectedTab === 'cover-letter') {
-      // Optional: Warn if cover letter is empty but not strictly required
-      // toast.warning("Cover letter is empty", { description: "Consider adding a cover letter." });
-    }
+    startTransition(() => {
+      // Basic validation before proceeding
+      if (!selectedResumeId && selectedTab === 'resume' && user?.resumes?.length > 0) {
+        toast.error("Please select a resume");
+        return;
+      }
 
-    if (job?.url) {
-      // External Application Flow
-      window.open(job.url, '_blank', 'noopener,noreferrer'); // Open external link
-      // Show confirmation modal after a short delay to allow tab switch
-      setTimeout(() => {
-        setShowConfirmationModal(true);
-      }, 1500);
-    } else {
-      // Internal Application Flow (or no URL provided)
-      createApplicationMutation.mutate();
-    }
-  }, [job, createApplicationMutation, selectedResumeId, coverLetter, selectedTab, user?.resumes]);
+      if (job?.url) {
+        // External Application Flow
+        window.open(job.url, '_blank', 'noopener,noreferrer'); // Open external link
+        // Show confirmation modal after a short delay to allow tab switch
+        setTimeout(() => {
+          setShowConfirmationModal(true);
+        }, 1500);
+      } else {
+        // Internal Application Flow (or no URL provided)
+        createApplicationMutation.mutate();
+      }
+    });
+  }, [job, createApplicationMutation, selectedResumeId, selectedTab, user?.resumes]);
 
   // Handler when user confirms they *did* apply externally
   const handleConfirmApplication = useCallback(() => {
     setShowConfirmationModal(false);
-    createApplicationMutation.mutate(); // Record the application
+    startTransition(() => {
+      createApplicationMutation.mutate(); // Record the application
+    });
   }, [createApplicationMutation]);
 
   // Handler when user says they did *not* apply externally (or closes modal)
@@ -328,7 +264,9 @@ const Apply = () => {
 
   // Handler for saving the job after declining application confirmation
   const handleSaveJobForLater = useCallback(() => {
-    saveJobMutation.mutate();
+    startTransition(() => {
+      saveJobMutation.mutate();
+    });
   }, [saveJobMutation]);
 
   // --- Computed Values ---

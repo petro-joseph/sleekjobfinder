@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/lib/store';
 import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
-import { Bookmark, ExternalLink, Trash2, Search } from 'lucide-react';
+import { Bookmark, ExternalLink, Trash2, Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Job } from '@/data/jobs';
-import { supabase } from '@/integrations/supabase/client';
+import { Job } from '@/types';
+import { fetchSavedJobs, removeSavedJob } from '@/api/savedJobs';
 import { SavedJobsSkeleton } from '@/components/jobs/LoadingState';
 
 const SavedJobs = () => {
@@ -17,49 +17,51 @@ const SavedJobs = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (!user) return;
-    setLoading(true);
     
-    supabase
-      .from('saved_jobs')
-      .select('job_id, jobs(*)')
-      .eq('user_id', user.id)
-      .then(({ data, error }) => {
-        if (error) {
-          setLoading(false);
-          toast.error("Error loading saved jobs");
-          return;
-        }
-        
-        if (!data) {
-          setJobs([]);
-          setLoading(false);
-          return;
-        }
-        
-        setJobs(data.map((r: any) => r.jobs).filter((j: Job | null) => !!j));
+    const loadSavedJobs = async () => {
+      setLoading(true);
+      try {
+        const savedJobs = await fetchSavedJobs(user.id);
+        setJobs(savedJobs);
+      } catch (error) {
+        toast.error("Error loading saved jobs");
+        console.error(error);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    
+    loadSavedJobs();
   }, [user]);
 
   const handleRemoveJob = async (jobId: string) => {
     if (!user) return;
     
-    const { error } = await supabase
-      .from('saved_jobs')
-      .delete()
-      .eq('job_id', jobId)
-      .eq('user_id', user.id);
-
-    if (error) {
-      toast.error("Error removing job from saved list");
-      return;
-    }
-
-    setJobs((jobs) => jobs.filter((job) => job.id !== jobId));
-    toast.success("Job removed from saved jobs");
+    startTransition(async () => {
+      try {
+        await removeSavedJob(user.id, jobId);
+        setJobs((jobs) => jobs.filter((job) => job.id !== jobId));
+        
+        // Update store state
+        const updatedSavedJobs = user.savedJobs.filter(job => job.id !== jobId);
+        useAuthStore.setState(state => ({
+          ...state,
+          user: {
+            ...state.user!,
+            savedJobs: updatedSavedJobs
+          }
+        }));
+        
+        toast.success("Job removed from saved jobs");
+      } catch (error) {
+        toast.error("Error removing job from saved list");
+        console.error(error);
+      }
+    });
   };
 
   const filteredJobs = searchTerm
@@ -105,6 +107,7 @@ const SavedJobs = () => {
                 job={job} 
                 onRemove={() => handleRemoveJob(job.id)}
                 onView={() => navigate(`/jobs/${job.id}`)}
+                isPending={isPending}
               />
             ))}
           </div>
@@ -146,11 +149,13 @@ const EmptyState = ({ searchTerm, navigate }: { searchTerm: string, navigate: (p
 const SavedJobCard = ({ 
   job, 
   onRemove, 
-  onView 
+  onView,
+  isPending
 }: { 
   job: Job;
   onRemove: () => void;
   onView: () => void;
+  isPending: boolean;
 }) => {
   return (
     <Card className="glass hover backdrop-blur-xl border-primary/20 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden group">
@@ -190,8 +195,9 @@ const SavedJobCard = ({
                 variant="ghost" 
                 onClick={onRemove} 
                 className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                disabled={isPending}
               >
-                <Trash2 className="h-4 w-4" />
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
               </Button>
             </div>
           </div>
@@ -200,6 +206,5 @@ const SavedJobCard = ({
     </Card>
   );
 };
-
 
 export default SavedJobs;
