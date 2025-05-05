@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-interface JobFilterProps {
+export interface JobFilterProps {
   filters: JobFilters;
   onFilterChange: (filters: Partial<JobFilters>) => void;
   onResetFilters: () => void;

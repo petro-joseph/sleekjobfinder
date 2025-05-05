@@ -3,7 +3,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ProfileData {
-  id?: string;
+  id: string; // Made required to match DbProfile
   first_name?: string;
   last_name?: string;
   email?: string;
@@ -25,8 +25,8 @@ export interface ProfileData {
   job_preferences?: JobPreferences;
   settings?: NotificationSettings;
   // Added these fields to match DbProfile
-  created_at?: string;
-  updated_at?: string;
+  created_at: string;
+  updated_at: string;
   is_email_verified?: boolean;
 }
 
@@ -56,7 +56,7 @@ export const fetchUserProfile = async (userId: string): Promise<ProfileData> => 
     
     if (error) throw new Error(error.message);
     
-    // Cast any JSON fields to the proper types
+    // Cast any JSON fields to the proper types with proper type assertions
     return {
         ...data,
         job_preferences: data.job_preferences as unknown as JobPreferences,
@@ -66,7 +66,16 @@ export const fetchUserProfile = async (userId: string): Promise<ProfileData> => 
 
 export const updateUserProfile = async (userId: string, profileData: Partial<ProfileData>): Promise<ProfileData> => {
     // Create a new object that will be properly typed for Supabase
-    const supabaseData: any = { ...profileData };
+    const supabaseData: Record<string, any> = { ...profileData };
+    
+    // Convert complex objects to JSON strings if necessary
+    if (profileData.job_preferences) {
+        supabaseData.job_preferences = profileData.job_preferences;
+    }
+    
+    if (profileData.settings) {
+        supabaseData.settings = profileData.settings;
+    }
     
     const { data, error } = await supabase
         .from('profiles')
@@ -104,7 +113,7 @@ export const updateUserPreferences = async (
   isComplete: boolean = false
 ): Promise<ProfileData> => {
   // Create a properly typed object for Supabase
-  const updates: any = {
+  const updates: Record<string, any> = {
     job_preferences: jobPreferences,
     settings: settings
   };

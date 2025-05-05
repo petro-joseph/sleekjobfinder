@@ -9,7 +9,7 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { User, Resume, mapProfileToUser } from '@/lib/store';
+import { User, Resume, mapProfileToUser, DbProfile } from '@/lib/store';
 import { MultiSelect } from '@/components/ui/MultiSelect';
 import { SalaryRange } from '@/components/ui/SalaryRange';
 import { NotificationSettings } from '@/components/ui/NotificationSettings';
@@ -79,6 +79,12 @@ const UserPreferences = memo(() => {
           fetchResumes(authUser.id)
         ]);
 
+        // Ensure profile has id property
+        const profileWithId: DbProfile = {
+          ...profile,
+          id: authUser.id
+        };
+
         setNotificationSettings(profile.settings || {
           notifications: false,
           emailUpdates: false,
@@ -87,7 +93,7 @@ const UserPreferences = memo(() => {
         
         setResumes(resumesData);
         // Pass profile directly - we've updated ProfileData to match DbProfile
-        setUser(mapProfileToUser(profile, [], resumesData));
+        setUser(mapProfileToUser(profileWithId, [], resumesData));
 
         form.reset({
           locations: profile.job_preferences?.locations || [],
@@ -109,7 +115,7 @@ const UserPreferences = memo(() => {
 
   // Form submission
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    startTransition(async () => {
+    const submitAction = async () => {
       try {
         const { data: { user: authUser } } = await supabase.auth.getUser();
         if (!authUser) throw new Error('User not authenticated');
@@ -156,6 +162,10 @@ const UserPreferences = memo(() => {
         console.error('Error saving preferences:', error);
         toast.error(`Failed to save preferences: ${error.message}`);
       }
+    };
+
+    startTransition(() => {
+      submitAction();
     });
   };
 

@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Job, Resume as BaseResume, Application } from '@/types';
@@ -139,9 +140,23 @@ export interface AuthState {
 }
 
 export function mapProfileToUser(profile: DbProfile, savedJobs: Job[] = [], resumes: BaseResume[] = [], applications: Application[] = [] ): User {
-  // Cast JSON fields to the expected formats
-  const preferences = profile.job_preferences as DbProfile['job_preferences'];
-  const userSettings = profile.settings as DbProfile['settings'];
+  // Cast JSON fields to the expected formats with proper type assertion
+  const preferences = typeof profile.job_preferences === 'object' ? profile.job_preferences as {
+    locations: string[];
+    job_types: string[];
+    industries: string[];
+    salary_range?: {
+      min: number;
+      currency: string;
+      max: number;
+    };
+  } : undefined;
+  
+  const userSettings = typeof profile.settings === 'object' ? profile.settings as {
+    notifications: boolean;
+    emailUpdates: boolean;
+    darkMode: boolean;
+  } : undefined;
   
   return {
     id: profile.id,

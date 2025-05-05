@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,7 +16,7 @@ export interface JobsHeaderProps {
   onExpLevelToggle: (level: string, isSelected: boolean) => void;
   jobTypes: Record<string, boolean>;
   expLevels: Record<string, boolean>;
-  isPending?: boolean; // Added the missing isPending prop
+  isPending?: boolean;
 }
 
 const JobsHeader: React.FC<JobsHeaderProps> = ({
@@ -29,14 +30,14 @@ const JobsHeader: React.FC<JobsHeaderProps> = ({
   isPending,
 }) => {
   const formSchema = z.object({
-    search: z.string().optional(),
+    searchTerm: z.string().optional(),
     location: z.string().optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      search: filters.search || '',
+      searchTerm: filters.searchTerm || '',
       location: filters.location || '',
     },
     mode: 'onChange',
@@ -44,7 +45,7 @@ const JobsHeader: React.FC<JobsHeaderProps> = ({
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     onFilterChange({
-      search: values.search,
+      searchTerm: values.searchTerm,
       location: values.location,
     });
   };
@@ -71,7 +72,7 @@ const JobsHeader: React.FC<JobsHeaderProps> = ({
               <input
                 type="text"
                 placeholder="Search job title or keywords"
-                {...form.register('search')}
+                {...form.register('searchTerm')}
                 className="flex h-11 w-full rounded-md border border-input bg-background px-10 py-3 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
@@ -104,16 +105,14 @@ const JobsHeader: React.FC<JobsHeaderProps> = ({
         <div className="md:flex md:items-center md:justify-between">
           <div className="mb-4 md:mb-0">
             <JobFilter
-              title="Job Type"
-              options={jobTypes}
-              onToggle={onJobTypeToggle}
-            />
-          </div>
-          <div>
-            <JobFilter
-              title="Experience Level"
-              options={expLevels}
-              onToggle={onExpLevelToggle}
+              filters={filters}
+              onFilterChange={onFilterChange}
+              onResetFilters={onResetFilters}
+              onJobTypeToggle={onJobTypeToggle}
+              onExpLevelToggle={onExpLevelToggle}
+              jobTypes={jobTypes}
+              expLevels={expLevels}
+              isPending={isPending}
             />
           </div>
           <button
