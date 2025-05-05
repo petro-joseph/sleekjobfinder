@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -18,7 +19,7 @@ import { ChevronRight, Bell, Clock, Filter, PlusCircle, Check, X } from 'lucide-
 // Store, Auth, Supabase
 import { useAuthStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
-import { ApplicationTableSkeleton } from '@/components/jobs/LoadingState';
+import { ApplicationsSkeleton, TableSkeleton } from '@/components/jobs/LoadingState';
 
 // --- Constants and Types (Ideally move to separate files: constants.ts, types.ts) ---
 
@@ -124,7 +125,7 @@ const ApplicationsTab: React.FC<ApplicationsTabProps> = React.memo(({
       </div>
 
       {isLoading ? (
-        <ApplicationTableSkeleton />
+        <TableSkeleton />
       ) : (
         <div className="border rounded-lg overflow-auto max-h-[450px]">
           <Table>
