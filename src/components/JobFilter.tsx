@@ -5,246 +5,149 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Search } from 'lucide-react';
+import { Search, Filter, Loader2 } from 'lucide-react';
 import { JobFilters } from '@/api/jobs';
-
-interface FilterValues {
-  jobTypes: string[];
-  experienceLevels: string[];
-  salaryRange: [number, number];
-  searchTerm: string;
-}
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface JobFilterProps {
+  filters: JobFilters;
   onFilterChange: (filters: Partial<JobFilters>) => void;
+  onResetFilters: () => void;
+  onJobTypeToggle: (type: string, isSelected: boolean) => void;
+  onExpLevelToggle: (level: string, isSelected: boolean) => void;
+  jobTypes: Record<string, boolean>;
+  expLevels: Record<string, boolean>;
+  isPending?: boolean;
 }
 
-const JobFilter = ({ onFilterChange }: JobFilterProps) => {
-  const [jobTypesState, setJobTypesState] = useState({
-    fullTime: false,
-    partTime: false,
-    contract: false,
-    remote: false,
-  });
-
-  const [experienceLevelsState, setExperienceLevelsState] = useState({
-    entry: false,
-    mid: false,
-    senior: false,
-  });
-
-  const [salaryRange, setSalaryRange] = useState<[number, number]>([50, 150]);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const handleJobTypeChange = (type: keyof typeof jobTypesState) => {
-    const updatedJobTypes = { ...jobTypesState, [type]: !jobTypesState[type] };
-    setJobTypesState(updatedJobTypes);
-    
-    // Convert object to array of selected job types
-    const jobTypesArray = Object.entries(updatedJobTypes)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([type]) => mapTypeKeys(type));
-      
-    applyFilters(jobTypesArray, getExperienceLevelsArray(), salaryRange, searchTerm);
+const JobFilter = ({ 
+  filters,
+  onFilterChange,
+  onResetFilters,
+  onJobTypeToggle,
+  onExpLevelToggle,
+  jobTypes,
+  expLevels,
+  isPending
+}: JobFilterProps) => {
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(filters.searchTerm || '');
+  
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
   };
-
-  const handleExperienceChange = (level: keyof typeof experienceLevelsState) => {
-    const updatedLevels = { ...experienceLevelsState, [level]: !experienceLevelsState[level] };
-    setExperienceLevelsState(updatedLevels);
-    
-    // Convert object to array of selected experience levels
-    const expLevelsArray = Object.entries(updatedLevels)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([level]) => level);
-      
-    applyFilters(getJobTypesArray(), expLevelsArray, salaryRange, searchTerm);
+  
+  const handleSearchSubmit = () => {
+    onFilterChange({ searchTerm });
+    setOpen(false);
   };
 
   const handleSalaryChange = (value: number[]) => {
-    // Ensure the value has exactly two elements to satisfy the [number, number] type
-    const typedSalaryRange: [number, number] = value.length >= 2 
-      ? [value[0], value[1]] 
-      : [value[0] || 50, value[1] || 150];
-      
-    setSalaryRange(typedSalaryRange);
-    applyFilters(getJobTypesArray(), getExperienceLevelsArray(), typedSalaryRange, searchTerm);
+    if (value.length >= 2) {
+      onFilterChange({ salaryRange: [value[0], value[1]] });
+    }
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    applyFilters(getJobTypesArray(), getExperienceLevelsArray(), salaryRange, e.target.value);
+  const handleJobTypeChange = (type: string, checked: boolean) => {
+    onJobTypeToggle(type, checked);
   };
 
-  // Helper to convert internal state to filter array format
-  const getJobTypesArray = (): string[] => {
-    return Object.entries(jobTypesState)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([type]) => mapTypeKeys(type));
-  };
-
-  // Helper to convert internal state to filter array format
-  const getExperienceLevelsArray = (): string[] => {
-    return Object.entries(experienceLevelsState)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([level]) => level);
-  };
-
-  // Map frontend keys to backend keys if needed
-  const mapTypeKeys = (key: string): string => {
-    const mapping: Record<string, string> = {
-      fullTime: "full-time",
-      partTime: "part-time",
-    };
-    return mapping[key as keyof typeof mapping] || key;
-  };
-
-  const applyFilters = (
-    types: string[],
-    levels: string[],
-    salary: [number, number],
-    search: string
-  ) => {
-    onFilterChange({
-      jobTypes: types,
-      experienceLevels: levels,
-      salaryRange: salary,
-      searchTerm: search,
-    });
-  };
-
-  const clearFilters = () => {
-    setJobTypesState({
-      fullTime: false,
-      partTime: false,
-      contract: false,
-      remote: false,
-    });
-    setExperienceLevelsState({
-      entry: false,
-      mid: false,
-      senior: false,
-    });
-    setSalaryRange([50, 150]);
-    setSearchTerm('');
-    
-    onFilterChange({
-      jobTypes: [],
-      experienceLevels: [],
-      salaryRange: [50, 150],
-      searchTerm: '',
-    });
+  const handleExperienceChange = (level: string, checked: boolean) => {
+    onExpLevelToggle(level, checked);
   };
 
   return (
-    <div className="bg-card border rounded-xl p-6 shadow-sm sticky top-24">
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search jobs..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={handleSearchChange}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        <div>
-          <h3 className="font-medium mb-3 text-foreground">Job Type</h3>
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="full-time" 
-                checked={jobTypesState.fullTime}
-                onCheckedChange={() => handleJobTypeChange('fullTime')}
-              />
-              <Label htmlFor="full-time">Full-time</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="part-time" 
-                checked={jobTypesState.partTime}
-                onCheckedChange={() => handleJobTypeChange('partTime')}
-              />
-              <Label htmlFor="part-time">Part-time</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="contract" 
-                checked={jobTypesState.contract}
-                onCheckedChange={() => handleJobTypeChange('contract')}
-              />
-              <Label htmlFor="contract">Contract</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="remote" 
-                checked={jobTypesState.remote}
-                onCheckedChange={() => handleJobTypeChange('remote')}
-              />
-              <Label htmlFor="remote">Remote</Label>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <div className="flex justify-between mb-3">
-            <h3 className="font-medium text-foreground">Salary Range</h3>
-            <p className="text-sm text-muted-foreground">
-              ${salaryRange[0]}k - ${salaryRange[1]}k
-            </p>
-          </div>
-          <Slider
-            defaultValue={salaryRange}
-            min={30}
-            max={200}
-            step={5}
-            value={salaryRange}
-            onValueChange={handleSalaryChange}
-            className="my-4"
-          />
-        </div>
-
-        <div>
-          <h3 className="font-medium mb-3 text-foreground">Experience Level</h3>
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="entry"
-                checked={experienceLevelsState.entry}
-                onCheckedChange={() => handleExperienceChange('entry')}
-              />
-              <Label htmlFor="entry">Entry Level</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="mid"
-                checked={experienceLevelsState.mid}
-                onCheckedChange={() => handleExperienceChange('mid')}
-              />
-              <Label htmlFor="mid">Mid Level</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="senior"
-                checked={experienceLevelsState.senior}
-                onCheckedChange={() => handleExperienceChange('senior')}
-              />
-              <Label htmlFor="senior">Senior Level</Label>
-            </div>
-          </div>
-        </div>
-
-        <Button 
-          variant="outline" 
-          className="w-full"
-          onClick={clearFilters}
-        >
-          Clear Filters
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 gap-1">
+          {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Filter className="h-3.5 w-3.5" />}
+          <span>Filters</span>
         </Button>
-      </div>
-    </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-4" align="start">
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-medium mb-2">Search</h3>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Keywords..."
+                  className="pl-9"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                />
+              </div>
+              <Button size="sm" onClick={handleSearchSubmit}>
+                Search
+              </Button>
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="font-medium mb-2">Job Type</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {Object.entries(jobTypes).map(([type, isChecked]) => (
+                <div className="flex items-center space-x-2" key={type}>
+                  <Checkbox 
+                    id={`job-type-${type}`}
+                    checked={isChecked}
+                    onCheckedChange={(checked) => handleJobTypeChange(type, !!checked)}
+                  />
+                  <Label htmlFor={`job-type-${type}`} className="text-sm capitalize">
+                    {type.replace('-', ' ')}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <div className="flex justify-between mb-2">
+              <h3 className="font-medium">Salary Range</h3>
+              <p className="text-sm text-muted-foreground">
+                ${filters.salaryRange?.[0]}k - ${filters.salaryRange?.[1]}k
+              </p>
+            </div>
+            <Slider
+              min={30}
+              max={200}
+              step={5}
+              value={filters.salaryRange}
+              onValueChange={handleSalaryChange}
+              className="mt-2"
+            />
+          </div>
+          
+          <div>
+            <h3 className="font-medium mb-2">Experience Level</h3>
+            <div className="space-y-2">
+              {Object.entries(expLevels).map(([level, isChecked]) => (
+                <div className="flex items-center space-x-2" key={level}>
+                  <Checkbox 
+                    id={`exp-${level}`}
+                    checked={isChecked}
+                    onCheckedChange={(checked) => handleExperienceChange(level, !!checked)}
+                  />
+                  <Label htmlFor={`exp-${level}`} className="text-sm capitalize">
+                    {level === 'entry' ? 'Entry Level' : level === 'mid' ? 'Mid Level' : 'Senior Level'}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="flex justify-between pt-2 border-t">
+            <Button variant="ghost" size="sm" onClick={onResetFilters}>Reset all</Button>
+            <Button size="sm" onClick={() => setOpen(false)}>Apply</Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 

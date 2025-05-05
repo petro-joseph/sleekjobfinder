@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MapPin, Search, X, Filter, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { JobFilter } from '@/components/JobFilter';
+import JobFilter from '@/components/JobFilter'; // Fix import (default export)
 import { JobFilters } from '@/api/jobs';
 
 export interface JobsHeaderProps {
@@ -28,7 +29,7 @@ export const JobsHeader: React.FC<JobsHeaderProps> = ({
   isPending,
 }) => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onFilterChange({ search: e.target.value });
+    onFilterChange({ searchTerm: e.target.value }); // Use searchTerm instead of search
   };
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,7 +49,7 @@ export const JobsHeader: React.FC<JobsHeaderProps> = ({
             type="search"
             placeholder="Search jobs..."
             className="pl-10 transition-all"
-            value={filters.search || ''}
+            value={filters.searchTerm || ''}
             onChange={handleSearchChange}
           />
         </div>
