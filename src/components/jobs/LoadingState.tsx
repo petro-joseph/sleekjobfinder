@@ -1,6 +1,6 @@
-
-import { Skeleton } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 
 export const LoadingSpinner = () => {
   return (
@@ -141,6 +141,95 @@ export const ApplicationsSkeleton = () => {
           </CardContent>
         </Card>
       ))}
+    </div>
+  );
+};
+
+export const TableSkeleton = () => {
+  return (
+    <div className="space-y-2">
+      <Table>
+        <TableBody>
+          {[1, 2, 3].map((i) => (
+            <TableRow key={i}>
+              <TableCell>
+                <Skeleton className="h-4 w-full" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-full" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-20" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
+
+export const UserPreferencesSkeleton = () => {
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <Skeleton className="h-8 w-64 mb-6" />
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-6">
+            <Skeleton className="h-6 w-40 mb-4" />
+            <div className="space-y-4">
+              <div>
+                <Skeleton className="h-4 w-32 mb-2" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div>
+                <Skeleton className="h-4 w-32 mb-2" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div>
+                <Skeleton className="h-4 w-32 mb-2" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <Skeleton className="h-6 w-40 mb-4" />
+            <div className="space-y-4">
+              <Skeleton className="h-24 w-full" />
+              <div className="flex justify-center">
+                <Skeleton className="h-10 w-48" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <Skeleton className="h-6 w-40 mb-4" />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-6 w-10" />
+              </div>
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-6 w-10" />
+              </div>
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-6 w-10" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <div className="flex justify-end">
+          <Skeleton className="h-12 w-32" />
+        </div>
+      </div>
     </div>
   );
 };
