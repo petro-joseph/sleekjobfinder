@@ -47,7 +47,11 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
         <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-12' : 'pt-14 mt-4'
           } ${isDashboardOrPreferences && !isMobile ? 'pt-20' : ''
           }`}>
-          <Suspense fallback={<div className="flex justify-center items-center py-12"><LoadingSpinner /></div>}>
+          <Suspense fallback={
+            <div className="flex justify-center items-center py-12">
+              <LoadingSpinner />
+            </div>
+          }>
             {children}
           </Suspense>
         </main>

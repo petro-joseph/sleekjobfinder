@@ -20,19 +20,19 @@ const ResumeBuilder = () => {
   // Reset mode when navigating away
   useEffect(() => {
     return () => {
-      startTransition(() => {
-        setMode('select');
-      });
+      // Clean up function runs when component unmounts
+      setMode('select');
     };
   }, []);
 
-  const handleModeChange = (newMode: 'select' | 'create' | 'tailor') => {
+  const handleModeChange = useCallback((newMode: 'select' | 'create' | 'tailor') => {
+    // Wrap state updates in startTransition to avoid Suspense conflicts
     startTransition(() => {
       setMode(newMode);
     });
-  };
+  }, []);
 
-  const handleResumeComplete = (resume: Resume) => {
+  const handleResumeComplete = useCallback((resume: Resume) => {
     toast({
       title: "Resume created successfully!",
       description: "Your new resume has been saved.",
@@ -41,7 +41,7 @@ const ResumeBuilder = () => {
     startTransition(() => {
       setMode('select');
     });
-  };
+  }, [toast]);
 
   return (
     <Layout>
