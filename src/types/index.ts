@@ -115,16 +115,30 @@ export interface Project {
 
 export interface Application {
   id: string;
-  jobId?: string;
-  job_id?: string;
+  user_id: string;
+  job_id: string | null;
   position: string;
   company: string;
-  status: 'applied' | 'interview' | 'offer' | 'rejected' | 'reviewed' | 'accepted' | 'archived' | 'offer_received';
-  createdAt: string;
-  updatedAt: string;
-  appliedAt?: string;
-  created_at?: string;
-  updated_at?: string;
-  applied_at?: string;
-  user_id?: string;
+  status: 'applied' | 'interview' | 'offer_received' | 'rejected' | 'archived' | 'reviewed' | 'accepted';
+  created_at: string;
+  updated_at: string;
+  applied_at: string | null;
+}
+
+export interface JobAlert {
+  id: string;
+  user_id: string;
+  query: string;
+  keywords: string[] | null;
+  location: string | null;
+  frequency: string;
+  created_at: string;
+}
+
+export interface RecentActivity {
+  id: string;
+  position: string;
+  company: string;
+  date: string; // YYYY-MM-DD
+  status: string;
 }

@@ -26,7 +26,7 @@ export interface User {
   education?: Education[];
   applications: Application[];
   savedJobs: Job[];
-  alerts: Alert[];
+  jobAlerts: Alert[];
   resumes: BaseResume[];
   onboardingStep?: number;
   isOnboardingComplete?: boolean;
@@ -138,7 +138,7 @@ export interface AuthState {
   fetchUserProfile: () => Promise<void>;
 }
 
-export function mapProfileToUser(profile: DbProfile, savedJobs: Job[] = [], resumes: BaseResume[] = [], applications: Application[] = []): User {
+export function mapProfileToUser(profile: DbProfile, savedJobs: Job[] = [], resumes: BaseResume[] = [], applications: Application[] = [] ): User {
   return {
     id: profile.id,
     firstName: profile.first_name || '',
@@ -159,7 +159,7 @@ export function mapProfileToUser(profile: DbProfile, savedJobs: Job[] = [], resu
     skills: profile.skills || [],
     applications,
     savedJobs,
-    alerts: [],
+    jobAlerts: [],
     resumes,
     onboardingStep: profile.onboarding_step,
     isOnboardingComplete: profile.is_onboarding_complete,
@@ -339,13 +339,14 @@ export const useAuthStore = create<AuthState>()(
           // Map DB formats to application format
           const formattedApplications: Application[] = applications?.map(app => ({
             id: app.id,
-            jobId: app.job_id,
+            user_id: app.user_id,
+            job_id: app.job_id,
             position: app.position,
             company: app.company,
             status: app.status as Application['status'], // Type assertion to ensure compatibility
-            createdAt: app.created_at,
-            updatedAt: app.updated_at,
-            appliedAt: app.applied_at
+            created_at: app.created_at,
+            updated_at: app.updated_at,
+            applied_at: app.applied_at
           })) || [];
           
           // Map to our User model
