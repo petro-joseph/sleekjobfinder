@@ -34,12 +34,15 @@ export function extractStoragePath(url: string): string | null {
     const urlObj = new URL(url);
     const pathParts = urlObj.pathname.split('/');
     
-    // Look for the bucket name in the path
-    const bucketNameIndex = pathParts.indexOf('cv-bucket');
-    if (bucketNameIndex !== -1 && bucketNameIndex < pathParts.length - 1) {
-      // Return everything after the bucket name
-      return pathParts.slice(bucketNameIndex + 1).join('/');
+    // Improved path extraction logic
+    // Look for "cv-bucket" in the path
+    const bucketIndex = pathParts.findIndex(part => part === 'cv-bucket');
+    
+    if (bucketIndex !== -1 && bucketIndex < pathParts.length - 1) {
+      // Get all parts after the bucket name
+      return pathParts.slice(bucketIndex + 1).join('/');
     }
+    
     return null;
   } catch (e) {
     console.error('Failed to extract storage path:', e);

@@ -1,4 +1,3 @@
-
 import React, { memo, useEffect, useState, useTransition } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -10,7 +9,7 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { User, Resume, DbProfile, mapProfileToUser } from '@/lib/store';
+import { User, Resume, mapProfileToUser } from '@/lib/store';
 import { MultiSelect } from '@/components/ui/MultiSelect';
 import { SalaryRange } from '@/components/ui/SalaryRange';
 import { NotificationSettings } from '@/components/ui/NotificationSettings';
@@ -87,6 +86,7 @@ const UserPreferences = memo(() => {
         });
         
         setResumes(resumesData);
+        // Pass profile directly - we've updated ProfileData to match DbProfile
         setUser(mapProfileToUser(profile, [], resumesData));
 
         form.reset({
@@ -108,7 +108,7 @@ const UserPreferences = memo(() => {
   }, [navigate, form]);
 
   // Form submission
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const onSubmit = (data: z.infer<typeof formSchema>) => {
     startTransition(async () => {
       try {
         const { data: { user: authUser } } = await supabase.auth.getUser();

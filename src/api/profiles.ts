@@ -24,6 +24,10 @@ export interface ProfileData {
   is_onboarding_complete?: boolean;
   job_preferences?: JobPreferences;
   settings?: NotificationSettings;
+  // Added these fields to match DbProfile
+  created_at?: string;
+  updated_at?: string;
+  is_email_verified?: boolean;
 }
 
 export interface JobPreferences {
@@ -51,19 +55,34 @@ export const fetchUserProfile = async (userId: string): Promise<ProfileData> => 
         .single();
     
     if (error) throw new Error(error.message);
-    return data;
+    
+    // Cast any JSON fields to the proper types
+    return {
+        ...data,
+        job_preferences: data.job_preferences as unknown as JobPreferences,
+        settings: data.settings as unknown as NotificationSettings
+    } as ProfileData;
 };
 
 export const updateUserProfile = async (userId: string, profileData: Partial<ProfileData>): Promise<ProfileData> => {
+    // Create a new object that will be properly typed for Supabase
+    const supabaseData: any = { ...profileData };
+    
     const { data, error } = await supabase
         .from('profiles')
-        .update(profileData)
+        .update(supabaseData)
         .eq('id', userId)
         .select()
         .single();
     
     if (error) throw new Error(error.message);
-    return data;
+    
+    // Cast any JSON fields to the proper types
+    return {
+        ...data,
+        job_preferences: data.job_preferences as unknown as JobPreferences,
+        settings: data.settings as unknown as NotificationSettings
+    } as ProfileData;
 };
 
 export const updateOnboardingStep = async (userId: string, step: number, isComplete: boolean = false): Promise<void> => {
@@ -84,7 +103,8 @@ export const updateUserPreferences = async (
   settings: NotificationSettings,
   isComplete: boolean = false
 ): Promise<ProfileData> => {
-  const updates: Partial<ProfileData> = {
+  // Create a properly typed object for Supabase
+  const updates: any = {
     job_preferences: jobPreferences,
     settings: settings
   };
@@ -103,5 +123,11 @@ export const updateUserPreferences = async (
     .single();
 
   if (error) throw new Error(error.message);
-  return data;
+  
+  // Cast any JSON fields to the proper types
+  return {
+    ...data,
+    job_preferences: data.job_preferences as unknown as JobPreferences,
+    settings: data.settings as unknown as NotificationSettings
+  } as ProfileData;
 };

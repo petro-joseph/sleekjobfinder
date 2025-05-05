@@ -76,7 +76,7 @@ export interface DbProfile {
     notifications: boolean;
     emailUpdates: boolean;
     darkMode: boolean;
-  };
+  } | unknown;
   job_preferences?: {
     locations: string[];
     job_types: string[];
@@ -86,7 +86,7 @@ export interface DbProfile {
       currency: string;
       max: number;
     };
-  };
+  } | unknown;
 }
 
 export interface Experience {
@@ -139,6 +139,10 @@ export interface AuthState {
 }
 
 export function mapProfileToUser(profile: DbProfile, savedJobs: Job[] = [], resumes: BaseResume[] = [], applications: Application[] = [] ): User {
+  // Cast JSON fields to the expected formats
+  const preferences = profile.job_preferences as DbProfile['job_preferences'];
+  const userSettings = profile.settings as DbProfile['settings'];
+  
   return {
     id: profile.id,
     firstName: profile.first_name || '',
@@ -163,13 +167,17 @@ export function mapProfileToUser(profile: DbProfile, savedJobs: Job[] = [], resu
     resumes,
     onboardingStep: profile.onboarding_step,
     isOnboardingComplete: profile.is_onboarding_complete,
-    jobPreferences: profile.job_preferences ? {
-      locations: profile.job_preferences.locations || [],
-      jobTypes: profile.job_preferences.job_types || [],
-      industries: profile.job_preferences.industries || [],
-      salaryRange: profile.job_preferences.salary_range
+    jobPreferences: preferences ? {
+      locations: preferences.locations || [],
+      jobTypes: preferences.job_types || [],
+      industries: preferences.industries || [],
+      salaryRange: preferences.salary_range
     } : undefined,
-    settings: profile.settings || {
+    settings: userSettings ? {
+      notifications: !!userSettings.notifications,
+      emailUpdates: !!userSettings.emailUpdates,
+      darkMode: !!userSettings.darkMode,
+    } : {
       notifications: true,
       emailUpdates: false,
       darkMode: false,
@@ -288,11 +296,9 @@ export const useAuthStore = create<AuthState>()(
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           };
-
           
           // Fetch saved jobs
           const savedJobs = await get().fetchSavedJobs();
-
           
           // Fetch resumes
           const { data: resumes, error: resumesError } = await supabase
@@ -305,7 +311,6 @@ export const useAuthStore = create<AuthState>()(
              throw resumesError;
           }          
           console.log("[fetchUserProfile] Resumes fetched:", resumes?.length || 0);
-
           
           // Fetch applications
           console.log("[fetchUserProfile] Fetching applications...");
@@ -319,7 +324,6 @@ export const useAuthStore = create<AuthState>()(
               throw applicationsError;
           }
           console.log("[fetchUserProfile] Applications fetched:", applications?.length || 0);
-
           
           // Map DB formats to application format
           const formattedApplications: Application[] = applications?.map(app => ({
@@ -353,7 +357,7 @@ export const useAuthStore = create<AuthState>()(
           console.log("[fetchUserProfile] Mapping complete. Updating store state...");
           set({ isAuthenticated: true, user: mappedUser });
           console.log("[fetchUserProfile] Store state updated.");
-
+          
         } catch (error) {
           console.error("--- [fetchUserProfile] CATCH BLOCK: Error fetching user profile: ---", error);
           set({ isAuthenticated: false, user: null }); // Ensure logout on error
