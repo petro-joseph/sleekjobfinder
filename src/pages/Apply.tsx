@@ -474,7 +474,7 @@ const Apply = () => {
           </Button>
         </div>
 
-        <div className="max-w-4xl mx-auto">
+        <div className="">
           {/* Job Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Apply for {job.title}</h1>
