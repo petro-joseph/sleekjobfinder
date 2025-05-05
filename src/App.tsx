@@ -1,11 +1,9 @@
-
-import React, { lazy, Suspense, useEffect } from 'react'
+import React, { lazy, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider } from 'next-themes'
 import { supabase } from './integrations/supabase/client'
 import { useAuthStore } from './lib/store'
 import ProtectedRoute from './components/ProtectedRoute'
-import { LoadingSpinner } from './components/jobs/LoadingState'
 
 // Global CSS
 import './index.css'
@@ -113,47 +111,45 @@ function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <BrowserRouter>
-        <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
-            {/* Public */}
-            <Route path="/" element={<Home />} />
-            <Route path="login" element={<Login />} />
-            <Route path="signup" element={<Signup />} />
-            <Route path="verify-otp" element={<VerifyOtp />} />
-            <Route path="pricing" element={<Pricing />} />
-            <Route path="blog" element={<Blog />} />
-            <Route path="blog/:id" element={<BlogDetail />} />
-            <Route path="career-guides" element={<CareerGuides />} />
-            <Route path="guides/resume" element={<ResumeGuide />} />
-            <Route path="guides/interview" element={<InterviewGuide />} />
-            <Route path="guides/salary" element={<SalaryGuide />} />
-            <Route path="faq" element={<FAQ />} />
-            <Route path="support" element={<Support />} />
-            <Route path="about" element={<About />} />
-            <Route path="careers" element={<Careers />} />
-            <Route path="contact" element={<Contact />} />
-            <Route path="privacy" element={<Privacy />} />
-            <Route path="terms" element={<Terms />} />
-            <Route path="jobs" element={<Jobs />} />
-            <Route path="jobs/:id" element={<JobDetail />} />
-            <Route path="apply/:id" element={<Apply />} />
-            <Route path="resume-builder" element={<ResumeBuilder />} />
-            <Route path="auth/callback" element={<Callback />} />
+        <Routes>
+          {/* Public */}
+          <Route path="/" element={<Home />} />
+          <Route path="login" element={<Login />} />
+          <Route path="signup" element={<Signup />} />
+          <Route path="verify-otp" element={<VerifyOtp />} />
+          <Route path="pricing" element={<Pricing />} />
+          <Route path="blog" element={<Blog />} />
+          <Route path="blog/:id" element={<BlogDetail />} />
+          <Route path="career-guides" element={<CareerGuides />} />
+          <Route path="guides/resume" element={<ResumeGuide />} />
+          <Route path="guides/interview" element={<InterviewGuide />} />
+          <Route path="guides/salary" element={<SalaryGuide />} />
+          <Route path="faq" element={<FAQ />} />
+          <Route path="support" element={<Support />} />
+          <Route path="about" element={<About />} />
+          <Route path="careers" element={<Careers />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="privacy" element={<Privacy />} />
+          <Route path="terms" element={<Terms />} />
+          <Route path="jobs" element={<Jobs />} />
+          <Route path="jobs/:id" element={<JobDetail />} />
+          <Route path="apply/:id" element={<Apply />} />
+          <Route path="resume-builder" element={<ResumeBuilder />} />
+          <Route path="auth/callback" element={<Callback />} />
 
-            {/* Protected */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="saved-jobs" element={<SavedJobs />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="progress" element={<Progress />} />
-              <Route path="preferences" element={<UserPreferences />} />
-              <Route path="career-assistant" element={<CareerAssistant />} />
-            </Route>
+          {/* Protected */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="saved-jobs" element={<SavedJobs />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="progress" element={<Progress />} />
+            <Route path="preferences" element={<UserPreferences />} />
+            <Route path="career-assistant" element={<CareerAssistant />} />
+          </Route>
 
-            {/* catch-all */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+          {/* catch-all */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
 
         <SonnerToaster position="top-center" />
         <Toaster />
