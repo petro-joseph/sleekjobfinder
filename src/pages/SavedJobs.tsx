@@ -41,26 +41,29 @@ const SavedJobs = () => {
   const handleRemoveJob = async (jobId: string) => {
     if (!user) return;
     
-    startTransition(async () => {
-      try {
-        await removeSavedJob(user.id, jobId);
-        setJobs((jobs) => jobs.filter((job) => job.id !== jobId));
-        
-        // Update store state
-        const updatedSavedJobs = user.savedJobs.filter(job => job.id !== jobId);
-        useAuthStore.setState(state => ({
-          ...state,
-          user: {
-            ...state.user!,
-            savedJobs: updatedSavedJobs
-          }
-        }));
-        
-        toast.success("Job removed from saved jobs");
-      } catch (error) {
-        toast.error("Error removing job from saved list");
-        console.error(error);
-      }
+    // Use startTransition to wrap async operations
+    startTransition(() => {
+      (async () => {
+        try {
+          await removeSavedJob(user.id, jobId);
+          setJobs((jobs) => jobs.filter((job) => job.id !== jobId));
+          
+          // Update store state
+          const updatedSavedJobs = user.savedJobs.filter(job => job.id !== jobId);
+          useAuthStore.setState(state => ({
+            ...state,
+            user: {
+              ...state.user!,
+              savedJobs: updatedSavedJobs
+            }
+          }));
+          
+          toast.success("Job removed from saved jobs");
+        } catch (error) {
+          toast.error("Error removing job from saved list");
+          console.error(error);
+        }
+      })();
     });
   };
 

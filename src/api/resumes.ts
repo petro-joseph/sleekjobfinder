@@ -1,4 +1,3 @@
-
 // src/api/resumes.ts
 import { supabase } from '@/integrations/supabase/client';
 import { Resume } from '@/types';
@@ -33,7 +32,7 @@ export const uploadResume = async (file: File, userId: string): Promise<Resume> 
     // 2. Get count to determine if this is the first resume (should be primary)
     const { count, error: countError } = await supabase
         .from('resumes')
-        .select('id', { count: true })
+        .select('id', { count: 'exact' })
         .eq('user_id', userId);
     
     if (countError) throw new Error(countError.message);

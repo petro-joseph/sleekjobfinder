@@ -29,7 +29,7 @@ interface ApplicationRecord {
   position: string;
   company: string;
   status: 'applied'; // Explicitly setting status
-  applied_at?: string; // Optional, set during insert
+  applied_at?: string | null; // Optional, set during insert
   created_at?: string;
   updated_at?: string;
 }
@@ -112,6 +112,7 @@ const Apply = () => {
         position: job.title,
         company: job.company,
         status: "applied" as const, // Default status when recording application
+        applied_at: new Date().toISOString(), // Add the applied_at field with current time
       };
 
       try {
@@ -123,7 +124,12 @@ const Apply = () => {
             description: "You have already recorded an application for this job." 
           });
           // Return a mock record to indicate existing application
-          return { ...applicationData, id: 'existing' };
+          return { 
+            ...applicationData, 
+            id: 'existing',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
         }
         throw error;
       }
