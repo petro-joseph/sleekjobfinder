@@ -183,7 +183,7 @@ const UserPreferences = memo(() => {
       toast.success('Preferences saved');
       navigate('/dashboard');
     } catch (error) {
-      toast.error('Failed to save preferences');
+      toast.error(`Failed to save preferences: ${error.message}`);
     }
   };
 

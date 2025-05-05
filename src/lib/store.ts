@@ -218,22 +218,14 @@ export const useAuthStore = create<AuthState>()(
           // This prevents UI freezes by ensuring state is updated before Supabase call finishes
           set({ isAuthenticated: false, user: null });
           
-          console.log("--- [Store Logout] State updated first (isAuthenticated: false, user: null). ---");
-          console.log("--- [Store Logout] Now calling supabase.auth.signOut()... ---");
-          
           // Now call Supabase auth signout
           const { error } = await supabase.auth.signOut();
           
           if (error) {
-             console.error("--- [Store Logout] Error during Supabase sign out: ---", error);
              throw error;
           }
           
-          console.log("--- [Store Logout] Sign out successful. ---");
         } catch (error) {
-          console.error("--- [Store Logout] CATCH BLOCK: Error during logout process: ---", error);
-          // Even if there's an error with Supabase, we've already set state to logged out
-          // This ensures UI doesn't freeze even if Supabase operations fail
           throw error;
         }
       },
@@ -271,12 +263,10 @@ export const useAuthStore = create<AuthState>()(
           
           if (userError || !user) {
             // If getUser fails or returns no user, ensure clean logout state
-            console.log("[fetchUserProfile] No user found or error getting user. Ensuring logged out state.");
             set({ isAuthenticated: false, user: null }); 
             return;
           }
           
-          console.log("[fetchUserProfile] User found, fetching profile data for:", user.id);
           // Fetch profile data
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
@@ -285,7 +275,6 @@ export const useAuthStore = create<AuthState>()(
             .maybeSingle();
             
           if (profileError) {
-             console.error("[fetchUserProfile] Error fetching profile:", profileError);
              throw profileError;
           }
           
@@ -299,17 +288,13 @@ export const useAuthStore = create<AuthState>()(
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           };
-          console.log("[fetchUserProfile] Profile data fetched/created:", !!userProfile);
 
           
           // Fetch saved jobs
-          console.log("[fetchUserProfile] Fetching saved jobs...");
           const savedJobs = await get().fetchSavedJobs();
-          console.log("[fetchUserProfile] Saved jobs fetched:", savedJobs.length);
 
           
           // Fetch resumes
-          console.log("[fetchUserProfile] Fetching resumes...");
           const { data: resumes, error: resumesError } = await supabase
             .from('resumes')
             .select('*')

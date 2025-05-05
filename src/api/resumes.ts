@@ -24,47 +24,64 @@ export const fetchResumes = async (userId: string): Promise<Resume[]> => {
     })) as Resume[];
 };
 
-export const uploadResume = async (file: File, userId: string): Promise<Resume> => {
-    // 1. Upload to Storage
-    const filePath = await uploadResumeFile(file, userId);
-    if (!filePath) throw new Error("File upload failed");
+export const uploadResume = async (file: File): Promise<Resume> => {
+    try {
+        // 1. Get authenticated user
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            throw new Error('User not authenticated');
+        }
+        const userId = user.id;
 
-    // 2. Get count to determine if this is the first resume (should be primary)
-    const { count, error: countError } = await supabase
-        .from('resumes')
-        .select('id', { count: 'exact' })
-        .eq('user_id', userId);
-    
-    if (countError) throw new Error(countError.message);
-    
-    // 3. Insert record into 'resumes' table
-    const { data, error } = await supabase
-        .from('resumes')
-        .insert({
+        // 2. Upload to Storage
+        console.log('Uploading file:', file.name);
+        const filePath = await uploadResumeFile(file, userId);
+        if (!filePath) throw new Error('File upload failed');
+
+        // 3. Get count to determine if this is the first resume
+        const { count, error: countError } = await supabase
+            .from('resumes')
+            .select('id', { count: 'exact' })
+            .eq('user_id', userId);
+
+        if (countError) {
+            console.error('Count error:', countError);
+            throw new Error(countError.message);
+        }
+
+        // 4. Insert record into 'resumes' table
+        const payload = {
             user_id: userId,
             name: file.name,
             file_path: filePath,
-            is_primary: count === 0, // Make first upload primary
-        })
-        .select()
-        .single();
+            is_primary: count === 0
+        };
 
-    if (error) throw new Error(error.message);
-    if (!data) throw new Error("Failed to save resume record");
+        const { data, error } = await supabase
+            .from('resumes')
+            .insert(payload)
+            .select()
+            .single();
 
-    // Convert database fields to our Resume type
-    return {
-        id: data.id,
-        user_id: data.user_id,
-        name: data.name,
-        file_path: data.file_path,
-        isPrimary: data.is_primary,
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-        uploadDate: data.upload_date ? new Date(data.upload_date) : new Date(data.created_at)
-    } as Resume;
+        if (error) {
+            throw new Error(`Failed to save resume record: ${error.message}`);
+        }
+        if (!data) throw new Error('Failed to save resume record');
+
+        return {
+            id: data.id,
+            user_id: data.user_id,
+            name: data.name,
+            file_path: data.file_path,
+            isPrimary: data.is_primary,
+            created_at: data.created_at,
+            updated_at: data.updated_at,
+            uploadDate: data.upload_date ? new Date(data.upload_date) : new Date(data.created_at)
+        } as Resume;
+    } catch (error) {
+        throw error;
+    }
 };
-
 export const setPrimaryResume = async (resumeId: string, userId: string): Promise<void> => {
     // First, clear primary status from all resumes for this user
     const { error: clearError } = await supabase
@@ -118,8 +135,7 @@ export const deleteResume = async (resumeId: string, userId: string): Promise<vo
     }
     
     // Delete the file from storage (would require storage bucket access)
-    // This would be implemented when storage bucket is set up
-    // await supabase.storage.from('resumes').remove([resume.file_path]);
+    await supabase.storage.from('resumes').remove([resume.file_path]);
 };
 
 export const updateResumeName = async (resumeId: string, name: string, userId: string): Promise<Resume> => {
