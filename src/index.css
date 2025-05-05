@@ -35,9 +35,9 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 196 100% 47%;
+    --border: 214.3 31.8% 71.4%;
+    --input: 214.3 31.8% 71.4%;
+    --ring: 196 100% 57%;
 
     --radius: 0.75rem;
 
@@ -285,6 +285,31 @@
   height: 20px;
   animation: spin 1s linear infinite;
   display: inline-block;
+}
+
+/* Custom scrollbar */
+html::-webkit-scrollbar {
+  width: 6px;
+}
+
+html::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 20px;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-foreground);
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) rgba(0, 0, 0, 0.05);
 }
 
 @keyframes spin {

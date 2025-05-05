@@ -32,6 +32,7 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, section, user, o
                         bio: user.bio || '',
                         location: user.location || '',
                         website: user.website || '',
+                        linkedin: user.linkedin || '',
                     });
                     break;
                 case 'education':
@@ -79,12 +80,18 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, section, user, o
                 if (!formData.lastName) newErrors.lastName = 'Last Name is required';
                 if (!formData.email) newErrors.email = 'Email is required';
                 else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
+                if (formData.website && !/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/.test(formData.website)) {
+                    newErrors.website = 'Please enter a valid URL (e.g., https://example.com)';
+                }
+                if (formData.linkedin && !/^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/.test(formData.linkedin)) {
+                    newErrors.linkedin = 'Please enter a valid LinkedIn URL (e.g., https://linkedin.com/in/yourprofile)';
+                }
                 break;
             case 'education':
                 formData.forEach((edu: any, index: number) => {
                     const eduErrors: any = {};
                     if (!edu.school) eduErrors.school = 'School is required';
-                    if (!edu.degree) eduErrors.degree = 'Degree is required';
+                    if (!edu.degree) eduErrors.degree = 'Qualification is required';
                     if (!edu.startDate) eduErrors.startDate = 'Start Date is required';
                     if (!edu.currentlyStudying && !edu.endDate) eduErrors.endDate = 'End Date is required';
                     if (Object.keys(eduErrors).length > 0) {
@@ -122,7 +129,12 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, section, user, o
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index?: number, field?: string) => {
-        const { name, value } = e.target;
+        let { name, value } = e.target;
+        if (name === 'website' || name === 'linkedin') {
+            if (value && !/^(https?:\/\/)/.test(value)) {
+                value = `https://${value}`;
+            }
+        }
         if (index !== undefined && field) {
             const updatedData = [...formData];
             updatedData[index] = { ...updatedData[index], [field]: value };
@@ -261,6 +273,10 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, section, user, o
                     description: exp.description.filter((desc: string) => desc.trim()).join('\n- '),
                     summary: exp.summary || '',
                 }));
+            } else if (section === 'personal') {
+                updatedData = { ...formData };
+                updatedData.website = updatedData.website || '';
+                updatedData.linkedin = updatedData.linkedin || '';
             }
             onSave(section, updatedData);
         }
@@ -268,13 +284,13 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, section, user, o
     };
 
     const getModalSize = () => {
-          switch (section) {
+        switch (section) {
             case 'education':
             case 'work':
             case 'skills':
-                return 'xl';
+                return 'max-w-3xl';
             default:
-                return 'md';
+                return 'max-w-lg';
         }
     };
 
@@ -355,14 +371,28 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, section, user, o
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="website">Website</Label>
+                                <Label htmlFor="website">Website URL</Label>
                                 <Input
                                     id="website"
                                     name="website"
                                     value={formData.website || ''}
                                     onChange={handleInputChange}
+                                    placeholder="https://example.com"
                                     className="w-full whitespace-normal"
                                 />
+                                {errors.website && <p className="text-red-500 text-sm mt-1">{errors.website}</p>}
+                            </div>
+                            <div>
+                                <Label htmlFor="linkedin">LinkedIn URL</Label>
+                                <Input
+                                    id="linkedin"
+                                    name="linkedin"
+                                    value={formData.linkedin || ''}
+                                    onChange={handleInputChange}
+                                    placeholder="https://linkedin.com/in/yourprofile"
+                                    className="w-full whitespace-normal"
+                                />
+                                {errors.linkedin && <p className="text-red-500 text-sm mt-1">{errors.linkedin}</p>}
                             </div>
                         </div>
                     );
@@ -370,7 +400,7 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, section, user, o
                 case 'education':
                     if (!Array.isArray(formData)) return <div>Loading...</div>;
                     return (
-                        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4 scrollbar scrollbar-thumb-primary scrollbar-track-background scrollbar-w-2">
+                        <div className="space-y-4">
                             {formData.map((edu: any, index: number) => (
                                 <div key={edu.id} className="border p-4 rounded-lg relative">
                                     <div className="flex justify-between items-center mb-4">
@@ -397,7 +427,7 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, section, user, o
                                         </div>
                                         <div>
                                             <Label htmlFor={`degree-${index}`}>
-                                                Degree <span className="text-red-500">*</span>
+                                                Qualification <span className="text-red-500">*</span>
                                             </Label>
                                             <Input
                                                 id={`degree-${index}`}
@@ -472,7 +502,7 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, section, user, o
                 case 'work':
                     if (!Array.isArray(formData)) return <div>Loading...</div>;
                     return (
-                        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4 scrollbar scrollbar-thumb-primary scrollbar-track-background scrollbar-w-2">
+                        <div className="space-y-4">
                             {formData.map((exp: any, index: number) => (
                                 <div key={exp.id} className="border p-4 rounded-lg relative">
                                     <div className="flex justify-between items-center mb-4">
@@ -631,14 +661,14 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, section, user, o
                 case 'skills':
                     if (!Array.isArray(formData)) return <div>Loading...</div>;
                     return (
-                        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4 scrollbar scrollbar-thumb-primary scrollbar-track-background scrollbar-w-2">
+                        <div className="space-y-4">
                             {formData.map((skill: string, index: number) => (
                                 <div key={index} className="flex items-center gap-2">
                                     <Input
                                         value={skill || ''}
                                         onChange={(e) => handleInputChange(e, index)}
                                         placeholder="Enter a skill"
-                                        className="w-full whitespace-normal "
+                                        className="w-full whitespace-normal"
                                     />
                                     <Button
                                         variant="outline"
@@ -750,12 +780,14 @@ const EditModal: React.FC<EditModalProps> = ({ isOpen, onClose, section, user, o
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className={`max-w-${getModalSize()} p-6`}>
-                <DialogHeader>
+            <DialogContent className={`${getModalSize()} h-[80vh] flex flex-col p-0`}>
+                <DialogHeader className="sticky top-0 bg-background pt-6 px-6 pb-4">
                     <DialogTitle>Edit {section?.charAt(0).toUpperCase() + section?.slice(1)} Section</DialogTitle>
                 </DialogHeader>
-                <div className="mt-4">{renderForm()}</div>
-                <DialogFooter className="mt-6">
+                <div className="flex-1 overflow-y-auto px-6">
+                    {renderForm()}
+                </div>
+                <DialogFooter className="sticky bottom-0 bg-background px-6 py-2 border-t">
                     <Button variant="outline" onClick={onClose}>
                         Cancel
                     </Button>
