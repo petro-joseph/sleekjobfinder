@@ -1,15 +1,18 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; // Ensure useNavigate is imported
 import { Button } from '@/components/ui/button';
 import { Menu, X, Sparkles, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import UserAvatar from './UserAvatar';
+import { toast } from 'sonner';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { isAuthenticated, user, logout } = useAuthStore();
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,13 +25,24 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent multiple logout attempts
+    
     try {
-      await logout(); // Wait for the logout process in the store to finish
-      // Now that the state is updated (user=null), navigate to a safe public page.
-      navigate('/'); // Add navigation back AFTER logout completes
+      setIsLoggingOut(true);
+      
+      // Call logout from store - this now updates state BEFORE calling Supabase
+      await logout();
+      
+      // Show success message
+      toast.success("Logged out successfully");
+      
+      // Navigate to home page after logout
+      navigate('/');
     } catch (error) {
-       console.error("Logout failed:", error);
-       // Optionally show a toast message to the user
+      console.error("Logout failed:", error);
+      toast.error("Logout failed. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -75,10 +89,17 @@ const Navbar = () => {
                 <Button 
                   variant="outline" 
                   className="font-medium flex items-center gap-2"
-                  onClick={handleLogout} // Use the updated handleLogout
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
                 >
-                  <LogOut className="w-4 h-4" />
-                  Logout
+                  {isLoggingOut ? (
+                    <span className="animate-pulse">Logging out...</span>
+                  ) : (
+                    <>
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </>
+                  )}
                 </Button>
               </div>
             ) : (
@@ -179,11 +200,12 @@ const Navbar = () => {
                   variant="outline" 
                   className="w-full justify-center touch-button"
                   onClick={() => {
-                    handleLogout(); // Use updated handleLogout
+                    handleLogout();
                     setIsMobileMenuOpen(false);
                   }}
+                  disabled={isLoggingOut}
                 >
-                  Log out
+                  {isLoggingOut ? "Logging out..." : "Log out"}
                 </Button>
               ) : (
                 <>

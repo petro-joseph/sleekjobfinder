@@ -1,3 +1,4 @@
+
 import React, { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider } from 'next-themes'
@@ -51,33 +52,50 @@ function App() {
   const { login, logout } = useAuthStore()
 
   useEffect(() => {
-    // 1) Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          fetchAndStoreProfile(session.user.id, session.user.email)
-        } else if (event === 'SIGNED_OUT') {
-          logout()
+    // 1) Listen for auth changes - using a local variable to prevent memory leaks
+    let authListener: { subscription: { unsubscribe: () => void } } | null = null;
+    
+    const setupAuthListener = async () => {
+      const { data } = await supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (event === 'SIGNED_IN' && session?.user) {
+            // Use setTimeout to prevent potential deadlocks with Supabase client
+            setTimeout(() => {
+              fetchAndStoreProfile(session.user.id, session.user.email || '')
+            }, 0);
+          } else if (event === 'SIGNED_OUT') {
+            // No need to call logout here as it will create a circular reference
+            // The state is already updated in the logout function in the store
+            console.log('Auth state change: signed out');
+          }
         }
-      }
-    );
+      );
+      
+      authListener = data;
+    };
 
-      // 2) Check initial session on mount
-      (async () => {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-          fetchAndStoreProfile(session.user.id, session.user.email)
-        }
-      })()
+    // 2) Check initial session on mount - separated from the listener setup
+    const checkInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        fetchAndStoreProfile(session.user.id, session.user.email || '');
+      }
+    };
+
+    // Run both functions
+    setupAuthListener();
+    checkInitialSession();
 
     // cleanup listener
     return () => {
-      authListener.subscription.unsubscribe()
+      if (authListener?.subscription) {
+        authListener.subscription.unsubscribe();
+      }
     }
   }, [login, logout])
 
   // helper to fetch profile row and dispatch login
-  const fetchAndStoreProfile = async (userId, fallbackEmail) => {
+  const fetchAndStoreProfile = async (userId: string, fallbackEmail: string) => {
     try {
       const { data: profile } = await supabase
         .from('profiles')

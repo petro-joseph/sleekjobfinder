@@ -46,6 +46,7 @@ export interface User {
   }
 }
 
+// Export the Resume type so it's available to other components
 export type Resume = BaseResume;
 
 export interface DbProfile {
@@ -212,28 +213,27 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       logout: async () => {
-        console.log("--- [Store Logout] Attempting sign out... ---"); // Log start
         try {
-          console.log("--- [Store Logout] Calling supabase.auth.signOut()... ---");
-          // Restore await
+          // Set state to logged out BEFORE calling signOut
+          // This prevents UI freezes by ensuring state is updated before Supabase call finishes
+          set({ isAuthenticated: false, user: null });
+          
+          console.log("--- [Store Logout] State updated first (isAuthenticated: false, user: null). ---");
+          console.log("--- [Store Logout] Now calling supabase.auth.signOut()... ---");
+          
+          // Now call Supabase auth signout
           const { error } = await supabase.auth.signOut();
-          console.log("--- [Store Logout] supabase.auth.signOut() finished. Error:", error); // Log result
-
+          
           if (error) {
              console.error("--- [Store Logout] Error during Supabase sign out: ---", error);
-             // Re-throw the error to be caught by the caller (e.g., Navbar) if necessary
              throw error;
           }
-
-          console.log("--- [Store Logout] Sign out successful. Updating state... ---");
-          // Set state AFTER successful sign out
-          set({ isAuthenticated: false, user: null });
-          console.log("--- [Store Logout] State updated (isAuthenticated: false, user: null). ---");
-
+          
+          console.log("--- [Store Logout] Sign out successful. ---");
         } catch (error) {
-          // Catch errors from signOut() or set()
           console.error("--- [Store Logout] CATCH BLOCK: Error during logout process: ---", error);
-          // Optionally re-throw or handle differently
+          // Even if there's an error with Supabase, we've already set state to logged out
+          // This ensures UI doesn't freeze even if Supabase operations fail
           throw error;
         }
       },
