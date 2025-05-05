@@ -1,5 +1,4 @@
-
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useTransition } from 'react';
 import { Search, CalendarDays, Briefcase, DollarSign, MapPin, X, Building } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -87,6 +86,7 @@ export const JobsHeader = ({
   jobTypes,
   expLevels
 }: JobsHeaderProps) => {
+  const [isPending, startTransition] = useTransition();
   const [searchTerm, setSearchTerm] = useState(filters.searchTerm);
   const [showSearchButton, setShowSearchButton] = useState(true);
 
@@ -96,7 +96,9 @@ export const JobsHeader = ({
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onFilterChange({ searchTerm });
+    startTransition(() => {
+      onFilterChange({ searchTerm });
+    });
   };
 
   const getExperienceLevelLabel = () => {
@@ -139,12 +141,20 @@ export const JobsHeader = ({
   // Extract experience levels from the expLevels object
   const updateExperienceLevels = () => {
     const selectedExperienceLevels = Object.keys(expLevels).filter(key => expLevels[key]);
-    onFilterChange({ experienceLevels: selectedExperienceLevels });
+    startTransition(() => {
+      onFilterChange({ experienceLevels: selectedExperienceLevels });
+    });
   };
 
   const handleExperienceLevelToggle = (level: string) => {
-    onExpLevelToggle(level, !expLevels[level]);
-    updateExperienceLevels();
+    startTransition(() => {
+      onExpLevelToggle(level, !expLevels[level]);
+      updateExperienceLevels();
+    });
+  };
+
+  const handleFilterAction = (action: () => void) => {
+    startTransition(action);
   };
 
   return (
@@ -167,8 +177,9 @@ export const JobsHeader = ({
                 variant="default"
                 className={`h-14 px-8 rounded-xl bg-primary hover:bg-primary/90 shadow-md transition-all text-base font-medium sm:w-auto w-full sm:block ${showSearchButton ? 'block' : 'hidden'
                   }`}
+                disabled={isPending}
               >
-                Search Jobs
+                {isPending ? 'Searching...' : 'Search Jobs'}
               </Button>
             </div>
           </form>
@@ -181,6 +192,7 @@ export const JobsHeader = ({
                     variant="outline"
                     size="sm"
                     className="h-11 px-5 rounded-xl bg-background border-border shadow-sm hover:bg-secondary/50 transition-all text-sm font-medium flex items-center min-w-[140px] truncate"
+                    disabled={isPending}
                   >
                     <CalendarDays className="mr-2 h-5 w-5 text-muted-foreground flex-shrink-0" />
                     <span className="truncate">
@@ -189,19 +201,19 @@ export const JobsHeader = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="bg-background border-border rounded-lg shadow-lg">
-                  <DropdownMenuItem onClick={() => onFilterChange({ datePosted: 'any' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ datePosted: 'any' }))} className="hover:bg-secondary/50 transition-all">
                     Any time
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ datePosted: '24h' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ datePosted: '24h' }))} className="hover:bg-secondary/50 transition-all">
                     Last 24 hours
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ datePosted: '7d' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ datePosted: '7d' }))} className="hover:bg-secondary/50 transition-all">
                     Last 7 days
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ datePosted: '14d' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ datePosted: '14d' }))} className="hover:bg-secondary/50 transition-all">
                     Last 14 days
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ datePosted: '30d' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ datePosted: '30d' }))} className="hover:bg-secondary/50 transition-all">
                     Last 30 days
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -215,6 +227,7 @@ export const JobsHeader = ({
                     variant="outline"
                     size="sm"
                     className="h-11 px-5 rounded-xl bg-background border-border shadow-sm hover:bg-secondary/50 transition-all text-sm font-medium flex items-center min-w-[140px] truncate"
+                    disabled={isPending}
                   >
                     <Briefcase className="mr-2 h-5 w-5 text-muted-foreground flex-shrink-0" />
                     <span className="truncate">{getExperienceLevelLabel()}</span>
@@ -222,19 +235,19 @@ export const JobsHeader = ({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="bg-background border-border rounded-lg shadow-lg">
                   <DropdownMenuItem
-                    onClick={() => handleExperienceLevelToggle('entry')}
+                    onClick={() => handleFilterAction(() => handleExperienceLevelToggle('entry'))}
                     className="hover:bg-secondary/50 transition-all"
                   >
                     Entry Level {expLevels.entry && "✓"}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => handleExperienceLevelToggle('mid')}
+                    onClick={() => handleFilterAction(() => handleExperienceLevelToggle('mid'))}
                     className="hover:bg-secondary/50 transition-all"
                   >
                     Mid Level {expLevels.mid && "✓"}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => handleExperienceLevelToggle('senior')}
+                    onClick={() => handleFilterAction(() => handleExperienceLevelToggle('senior'))}
                     className="hover:bg-secondary/50 transition-all"
                   >
                     Senior Level {expLevels.senior && "✓"}
@@ -250,25 +263,26 @@ export const JobsHeader = ({
                     variant="outline"
                     size="sm"
                     className="h-11 px-5 rounded-xl bg-background border-border shadow-sm hover:bg-secondary/50 transition-all text-sm font-medium flex items-center min-w-[140px] truncate"
+                    disabled={isPending}
                   >
                     <DollarSign className="mr-2 h-5 w-5 text-muted-foreground flex-shrink-0" />
                     <span className="truncate">{getSalaryLabel()}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="bg-background border-border rounded-lg shadow-lg">
-                  <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [30, 60] })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ salaryRange: [30, 60] }))} className="hover:bg-secondary/50 transition-all">
                     $30K - $60K
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [60, 90] })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ salaryRange: [60, 90] }))} className="hover:bg-secondary/50 transition-all">
                     $60K - $90K
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [90, 120] })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ salaryRange: [90, 120] }))} className="hover:bg-secondary/50 transition-all">
                     $90K - $120K
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [120, 150] })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ salaryRange: [120, 150] }))} className="hover:bg-secondary/50 transition-all">
                     $120K - $150K
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ salaryRange: [150, 200] })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ salaryRange: [150, 200] }))} className="hover:bg-secondary/50 transition-all">
                     $150K+
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -282,25 +296,26 @@ export const JobsHeader = ({
                     variant="outline"
                     size="sm"
                     className="h-11 px-5 rounded-xl bg-background border-border shadow-sm hover:bg-secondary/50 transition-all text-sm font-medium flex items-center min-w-[140px] truncate"
+                    disabled={isPending}
                   >
                     <MapPin className="mr-2 h-5 w-5 text-muted-foreground flex-shrink-0" />
                     <span className="truncate">{getLocationLabel()}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="bg-background border-border rounded-lg shadow-lg">
-                  <DropdownMenuItem onClick={() => onFilterChange({ location: 'Remote' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ location: 'Remote' }))} className="hover:bg-secondary/50 transition-all">
                     Remote
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ location: 'San Francisco' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ location: 'San Francisco' }))} className="hover:bg-secondary/50 transition-all">
                     San Francisco
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ location: 'New York' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ location: 'New York' }))} className="hover:bg-secondary/50 transition-all">
                     New York
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ location: 'Austin' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ location: 'Austin' }))} className="hover:bg-secondary/50 transition-all">
                     Austin
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ location: 'Chicago' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ location: 'Chicago' }))} className="hover:bg-secondary/50 transition-all">
                     Chicago
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -314,25 +329,26 @@ export const JobsHeader = ({
                     variant="outline"
                     size="sm"
                     className="h-11 px-5 rounded-xl bg-background border-border shadow-sm hover:bg-secondary/50 transition-all text-sm font-medium flex items-center min-w-[140px] truncate"
+                    disabled={isPending}
                   >
                     <Building className="mr-2 h-5 w-5 text-muted-foreground flex-shrink-0" />
                     <span className="truncate">{filters.industry || "Industry"}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="bg-background border-border rounded-lg shadow-lg">
-                  <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Technology' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ industry: 'Technology' }))} className="hover:bg-secondary/50 transition-all">
                     Technology
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Finance' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ industry: 'Finance' }))} className="hover:bg-secondary/50 transition-all">
                     Finance
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Healthcare' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ industry: 'Healthcare' }))} className="hover:bg-secondary/50 transition-all">
                     Healthcare
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Education' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ industry: 'Education' }))} className="hover:bg-secondary/50 transition-all">
                     Education
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onFilterChange({ industry: 'Marketing' })} className="hover:bg-secondary/50 transition-all">
+                  <DropdownMenuItem onClick={() => handleFilterAction(() => onFilterChange({ industry: 'Marketing' }))} className="hover:bg-secondary/50 transition-all">
                     Marketing
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -343,7 +359,8 @@ export const JobsHeader = ({
               variant="ghost"
               size="sm"
               className="h-11 px-5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all text-sm font-medium min-w-[100px]"
-              onClick={onResetFilters}
+              onClick={() => handleFilterAction(onResetFilters)}
+              disabled={isPending}
             >
               Reset all
             </Button>
@@ -363,7 +380,7 @@ export const JobsHeader = ({
                   {getDatePostedLabel(filters.datePosted)}
                   <X
                     className="h-4 w-4 ml-1 cursor-pointer text-muted-foreground hover:text-foreground transition-all"
-                    onClick={() => onFilterChange({ datePosted: '' })}
+                    onClick={() => handleFilterAction(() => onFilterChange({ datePosted: '' }))}
                   />
                 </Badge>
               )}
@@ -374,7 +391,7 @@ export const JobsHeader = ({
                   {filters.location}
                   <X
                     className="h-4 w-4 ml-1 cursor-pointer text-muted-foreground hover:text-foreground transition-all"
-                    onClick={() => onFilterChange({ location: '' })}
+                    onClick={() => handleFilterAction(() => onFilterChange({ location: '' }))}
                   />
                 </Badge>
               )}
@@ -385,7 +402,7 @@ export const JobsHeader = ({
                   {filters.industry}
                   <X
                     className="h-4 w-4 ml-1 cursor-pointer text-muted-foreground hover:text-foreground transition-all"
-                    onClick={() => onFilterChange({ industry: '' })}
+                    onClick={() => handleFilterAction(() => onFilterChange({ industry: '' }))}
                   />
                 </Badge>
               )}
@@ -396,7 +413,7 @@ export const JobsHeader = ({
                   ${filters.salaryRange[0]}K - ${filters.salaryRange[1]}K
                   <X
                     className="h-4 w-4 ml-1 cursor-pointer text-muted-foreground hover:text-foreground transition-all"
-                    onClick={() => onFilterChange({ salaryRange: [50, 150] })}
+                    onClick={() => handleFilterAction(() => onFilterChange({ salaryRange: [50, 150] }))}
                   />
                 </Badge>
               )}

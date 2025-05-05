@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useTransition } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInView } from 'react-intersection-observer';
 import { useQueryClient } from '@tanstack/react-query';
@@ -10,17 +10,17 @@ import { JobsList } from '@/components/jobs/JobsList';
 import { JobsHeader } from '@/components/jobs/JobsHeader';
 import { JobsMetadata } from '@/components/jobs/JobsMetadata';
 import { JobsErrorBoundary } from '@/components/jobs/JobsErrorBoundary';
-// import { LoadingState } from '@/components/jobs/LoadingState';
 import { ErrorState } from '@/components/jobs/ErrorState';
 import { analytics } from '@/lib/analytics';
 import { JOBS_PER_PAGE } from '@/constants';
 import type { Job } from '@/types';
 import { fetchJobs } from '@/api/jobs';
 import { seedJobs } from '@/utils/seed';
-import { useAuthStore } from '@/lib/store'; // Import auth store
-import { toast } from 'sonner'; // Import toast
+import { useAuthStore } from '@/lib/store'; 
+import { toast } from 'sonner';
 
 const Jobs = () => {
+  const [isPending, startTransition] = useTransition();
   // Custom hooks for managing state and functionality
   const {
     filters,
@@ -61,7 +61,9 @@ const Jobs = () => {
 
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      startTransition(() => {
+        fetchNextPage();
+      });
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
@@ -86,27 +88,33 @@ const Jobs = () => {
   }, [filters, jobs?.length, currentPage]);
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    updateFilters(newFilters); // This should handle all simple filter updates
-    setCurrentPage(1);
-    analytics.track('Filter Change', { newFilters });
+    startTransition(() => {
+      updateFilters(newFilters);
+      setCurrentPage(1);
+      analytics.track('Filter Change', { newFilters });
+    });
   };
 
   const handleJobTypeToggle = (type: string, isSelected: boolean) => {
-    setJobTypes((prev) => ({ ...prev, [type]: isSelected })); // Update local job type state
-    analytics.track('Job Type Toggle', { type, isSelected });
-     // `useJobFilters` hook will update the main filters object via useEffect
+    startTransition(() => {
+      setJobTypes((prev) => ({ ...prev, [type]: isSelected }));
+      analytics.track('Job Type Toggle', { type, isSelected });
+    });
   };
 
   const handleExpLevelToggle = (level: string, isSelected: boolean) => {
-    setExpLevels((prev) => ({ ...prev, [level]: isSelected })); // Update local exp level state
-    analytics.track('Experience Level Toggle', { level, isSelected });
-     // `useJobFilters` hook will update the main filters object via useEffect
+    startTransition(() => {
+      setExpLevels((prev) => ({ ...prev, [level]: isSelected }));
+      analytics.track('Experience Level Toggle', { level, isSelected });
+    });
   };
 
   const handleResetFilters = () => {
-    resetFilters();
-    setCurrentPage(1);
-    analytics.track('Filters Reset');
+    startTransition(() => {
+      resetFilters();
+      setCurrentPage(1);
+      analytics.track('Filters Reset');
+    });
   };
 
    // Save/Unsave Job Handler
@@ -116,13 +124,15 @@ const Jobs = () => {
       return;
     }
     try {
-      if (user.savedJobs.some(j => j.id === jobToToggle.id)) {
-        await removeJob(jobToToggle.id);
-        toast.info("Job removed from saved jobs");
-      } else {
-        await saveJob(jobToToggle);
-        toast.success("Job saved successfully");
-      }
+      startTransition(async () => {
+        if (user.savedJobs.some(j => j.id === jobToToggle.id)) {
+          await removeJob(jobToToggle.id);
+          toast.info("Job removed from saved jobs");
+        } else {
+          await saveJob(jobToToggle);
+          toast.success("Job saved successfully");
+        }
+      });
     } catch (error) {
       toast.error("Failed to update saved job status");
       console.error("Error saving/removing job:", error);
@@ -149,27 +159,31 @@ const Jobs = () => {
             <div className="flex flex-col gap-6">
               <JobsHeader
                 filters={filters}
-                onFilterChange={handleFilterChange} // Pass the generalized handler
+                onFilterChange={handleFilterChange}
                 onResetFilters={handleResetFilters}
-                onJobTypeToggle={handleJobTypeToggle} // Keep specific toggles if needed by header UI
-                onExpLevelToggle={handleExpLevelToggle} // Keep specific toggles if needed by header UI
+                onJobTypeToggle={handleJobTypeToggle}
+                onExpLevelToggle={handleExpLevelToggle}
                 jobTypes={jobTypes}
                 expLevels={expLevels}
               />
 
               <main ref={jobListingsRef}>
                 {error ? (
-                  <ErrorState error={error} onRetry={() => fetchNextPage()} />
+                  <ErrorState error={error} onRetry={() => {
+                    startTransition(() => {
+                      fetchNextPage();
+                    });
+                  }} />
                 ) : (
                   <JobsList
                     jobs={jobs || []}
-                    isLoading={isLoading}
-                    onIndustryClick={(industry) => handleFilterChange({ industry })} // Industry click uses the general handler
+                    isLoading={isLoading || isPending}
+                    onIndustryClick={(industry) => handleFilterChange({ industry })}
                     loadMoreRef={loadMoreRef}
                     isFetchingNextPage={isFetchingNextPage}
-                    savedJobs={user?.savedJobs || []} // Pass saved jobs
-                    onSaveToggle={handleSaveToggle} // Pass the save toggle handler
-                    isAuthenticated={isAuthenticated} // Pass auth status
+                    savedJobs={user?.savedJobs || []}
+                    onSaveToggle={handleSaveToggle}
+                    isAuthenticated={isAuthenticated}
                   />
                 )}
               </main>
