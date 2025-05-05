@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef, useTransition } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInView } from 'react-intersection-observer';
 import { useQueryClient } from '@tanstack/react-query';
@@ -10,17 +10,17 @@ import { JobsList } from '@/components/jobs/JobsList';
 import { JobsHeader } from '@/components/jobs/JobsHeader';
 import { JobsMetadata } from '@/components/jobs/JobsMetadata';
 import { JobsErrorBoundary } from '@/components/jobs/JobsErrorBoundary';
+// import { LoadingState } from '@/components/jobs/LoadingState';
 import { ErrorState } from '@/components/jobs/ErrorState';
 import { analytics } from '@/lib/analytics';
 import { JOBS_PER_PAGE } from '@/constants';
 import type { Job } from '@/types';
 import { fetchJobs } from '@/api/jobs';
 import { seedJobs } from '@/utils/seed';
-import { useAuthStore } from '@/lib/store'; 
-import { toast } from 'sonner';
+import { useAuthStore } from '@/lib/store'; // Import auth store
+import { toast } from 'sonner'; // Import toast
 
 const Jobs = () => {
-  const [isPending, startTransition] = useTransition();
   // Custom hooks for managing state and functionality
   const {
     filters,
@@ -61,9 +61,7 @@ const Jobs = () => {
 
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
-      startTransition(() => {
-        fetchNextPage();
-      });
+      fetchNextPage();
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
@@ -88,33 +86,27 @@ const Jobs = () => {
   }, [filters, jobs?.length, currentPage]);
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    startTransition(() => {
-      updateFilters(newFilters);
-      setCurrentPage(1);
-      analytics.track('Filter Change', { newFilters });
-    });
+    updateFilters(newFilters); // This should handle all simple filter updates
+    setCurrentPage(1);
+    analytics.track('Filter Change', { newFilters });
   };
 
   const handleJobTypeToggle = (type: string, isSelected: boolean) => {
-    startTransition(() => {
-      setJobTypes((prev) => ({ ...prev, [type]: isSelected }));
-      analytics.track('Job Type Toggle', { type, isSelected });
-    });
+    setJobTypes((prev) => ({ ...prev, [type]: isSelected })); // Update local job type state
+    analytics.track('Job Type Toggle', { type, isSelected });
+     // `useJobFilters` hook will update the main filters object via useEffect
   };
 
   const handleExpLevelToggle = (level: string, isSelected: boolean) => {
-    startTransition(() => {
-      setExpLevels((prev) => ({ ...prev, [level]: isSelected }));
-      analytics.track('Experience Level Toggle', { level, isSelected });
-    });
+    setExpLevels((prev) => ({ ...prev, [level]: isSelected })); // Update local exp level state
+    analytics.track('Experience Level Toggle', { level, isSelected });
+     // `useJobFilters` hook will update the main filters object via useEffect
   };
 
   const handleResetFilters = () => {
-    startTransition(() => {
-      resetFilters();
-      setCurrentPage(1);
-      analytics.track('Filters Reset');
-    });
+    resetFilters();
+    setCurrentPage(1);
+    analytics.track('Filters Reset');
   };
 
    // Save/Unsave Job Handler
@@ -124,15 +116,13 @@ const Jobs = () => {
       return;
     }
     try {
-      startTransition(async () => {
-        if (user.savedJobs.some(j => j.id === jobToToggle.id)) {
-          await removeJob(jobToToggle.id);
-          toast.info("Job removed from saved jobs");
-        } else {
-          await saveJob(jobToToggle);
-          toast.success("Job saved successfully");
-        }
-      });
+      if (user.savedJobs.some(j => j.id === jobToToggle.id)) {
+        await removeJob(jobToToggle.id);
+        toast.info("Job removed from saved jobs");
+      } else {
+        await saveJob(jobToToggle);
+        toast.success("Job saved successfully");
+      }
     } catch (error) {
       toast.error("Failed to update saved job status");
       console.error("Error saving/removing job:", error);
@@ -159,31 +149,27 @@ const Jobs = () => {
             <div className="flex flex-col gap-6">
               <JobsHeader
                 filters={filters}
-                onFilterChange={handleFilterChange}
+                onFilterChange={handleFilterChange} // Pass the generalized handler
                 onResetFilters={handleResetFilters}
-                onJobTypeToggle={handleJobTypeToggle}
-                onExpLevelToggle={handleExpLevelToggle}
+                onJobTypeToggle={handleJobTypeToggle} // Keep specific toggles if needed by header UI
+                onExpLevelToggle={handleExpLevelToggle} // Keep specific toggles if needed by header UI
                 jobTypes={jobTypes}
                 expLevels={expLevels}
               />
 
               <main ref={jobListingsRef}>
                 {error ? (
-                  <ErrorState error={error} onRetry={() => {
-                    startTransition(() => {
-                      fetchNextPage();
-                    });
-                  }} />
+                  <ErrorState error={error} onRetry={() => fetchNextPage()} />
                 ) : (
                   <JobsList
                     jobs={jobs || []}
-                    isLoading={isLoading || isPending}
-                    onIndustryClick={(industry) => handleFilterChange({ industry })}
+                    isLoading={isLoading}
+                    onIndustryClick={(industry) => handleFilterChange({ industry })} // Industry click uses the general handler
                     loadMoreRef={loadMoreRef}
                     isFetchingNextPage={isFetchingNextPage}
-                    savedJobs={user?.savedJobs || []}
-                    onSaveToggle={handleSaveToggle}
-                    isAuthenticated={isAuthenticated}
+                    savedJobs={user?.savedJobs || []} // Pass saved jobs
+                    onSaveToggle={handleSaveToggle} // Pass the save toggle handler
+                    isAuthenticated={isAuthenticated} // Pass auth status
                   />
                 )}
               </main>

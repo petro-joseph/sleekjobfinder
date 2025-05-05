@@ -1,4 +1,4 @@
-import React, { useTransition } from 'react';
+import React from 'react';
 import { Job } from '@/data/jobs';
 import { Button } from '@/components/ui/button';
 import { MapPin, Briefcase } from 'lucide-react';
@@ -45,18 +45,9 @@ const JobsSidebar = ({
   activeFilters,
   onFilterChange
 }: JobsSidebarProps) => {
-  const [isPending, startTransition] = useTransition();
   
   const handleSortChange = (value: string) => {
-    startTransition(() => {
-      onFilterChange({ sortBy: value });
-    });
-  };
-
-  const handlePageChange = (page: number) => {
-    startTransition(() => {
-      onPageChange(page);
-    });
+    onFilterChange({ sortBy: value });
   };
 
   const renderPaginationItems = () => {
@@ -73,7 +64,7 @@ const JobsSidebar = ({
     if (startPage > 1) {
       items.push(
         <PaginationItem key="first">
-          <PaginationLink onClick={() => handlePageChange(1)}>1</PaginationLink>
+          <PaginationLink onClick={() => onPageChange(1)}>1</PaginationLink>
         </PaginationItem>
       );
       
@@ -90,7 +81,7 @@ const JobsSidebar = ({
       items.push(
         <PaginationItem key={i}>
           <PaginationLink 
-            onClick={() => handlePageChange(i)} 
+            onClick={() => onPageChange(i)} 
             isActive={currentPage === i}
           >
             {i}
@@ -110,7 +101,7 @@ const JobsSidebar = ({
       
       items.push(
         <PaginationItem key="last">
-          <PaginationLink onClick={() => handlePageChange(totalPages)}>
+          <PaginationLink onClick={() => onPageChange(totalPages)}>
             {totalPages}
           </PaginationLink>
         </PaginationItem>
@@ -149,7 +140,7 @@ const JobsSidebar = ({
         </div>
       </div>
 
-      {isLoading || isPending ? (
+      {isLoading ? (
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="flex flex-col items-center">
             <div className="loader mb-4" />
@@ -165,11 +156,7 @@ const JobsSidebar = ({
                 className={`p-4 cursor-pointer transition-all hover:bg-accent/20 ${
                   selectedJobId === job.id ? 'border-l-4 border-primary bg-accent/10' : ''
                 }`}
-                onClick={() => {
-                  startTransition(() => {
-                    onJobSelect(job.id);
-                  });
-                }}
+                onClick={() => onJobSelect(job.id)}
               >
                 <h3 className="font-semibold text-base mb-1">{job.title}</h3>
                 <p className="text-sm mb-1">{job.company}</p>
@@ -191,7 +178,7 @@ const JobsSidebar = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => startTransition(() => onFilterChange({ sortBy: 'newest' }))}
+              onClick={() => onFilterChange({ sortBy: 'newest' })}
             >
               Clear filters
             </Button>
@@ -205,7 +192,7 @@ const JobsSidebar = ({
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
-                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                  onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                   className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
@@ -214,7 +201,7 @@ const JobsSidebar = ({
               
               <PaginationItem>
                 <PaginationNext
-                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                  onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                   className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>

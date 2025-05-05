@@ -1,4 +1,3 @@
-
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { useLocation } from 'react-router-dom';
@@ -8,8 +7,6 @@ import { useAuthStore } from '@/lib/store';
 import MobileProfileBar from './MobileProfileBar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import BottomNav from './BottomNav';
-import { Suspense, startTransition } from 'react';
-import { LoadingSpinner } from './jobs/LoadingState';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
@@ -22,15 +19,13 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
   const location = useLocation();
   const { isAuthenticated } = useAuthStore();
   const isMobile = useIsMobile();
-  
+
   const isDashboardOrPreferences =
     location.pathname === '/dashboard' ||
     location.pathname === '/user-preferences';
 
   useEffect(() => {
-    startTransition(() => {
-      window.scrollTo(0, 0);
-    });
+    window.scrollTo(0, 0);
   }, [location.pathname]);
 
   return (
@@ -47,13 +42,7 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
         <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-12' : 'pt-14 mt-4'
           } ${isDashboardOrPreferences && !isMobile ? 'pt-20' : ''
           }`}>
-          <Suspense fallback={
-            <div className="flex justify-center items-center py-12">
-              <LoadingSpinner />
-            </div>
-          }>
-            {children}
-          </Suspense>
+          {children}
         </main>
         {!hideFooter && <Footer />}
         {isAuthenticated && <BottomNav />}
