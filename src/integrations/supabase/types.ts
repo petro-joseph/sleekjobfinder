@@ -223,10 +223,12 @@ export type Database = {
           id: string
           is_email_verified: boolean | null
           is_onboarding_complete: boolean | null
+          job_preferences: Json | null
           last_name: string | null
           location: string | null
           onboarding_step: number | null
           phone: string | null
+          settings: Json | null
           skills: string[] | null
           state: string | null
           title: string | null
@@ -247,10 +249,12 @@ export type Database = {
           id: string
           is_email_verified?: boolean | null
           is_onboarding_complete?: boolean | null
+          job_preferences?: Json | null
           last_name?: string | null
           location?: string | null
           onboarding_step?: number | null
           phone?: string | null
+          settings?: Json | null
           skills?: string[] | null
           state?: string | null
           title?: string | null
@@ -271,10 +275,12 @@ export type Database = {
           id?: string
           is_email_verified?: boolean | null
           is_onboarding_complete?: boolean | null
+          job_preferences?: Json | null
           last_name?: string | null
           location?: string | null
           onboarding_step?: number | null
           phone?: string | null
+          settings?: Json | null
           skills?: string[] | null
           state?: string | null
           title?: string | null

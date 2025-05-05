@@ -1,3 +1,4 @@
+
 // src/api/resumes.ts
 import { supabase } from '@/integrations/supabase/client';
 import { Resume } from '@/types';
@@ -41,8 +42,7 @@ export const uploadResume = async (file: File): Promise<Resume> => {
         // 3. Get count to determine if this is the first resume
         const { count, error: countError } = await supabase
             .from('resumes')
-            .select('id', { count: 'exact' })
-            .eq('user_id', userId);
+            .select('id', { count: 'estimated' });
 
         if (countError) {
             console.error('Count error:', countError);
@@ -82,6 +82,7 @@ export const uploadResume = async (file: File): Promise<Resume> => {
         throw error;
     }
 };
+
 export const setPrimaryResume = async (resumeId: string, userId: string): Promise<void> => {
     // First, clear primary status from all resumes for this user
     const { error: clearError } = await supabase
@@ -112,6 +113,24 @@ export const deleteResume = async (resumeId: string, userId: string): Promise<vo
     
     if (fetchError) throw new Error(fetchError.message);
     
+    // Extract bucket path from the complete URL
+    let storagePath = '';
+    if (resume.file_path) {
+        try {
+            // Parse the URL to extract the path part after the bucket name
+            const url = new URL(resume.file_path);
+            // The path will be something like /storage/v1/object/public/cv-bucket/userId/filename
+            const pathParts = url.pathname.split('/');
+            // Find the bucket name index and extract the path after it
+            const bucketIndex = pathParts.indexOf('cv-bucket');
+            if (bucketIndex !== -1) {
+                storagePath = pathParts.slice(bucketIndex + 1).join('/');
+            }
+        } catch (e) {
+            console.error('Error extracting storage path:', e);
+        }
+    }
+    
     // Delete the database record
     const { error } = await supabase
         .from('resumes')
@@ -134,8 +153,17 @@ export const deleteResume = async (resumeId: string, userId: string): Promise<vo
         }
     }
     
-    // Delete the file from storage (would require storage bucket access)
-    await supabase.storage.from('resumes').remove([resume.file_path]);
+    // Delete the file from storage bucket
+    if (storagePath) {
+        const { error: storageError } = await supabase.storage
+            .from('cv-bucket')
+            .remove([storagePath]);
+            
+        if (storageError) {
+            console.error('Error deleting file from storage:', storageError);
+            // We don't throw here as the database record is already deleted
+        }
+    }
 };
 
 export const updateResumeName = async (resumeId: string, name: string, userId: string): Promise<Resume> => {

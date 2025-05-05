@@ -1,7 +1,6 @@
 
 // src/api/profiles.ts
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@/types';
 
 export interface ProfileData {
   id?: string;
@@ -23,6 +22,25 @@ export interface ProfileData {
   company?: string;
   onboarding_step?: number;
   is_onboarding_complete?: boolean;
+  job_preferences?: JobPreferences;
+  settings?: NotificationSettings;
+}
+
+export interface JobPreferences {
+  locations: string[];
+  job_types: string[];
+  industries: string[];
+  salary_range?: {
+    min: number;
+    max: number;
+    currency: string;
+  };
+}
+
+export interface NotificationSettings {
+  notifications: boolean;
+  emailUpdates: boolean;
+  darkMode: boolean;
 }
 
 export const fetchUserProfile = async (userId: string): Promise<ProfileData> => {
@@ -58,4 +76,32 @@ export const updateOnboardingStep = async (userId: string, step: number, isCompl
         .eq('id', userId);
     
     if (error) throw new Error(error.message);
+};
+
+export const updateUserPreferences = async (
+  userId: string, 
+  jobPreferences: JobPreferences, 
+  settings: NotificationSettings,
+  isComplete: boolean = false
+): Promise<ProfileData> => {
+  const updates: Partial<ProfileData> = {
+    job_preferences: jobPreferences,
+    settings: settings
+  };
+
+  // Only set onboarding complete if specified
+  if (isComplete) {
+    updates.onboarding_step = 3;
+    updates.is_onboarding_complete = true;
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', userId)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data;
 };

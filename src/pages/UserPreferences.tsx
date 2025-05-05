@@ -1,4 +1,5 @@
-import React, { memo, useEffect, useState } from 'react';
+
+import React, { memo, useEffect, useState, useTransition } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,28 +17,14 @@ import { NotificationSettings } from '@/components/ui/NotificationSettings';
 import ResumeManagement from '@/components/ResumeManagement';
 import { UserPreferencesSkeleton } from '@/components/jobs/LoadingState';
 import { COUNTRIES, JOB_TYPES, INDUSTRIES } from '@/constants';
-
-// Types
-interface JobPreferences {
-  locations: string[];
-  jobTypes: string[];
-  industries: string[];
-  salary_range: { min: number; max: number; currency: string };
-}
-
-interface FormData {
-  locations: string[];
-  jobTypes: string[];
-  industries: string[];
-  salaryMin: string;
-  currency: string;
-}
-
-interface NotificationSettingsType {
-  notifications: boolean;
-  emailUpdates: boolean;
-  darkMode: boolean;
-}
+import { fetchResumes } from '@/api/resumes';
+import { 
+  fetchUserProfile, 
+  updateUserPreferences, 
+  JobPreferences, 
+  NotificationSettings as NotificationSettingsType 
+} from '@/api/profiles';
+import { Loader2 } from 'lucide-react';
 
 // Schema
 const formSchema = z.object({
@@ -54,6 +41,7 @@ const cleanNumber = (value: string): string => value.replace(/,/g, '');
 // Main Component
 const UserPreferences = memo(() => {
   const navigate = useNavigate();
+  const [isPending, startTransition] = useTransition();
   const [user, setUser] = useState<User | null>(null);
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettingsType>({
@@ -63,7 +51,7 @@ const UserPreferences = memo(() => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const form = useForm<FormData>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       locations: [],
@@ -86,33 +74,20 @@ const UserPreferences = memo(() => {
           return;
         }
 
-        const [profileData, resumesData] = await Promise.all([
-          supabase.from('profiles').select('*').eq('id', authUser.id).maybeSingle(),
-          supabase.from('resumes').select('*').eq('user_id', authUser.id),
+        // Use API functions to fetch data
+        const [profile, resumesData] = await Promise.all([
+          fetchUserProfile(authUser.id),
+          fetchResumes(authUser.id)
         ]);
-
-        if (profileData.error || resumesData.error) {
-          throw new Error('Failed to fetch data');
-        }
-
-        const profile = profileData.data as DbProfile;
-        const resumes = resumesData.data?.map((resume: any) => ({
-          id: resume.id,
-          name: resume.name,
-          file_path: resume.file_path,
-          isPrimary: resume.is_primary,
-          created_at: resume.created_at,
-          updated_at: resume.updated_at,
-          uploadDate: resume.upload_date || resume.created_at,
-        })) || [];
 
         setNotificationSettings(profile.settings || {
           notifications: false,
           emailUpdates: false,
           darkMode: false,
         });
-        setResumes(resumes);
-        setUser(mapProfileToUser(profile, [], resumes));
+        
+        setResumes(resumesData);
+        setUser(mapProfileToUser(profile, [], resumesData));
 
         form.reset({
           locations: profile.job_preferences?.locations || [],
@@ -122,6 +97,7 @@ const UserPreferences = memo(() => {
           currency: profile.job_preferences?.salary_range?.currency || 'USD',
         });
       } catch (error) {
+        console.error('Error loading preferences:', error);
         toast.error('Failed to load preferences');
       } finally {
         setIsLoading(false);
@@ -132,59 +108,55 @@ const UserPreferences = memo(() => {
   }, [navigate, form]);
 
   // Form submission
-  const onSubmit = async (data: FormData) => {
-    try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) throw new Error('User not authenticated');
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    startTransition(async () => {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (!authUser) throw new Error('User not authenticated');
 
-      // Validate mandatory CV upload
-      if (resumes.length === 0) {
-        toast.error('Please upload at least one resume');
-        return;
-      }
+        // Validate mandatory CV upload
+        if (resumes.length === 0) {
+          toast.error('Please upload at least one resume');
+          return;
+        }
 
-      // Check if all fields are filled
-      const isComplete = (
-        data.locations.length > 0 &&
-        data.jobTypes.length > 0 &&
-        data.industries.length > 0 &&
-        data.salaryMin !== '' &&
-        data.currency !== '' &&
-        resumes.length > 0
-      );
+        // Check if all fields are filled
+        const isComplete = (
+          data.locations.length > 0 &&
+          data.jobTypes.length > 0 &&
+          data.industries.length > 0 &&
+          data.salaryMin !== '' &&
+          data.currency !== '' &&
+          resumes.length > 0
+        );
 
-      const updates: Partial<DbProfile> = {
-        job_preferences: {
+        // Create job preferences object from form data
+        const jobPreferences: JobPreferences = {
           locations: data.locations,
           job_types: data.jobTypes,
           industries: data.industries,
           salary_range: {
             min: parseInt(cleanNumber(data.salaryMin)),
-            max: 100000000, // Assuming a default max value
+            max: 100000000, // Default max value
             currency: data.currency,
           },
-        },
-        settings: notificationSettings,
-      };
+        };
 
-      // Only set onboarding complete if all fields are filled
-      if (isComplete) {
-        updates.onboarding_step = 3;
-        updates.is_onboarding_complete = true;
+        // Update user preferences using the API function
+        await updateUserPreferences(
+          authUser.id,
+          jobPreferences,
+          notificationSettings,
+          isComplete
+        );
+
+        toast.success('Preferences saved');
+        navigate('/dashboard');
+      } catch (error: any) {
+        console.error('Error saving preferences:', error);
+        toast.error(`Failed to save preferences: ${error.message}`);
       }
-
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', authUser.id);
-
-      if (error) throw error;
-
-      toast.success('Preferences saved');
-      navigate('/dashboard');
-    } catch (error) {
-      toast.error(`Failed to save preferences: ${error.message}`);
-    }
+    });
   };
 
   if (isLoading) {
@@ -258,7 +230,18 @@ const UserPreferences = memo(() => {
             </Card>
 
             <div className="flex justify-end">
-              <Button type="submit" className="h-12 text-lg px-6">Save</Button>
+              <Button 
+                type="submit" 
+                className="h-12 text-lg px-6"
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : 'Save'}
+              </Button>
             </div>
           </form>
         </Form>

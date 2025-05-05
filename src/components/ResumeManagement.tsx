@@ -1,12 +1,13 @@
+
 import React, { useState } from 'react';
 import { Resume } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Trash2, Upload } from 'lucide-react';
+import { Trash2, Upload, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { uploadResume, deleteResume, setPrimaryResume } from '@/api/resumes';
 
 interface ResumeManagementProps {
   resumes: Resume[];
@@ -28,6 +29,8 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
   userId,
 }) => {
   const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [settingPrimaryId, setSettingPrimaryId] = useState<string | null>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -50,46 +53,13 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
 
     try {
       setUploading(true);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const fileName = `${user.id}/${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('resumes')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('resumes')
-        .getPublicUrl(fileName);
-
-      const { data: resumeData, error: dbError } = await supabase
-        .from('resumes')
-        .insert([{
-          user_id: user.id,
-          name: file.name,
-          file_path: publicUrl,
-          is_primary: resumes.length === 0,
-          upload_date: new Date().toISOString(),
-        }])
-        .select()
-        .single();
-
-      if (dbError) throw dbError;
-
-      setResumes(prev => [...prev, {
-        id: resumeData.id,
-        name: resumeData.name,
-        file_path: resumeData.file_path,
-        isPrimary: resumeData.is_primary,
-        created_at: resumeData.created_at,
-        updated_at: resumeData.updated_at,
-        uploadDate: resumeData.upload_date || resumeData.created_at,
-      }]);
+      
+      const newResume = await uploadResume(file);
+      
+      setResumes(prev => [...prev, newResume]);
       toast.success('Resume uploaded');
     } catch (error) {
+      console.error('Upload error:', error);
       toast.error('Failed to upload resume');
     } finally {
       setUploading(false);
@@ -97,31 +67,40 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
   };
 
   const handleDeleteResume = async (id: string) => {
+    if (!userId) {
+      toast.error('User not authenticated');
+      return;
+    }
+    
     try {
-      const { error } = await supabase.from('resumes').delete().eq('id', id);
-      if (error) throw error;
-
+      setDeletingId(id);
+      
+      await deleteResume(id, userId);
+      
       setResumes(prev => {
         const updated = prev.filter(resume => resume.id !== id);
-        if (prev.find(r => r.id === id)?.isPrimary && updated.length > 0) {
-          updated[0].isPrimary = true;
-          supabase.from('resumes').update({ is_primary: true }).eq('id', updated[0].id);
-        }
         return updated;
       });
 
       toast.success('Resume deleted');
     } catch (error) {
+      console.error('Delete error:', error);
       toast.error('Failed to delete resume');
+    } finally {
+      setDeletingId(null);
     }
   };
 
   const handleSetPrimaryResume = async (id: string) => {
+    if (!userId) {
+      toast.error('User not authenticated');
+      return;
+    }
+    
     try {
-      if (!userId) throw new Error('User not authenticated');
-
-      await supabase.from('resumes').update({ is_primary: false }).eq('user_id', userId);
-      await supabase.from('resumes').update({ is_primary: true }).eq('id', id);
+      setSettingPrimaryId(id);
+      
+      await setPrimaryResume(id, userId);
 
       setResumes(prev => prev.map(resume => ({
         ...resume,
@@ -130,7 +109,10 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
 
       toast.success('Primary resume updated');
     } catch (error) {
+      console.error('Primary update error:', error);
       toast.error('Failed to update primary resume');
+    } finally {
+      setSettingPrimaryId(null);
     }
   };
 
@@ -149,10 +131,19 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
           htmlFor="resume-upload"
           className="flex flex-col items-center cursor-pointer"
         >
-          <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
-          <span className="text-sm font-medium">
-            {uploading ? 'Uploading...' : 'Click to upload your resume (PDF only)'}
-          </span>
+          {uploading ? (
+            <>
+              <Loader2 className="h-8 w-8 mb-2 text-primary animate-spin" />
+              <span className="text-sm font-medium">Uploading...</span>
+            </>
+          ) : (
+            <>
+              <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
+              <span className="text-sm font-medium">
+                Click to upload your resume (PDF only)
+              </span>
+            </>
+          )}
           <span className="text-xs text-muted-foreground mt-1">
             Maximum 3 resumes, 5MB each
           </span>
@@ -190,7 +181,11 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
                   size="sm"
                   className="mr-2 text-xs h-8"
                   onClick={() => handleSetPrimaryResume(resume.id)}
+                  disabled={settingPrimaryId === resume.id}
                 >
+                  {settingPrimaryId === resume.id ? (
+                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                  ) : null}
                   Set as Primary
                 </Button>
               )}
@@ -199,8 +194,13 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
                 size="icon"
                 className="h-8 w-8 text-destructive"
                 onClick={() => handleDeleteResume(resume.id)}
+                disabled={deletingId === resume.id}
               >
-                <Trash2 className="h-4 w-4" />
+                {deletingId === resume.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </div>
