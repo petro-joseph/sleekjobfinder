@@ -212,13 +212,28 @@ export const useAuthStore = create<AuthState>()(
         }
       },
       logout: async () => {
+        console.log("--- [Store Logout] Attempting sign out... ---"); // Log start
         try {
+          console.log("--- [Store Logout] Calling supabase.auth.signOut()... ---");
+          // Restore await
           const { error } = await supabase.auth.signOut();
-          if (error) throw error;
-          
+          console.log("--- [Store Logout] supabase.auth.signOut() finished. Error:", error); // Log result
+
+          if (error) {
+             console.error("--- [Store Logout] Error during Supabase sign out: ---", error);
+             // Re-throw the error to be caught by the caller (e.g., Navbar) if necessary
+             throw error;
+          }
+
+          console.log("--- [Store Logout] Sign out successful. Updating state... ---");
+          // Set state AFTER successful sign out
           set({ isAuthenticated: false, user: null });
+          console.log("--- [Store Logout] State updated (isAuthenticated: false, user: null). ---");
+
         } catch (error) {
-          console.error("Error during logout:", error);
+          // Catch errors from signOut() or set()
+          console.error("--- [Store Logout] CATCH BLOCK: Error during logout process: ---", error);
+          // Optionally re-throw or handle differently
           throw error;
         }
       },
@@ -255,10 +270,13 @@ export const useAuthStore = create<AuthState>()(
           const { data: { user }, error: userError } = await supabase.auth.getUser();
           
           if (userError || !user) {
-            set({ isAuthenticated: false, user: null });
+            // If getUser fails or returns no user, ensure clean logout state
+            console.log("[fetchUserProfile] No user found or error getting user. Ensuring logged out state.");
+            set({ isAuthenticated: false, user: null }); 
             return;
           }
           
+          console.log("[fetchUserProfile] User found, fetching profile data for:", user.id);
           // Fetch profile data
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
@@ -266,36 +284,57 @@ export const useAuthStore = create<AuthState>()(
             .eq('id', user.id)
             .maybeSingle();
             
-          if (profileError) throw profileError;
+          if (profileError) {
+             console.error("[fetchUserProfile] Error fetching profile:", profileError);
+             throw profileError;
+          }
           
-          // If no profile exists yet, create a minimal one
+          // If no profile exists yet, create a minimal representation
           const userProfile = profile || {
             id: user.id,
-            first_name: '',
-            last_name: '',
+            // Use user.user_metadata for potential names if profile is empty
+            first_name: user.user_metadata?.first_name || '',
+            last_name: user.user_metadata?.last_name || '',
             email: user.email,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           };
+          console.log("[fetchUserProfile] Profile data fetched/created:", !!userProfile);
+
           
           // Fetch saved jobs
+          console.log("[fetchUserProfile] Fetching saved jobs...");
           const savedJobs = await get().fetchSavedJobs();
+          console.log("[fetchUserProfile] Saved jobs fetched:", savedJobs.length);
+
           
           // Fetch resumes
+          console.log("[fetchUserProfile] Fetching resumes...");
           const { data: resumes, error: resumesError } = await supabase
             .from('resumes')
             .select('*')
             .eq('user_id', user.id);
             
-          if (resumesError) throw resumesError;
+          if (resumesError) {
+             console.error("[fetchUserProfile] Error fetching resumes:", resumesError);
+             throw resumesError;
+          }          
+          console.log("[fetchUserProfile] Resumes fetched:", resumes?.length || 0);
+
           
           // Fetch applications
+          console.log("[fetchUserProfile] Fetching applications...");
           const { data: applications, error: applicationsError } = await supabase
             .from('applications')
             .select('*')
             .eq('user_id', user.id);
             
-          if (applicationsError) throw applicationsError;
+          if (applicationsError) {
+              console.error("[fetchUserProfile] Error fetching applications:", applicationsError);
+              throw applicationsError;
+          }
+          console.log("[fetchUserProfile] Applications fetched:", applications?.length || 0);
+
           
           // Map DB formats to application format
           const formattedApplications: Application[] = applications?.map(app => ({
@@ -311,8 +350,8 @@ export const useAuthStore = create<AuthState>()(
           
           // Map to our User model
           const mappedUser = mapProfileToUser(
-            userProfile, 
-            savedJobs, 
+            userProfile,
+            savedJobs,
             resumes?.map(r => ({
               id: r.id,
               name: r.name,
@@ -325,10 +364,13 @@ export const useAuthStore = create<AuthState>()(
             formattedApplications
           );
           
+          console.log("[fetchUserProfile] Mapping complete. Updating store state...");
           set({ isAuthenticated: true, user: mappedUser });
+          console.log("[fetchUserProfile] Store state updated.");
+
         } catch (error) {
-          console.error("Error fetching user profile:", error);
-          set({ isAuthenticated: false, user: null });
+          console.error("--- [fetchUserProfile] CATCH BLOCK: Error fetching user profile: ---", error);
+          set({ isAuthenticated: false, user: null }); // Ensure logout on error
           throw error;
         }
       },
@@ -502,11 +544,19 @@ export const useAuthStore = create<AuthState>()(
 );
 
 const formatPostedAt = (dateString: string): string => {
+  // console.log(`[formatPostedAt] Formatting date string: ${dateString}`); // Log input to formatter
+  if (!dateString) return 'N/A'; // Handle null or undefined dates
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    //  console.warn(`[formatPostedAt] Invalid Date encountered: ${dateString}`); // Log invalid dates
+     return 'Invalid Date';
+  }
+
   const now = new Date();
   const diffInMs = now.getTime() - date.getTime();
   const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-  
+
+  if (diffInDays < 0) return 'Future'; // Handle future dates if necessary
   if (diffInDays === 0) {
     return 'Today';
   } else if (diffInDays === 1) {

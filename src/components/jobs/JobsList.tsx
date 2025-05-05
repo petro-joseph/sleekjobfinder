@@ -1,6 +1,6 @@
 
 import { memo } from 'react';
-import { JobCard } from './JobCard';
+import { JobCard } from './JobCard'; // Ensure JobCard is imported
 import { JobCardSkeleton, LoadingSpinner } from './LoadingState';
 import { EmptyState } from './EmptyState';
 import { Job } from '@/types';
@@ -11,14 +11,20 @@ interface JobsListProps {
     onIndustryClick: (industry: string) => void;
     loadMoreRef: (node: HTMLElement | null) => void;
     isFetchingNextPage: boolean;
+    savedJobs: Job[]; // Add saved jobs prop
+    onSaveToggle: (job: Job) => void; // Add save toggle handler prop
+    isAuthenticated: boolean; // Add authentication status
 }
 
-export const JobsList = memo<JobsListProps>(({
+export const JobsList = memo<JobsListProps>(({ 
     jobs,
     isLoading,
     onIndustryClick,
     loadMoreRef,
     isFetchingNextPage,
+    savedJobs,
+    onSaveToggle,
+    isAuthenticated,
 }) => {
     if (isLoading && !jobs.length) {
         return (
@@ -43,6 +49,9 @@ export const JobsList = memo<JobsListProps>(({
                         job={job}
                         onIndustryClick={onIndustryClick}
                         ref={index === jobs.length - 5 ? loadMoreRef : null}
+                        isSaved={savedJobs.some(savedJob => savedJob.id === job.id)} // Check if job is saved
+                        onSaveToggle={onSaveToggle} // Pass handler
+                        isAuthenticated={isAuthenticated} // Pass auth status
                     />
                 ))}
             </div>

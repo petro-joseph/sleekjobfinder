@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Ensure useNavigate is imported
 import { Button } from '@/components/ui/button';
 import { Menu, X, Sparkles, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
@@ -9,7 +9,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuthStore();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Initialize useNavigate
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,9 +21,15 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await logout(); // Wait for the logout process in the store to finish
+      // Now that the state is updated (user=null), navigate to a safe public page.
+      navigate('/'); // Add navigation back AFTER logout completes
+    } catch (error) {
+       console.error("Logout failed:", error);
+       // Optionally show a toast message to the user
+    }
   };
 
   const hideNavbarOnMobile = isAuthenticated;
@@ -69,7 +75,7 @@ const Navbar = () => {
                 <Button 
                   variant="outline" 
                   className="font-medium flex items-center gap-2"
-                  onClick={handleLogout}
+                  onClick={handleLogout} // Use the updated handleLogout
                 >
                   <LogOut className="w-4 h-4" />
                   Logout
@@ -173,7 +179,7 @@ const Navbar = () => {
                   variant="outline" 
                   className="w-full justify-center touch-button"
                   onClick={() => {
-                    handleLogout();
+                    handleLogout(); // Use updated handleLogout
                     setIsMobileMenuOpen(false);
                   }}
                 >
@@ -196,6 +202,7 @@ const Navbar = () => {
     </header>
   );
 };
+
 
 const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
   return (
