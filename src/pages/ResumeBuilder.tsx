@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useTransition } from 'react';
 import { ArrowRight, FileText, Plus } from 'lucide-react';
 import Layout from '../components/Layout';
 import { Button } from '../components/ui/button';
@@ -9,16 +9,28 @@ import { useAuthStore } from '../lib/store';
 import { Resume } from '../types/resume';
 import { ResumeCreationFlow } from '../components/resume-builder/ResumeCreationFlow';
 import { ResumeTailoringFlow } from '../components/resume-builder/ResumeTailoringFlow';
+import { LoadingSpinner } from '../components/jobs/LoadingState';
 
 const ResumeBuilder = () => {
   const { toast } = useToast();
   const [mode, setMode] = useState<'select' | 'create' | 'tailor'>('select');
   const { user } = useAuthStore();
+  const [isPending, startTransition] = useTransition();
   
   // Reset mode when navigating away
   useEffect(() => {
-    return () => setMode('select');
+    return () => {
+      startTransition(() => {
+        setMode('select');
+      });
+    };
   }, []);
+
+  const handleModeChange = (newMode: 'select' | 'create' | 'tailor') => {
+    startTransition(() => {
+      setMode(newMode);
+    });
+  };
 
   const handleResumeComplete = (resume: Resume) => {
     toast({
@@ -26,7 +38,9 @@ const ResumeBuilder = () => {
       description: "Your new resume has been saved.",
     });
     // In a real app, save resume to user's profile
-    setMode('select');
+    startTransition(() => {
+      setMode('select');
+    });
   };
 
   return (
@@ -36,75 +50,85 @@ const ResumeBuilder = () => {
           <h1 className="text-3xl font-bold">Resume Builder</h1>
         </div>
 
-        {mode === 'select' && (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 max-w-4xl mx-auto">
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Plus className="h-5 w-5" />
-                  Create New Resume
-                </CardTitle>
-                <CardDescription>
-                  Build a professional resume from scratch with our step-by-step guide
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={() => setMode('create')}
-                  className="w-full"
-                >
-                  Start Fresh <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Tailor Existing Resume
-                </CardTitle>
-                <CardDescription>
-                  Optimize your existing resume for specific job opportunities
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={() => setMode('tailor')}
-                  variant="outline" 
-                  className="w-full"
-                >
-                  Customize Resume <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
+        {isPending ? (
+          <div className="flex justify-center items-center py-12">
+            <LoadingSpinner />
           </div>
-        )}
+        ) : (
+          <>
+            {mode === 'select' && (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 max-w-4xl mx-auto">
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Plus className="h-5 w-5" />
+                      Create New Resume
+                    </CardTitle>
+                    <CardDescription>
+                      Build a professional resume from scratch with our step-by-step guide
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      onClick={() => handleModeChange('create')}
+                      className="w-full"
+                    >
+                      Start Fresh <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
 
-        {mode === 'create' && (
-          <ResumeCreationFlow 
-            onBack={() => setMode('select')}
-            onComplete={handleResumeComplete}
-          />
-        )}
+                <Card className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Tailor Existing Resume
+                    </CardTitle>
+                    <CardDescription>
+                      Optimize your existing resume for specific job opportunities
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      onClick={() => handleModeChange('tailor')}
+                      variant="outline" 
+                      className="w-full"
+                    >
+                      Customize Resume <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
-        {mode === 'tailor' && (
-          <ResumeTailoringFlow 
-            onClose={() => setMode('select')}
-            jobPosting={{
-              title: '',
-              company: '',
-              location: '',
-              salaryRange: '',
-              description: '',
-              employmentType: '',
-              requiredYearsOfExperience: 0,
-              industries: [],
-              requiredSkills: []
-            }}
-          />
+            {mode === 'create' && (
+              <ResumeCreationFlow 
+                onBack={() => handleModeChange('select')}
+                onComplete={handleResumeComplete}
+              />
+            )}
+
+            {mode === 'tailor' && (
+              <ResumeTailoringFlow 
+                onClose={() => handleModeChange('select')}
+                jobPosting={{
+                  title: '',
+                  company: '',
+                  location: '',
+                  salaryRange: '',
+                  description: '',
+                  employmentType: '',
+                  requiredYearsOfExperience: 0,
+                  industries: [],
+                  requiredSkills: []
+                }}
+              />
+            )}
+          </>
         )}
       </div>
     </Layout>
   );
-};export default ResumeBuilder;
+};
+
+export default ResumeBuilder;

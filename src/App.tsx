@@ -1,4 +1,5 @@
-import React, { lazy, useEffect } from 'react'
+
+import React, { lazy, useEffect, useState, useTransition } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider } from 'next-themes'
 import { supabase } from './integrations/supabase/client'
@@ -48,6 +49,7 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 
 function App() {
   const { login, logout } = useAuthStore()
+  const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
     // 1) Listen for auth changes - using a local variable to prevent memory leaks
@@ -57,10 +59,13 @@ function App() {
       const { data } = await supabase.auth.onAuthStateChange(
         async (event, session) => {
           if (event === 'SIGNED_IN' && session?.user) {
-            // Use setTimeout to prevent potential deadlocks with Supabase client
-            setTimeout(() => {
-              fetchAndStoreProfile(session.user.id, session.user.email || '')
-            }, 0);
+            // Use startTransition to wrap state updates
+            startTransition(() => {
+              // Use setTimeout to prevent potential deadlocks with Supabase client
+              setTimeout(() => {
+                fetchAndStoreProfile(session.user.id, session.user.email || '')
+              }, 0);
+            });
           } else if (event === 'SIGNED_OUT') {
             // No need to call logout here as it will create a circular reference
             // The state is already updated in the logout function in the store
@@ -76,7 +81,9 @@ function App() {
     const checkInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        fetchAndStoreProfile(session.user.id, session.user.email || '');
+        startTransition(() => {
+          fetchAndStoreProfile(session.user.id, session.user.email || '');
+        });
       }
     };
 
