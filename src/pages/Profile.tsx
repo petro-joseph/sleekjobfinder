@@ -43,6 +43,7 @@ const ProfilePage = () => {
         location: "Tanzania",
         startDate: "2022-06",
         endDate: "Present",
+        summary: "Lead the design, development, and implementation of multiple management and payment systems for various authorities in Zanzibar, significantly improving operational efficiency.",
         description: `- Lead the design, development, and implementation of multiple management and payment systems for various authorities in Zanzibar, significantly improving operational efficiency key projects are:
 - ZIDRAS: Tax collection system for Zanzibar Revenue Authorities (ZRA) which helped to increase tax collection by over 82%.
 - SACCOSX System: Digitized operations for a local cooperative microfinance society, integrating with Umoja switch ATMs and mobile channels.
