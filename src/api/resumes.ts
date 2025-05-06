@@ -197,7 +197,8 @@ export const applyPrimaryResumeDataToProfile = async (userId: string, resumeId: 
         throw new Error(`Failed to fetch parsed data for resume ${resumeId}: ${fetchError?.message || 'No data'}`);
     }
 
-    const parsed: ParsedResumeDbData = resumeData.parsed_data as any; // Cast carefully
+    // Cast the parsed_data to ParsedResumeDbData with type assertion
+    const parsed = resumeData.parsed_data as ParsedResumeDbData;
 
     if (parsed.parser_used === 'failed' || parsed.parser_used === 'unsupported_format' || !parsed.personal) {
         console.warn(`Resume ${resumeId} was not successfully parsed or has no personal data. Skipping profile update.`);
@@ -234,22 +235,6 @@ export const applyPrimaryResumeDataToProfile = async (userId: string, resumeId: 
         profileUpdatePayload.skills = parsed.skills; // Assuming `profiles.skills` is text[]
     }
 
-    // Note: Experiences and Education are typically stored in their own tables,
-    // linked by user_id. You'd need to:
-    // 1. Potentially clear existing experiences/education for that user_id (or implement merging).
-    // 2. Insert the new parsed experiences/education into their respective tables.
-
-    // For simplicity, if `profiles.employment` is a JSONB for a *summary*, you might do:
-    // if (parsed.experience && parsed.experience.length > 0) {
-    //    const currentRole = parsed.experience.find(e => e.end_date?.toLowerCase() === 'present' || !e.end_date);
-    //    if (currentRole) {
-    //        profileUpdatePayload.employment = { // Adjust to your profiles.employment JSONB structure
-    //            current_employer: currentRole.company,
-    //            current_role: currentRole.title,
-    //        };
-    //    }
-    // }
-
     // Update profiles table
     if (Object.keys(profileUpdatePayload).length > 0) {
         const { error: profileUpdateError } = await supabase
@@ -269,18 +254,20 @@ export const applyPrimaryResumeDataToProfile = async (userId: string, resumeId: 
 
         const experiencesToInsert = parsed.experience.map(exp => ({
             user_id: userId,
-            // resume_id: resumeId, // Link to the specific resume if your schema supports it
-            job_title: exp.title,
-            company_name: exp.company,
+            title: exp.title || '',        // Maps to the 'title' column in experiences table
+            company: exp.company || '',    // Maps to the 'company' column in experiences table
             location: exp.location,
-            start_date: exp.start_date, // Ensure YYYY-MM or valid date string
-            end_date: exp.end_date,     // Ensure YYYY-MM, "Present", or valid date string
+            start_date: exp.start_date,
+            end_date: exp.end_date,
             summary: exp.summary,
             description: exp.achievements.join('\n- '), // Match EditModal format
             job_type: exp.job_type,
-            // Ensure all required fields in 'experiences' table are present
         }));
-        const { error: expError } = await supabase.from('experiences').upsert(experiencesToInsert, { onConflict: 'user_id, job_title, company_name' }); // Example conflict
+        
+        const { error: expError } = await supabase
+            .from('experiences')
+            .upsert(experiencesToInsert, { onConflict: 'user_id, title, company' });
+            
         if (expError) console.warn("Error inserting experiences:", expError.message);
     }
 
@@ -291,15 +278,18 @@ export const applyPrimaryResumeDataToProfile = async (userId: string, resumeId: 
 
         const educationToInsert = parsed.education.map(edu => ({
             user_id: userId,
-            // resume_id: resumeId,
-            institution_name: edu.institution,
-            degree: edu.degree,
+            school: edu.institution || '',      // Maps to the 'school' column in education table
+            degree: edu.degree || '',
             field_of_study: edu.field_of_study,
             start_date: edu.start_date,
             end_date: edu.end_date,
             description: edu.description,
         }));
-        const { error: eduError } = await supabase.from('education').upsert(educationToInsert, { onConflict: 'user_id, institution_name, degree' }); // Example conflict
+        
+        const { error: eduError } = await supabase
+            .from('education')
+            .upsert(educationToInsert, { onConflict: 'user_id, school, degree' });
+            
         if (eduError) console.warn("Error inserting education:", eduError.message);
     }
 
@@ -353,7 +343,7 @@ export const getResumeWithParsedData = async (resumeId: string): Promise<{resume
         user_id: resumeData.user_id
     } as Resume;
     
-    // Get parsed data if available
+    // Get parsed data if available - use proper type assertion
     const parsedData = resumeData.parsed_data as ParsedResumeDbData | null;
     
     return { resume, parsedData };
