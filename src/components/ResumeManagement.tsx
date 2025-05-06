@@ -4,10 +4,10 @@ import { Resume } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Trash2, Upload, Loader2 } from 'lucide-react';
+import { Trash2, Upload, Loader2, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { uploadResume, deleteResume, setPrimaryResume } from '@/api/resumes';
+import { uploadResume, deleteResume, setPrimaryResume, forceParseResume } from '@/api/resumes';
 
 interface ResumeManagementProps {
   resumes: Resume[];
@@ -31,6 +31,7 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [settingPrimaryId, setSettingPrimaryId] = useState<string | null>(null);
+  const [parsingId, setParsingId] = useState<string | null>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -42,10 +43,14 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
       toast.error('File size exceeds 5MB limit');
       return;
     }
-    if (file.type !== 'application/pdf') {
-      toast.error('Please upload a PDF file');
+    
+    // Accept PDF, DOCX, or TXT files
+    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please upload a PDF, DOCX, or TXT file');
       return;
     }
+    
     if (resumes.length >= 3) {
       toast.error('Maximum 3 resumes allowed');
       return;
@@ -57,7 +62,9 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
       const newResume = await uploadResume(file);
       
       setResumes(prev => [...prev, newResume]);
-      toast.success('Resume uploaded');
+      toast.success('Resume uploaded successfully!', {
+        description: 'Your resume is being processed in the background.'
+      });
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Failed to upload resume');
@@ -116,12 +123,32 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
     }
   };
 
+  const handleForceReparse = async (id: string) => {
+    if (!userId) {
+      toast.error('User not authenticated');
+      return;
+    }
+    
+    try {
+      setParsingId(id);
+      
+      await forceParseResume(id);
+
+      toast.success('Resume reparsed successfully');
+    } catch (error) {
+      console.error('Parse error:', error);
+      toast.error('Failed to parse resume');
+    } finally {
+      setParsingId(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
         <Input
           type="file"
-          accept=".pdf"
+          accept=".pdf,.docx,.txt"
           id="resume-upload"
           onChange={handleFileUpload}
           className="hidden"
@@ -140,7 +167,7 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
             <>
               <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
               <span className="text-sm font-medium">
-                Click to upload your resume (PDF only)
+                Click to upload your resume (PDF, DOCX, or TXT)
               </span>
             </>
           )}
@@ -159,7 +186,8 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
             <div className="flex items-center">
               <div className="mr-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  PDF
+                  {resume.name.toLowerCase().endsWith('.pdf') ? 'PDF' :
+                   resume.name.toLowerCase().endsWith('.docx') ? 'DOCX' : 'TXT'}
                 </div>
               </div>
               <div>
@@ -173,6 +201,28 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
               </div>
             </div>
             <div className="flex items-center">
+              {parsingId === resume.id ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mr-2 text-xs h-8"
+                  disabled
+                >
+                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                  Parsing...
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mr-2 text-xs h-8"
+                  onClick={() => handleForceReparse(resume.id)}
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Reparse
+                </Button>
+              )}
+              
               {resume.isPrimary ? (
                 <Badge className="mr-2" variant="secondary">Primary</Badge>
               ) : (

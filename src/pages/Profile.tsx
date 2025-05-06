@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import ProfileSections from './profile/ProfileSections';
 import EditModal from './profile/EditModal';
 import { Linkedin, User, BookOpen, Briefcase, Wrench, Shield } from 'lucide-react';
+import { getResumeWithParsedData } from '@/api/resumes';
+import { ParsedResumeDbData } from '@/supabase/functions/parse-resume-and-store/interfaces/resume';
 
 const ProfilePage = () => {
   const { user, logout } = useAuthStore();
@@ -16,6 +19,7 @@ const ProfilePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [isScrollingFromClick, setIsScrollingFromClick] = useState(false);
+  const [isLoadingParsedData, setIsLoadingParsedData] = useState(false);
   const [profileData, setProfileData] = useState({
     firstName: "Petro Joseph",
     lastName: "Ghati",
@@ -126,6 +130,92 @@ const ProfilePage = () => {
   const topOffset = 64; // top-16 (64px)
   const extraSpace = 32; // Increased from 16px to 32px for more breathing room
   const totalOffset = navHeight + topOffset + extraSpace;
+
+  // Load parsed data from primary resume if available
+  useEffect(() => {
+    const loadParsedData = async () => {
+      if (!user?.resumes || user.resumes.length === 0) return;
+      
+      try {
+        setIsLoadingParsedData(true);
+        
+        // Find the primary resume
+        const primaryResume = user.resumes.find(r => r.isPrimary);
+        if (!primaryResume) return;
+        
+        const { parsedData } = await getResumeWithParsedData(primaryResume.id);
+        
+        if (parsedData && parsedData.parser_used !== 'failed' && parsedData.parser_used !== 'unsupported_format') {
+          updateProfileWithParsedData(parsedData);
+        }
+      } catch (error) {
+        console.error('Error loading parsed resume data:', error);
+        // Don't show error toast to user since this is background loading
+      } finally {
+        setIsLoadingParsedData(false);
+      }
+    };
+    
+    loadParsedData();
+  }, [user?.resumes]);
+
+  // Update profile data with parsed resume data
+  const updateProfileWithParsedData = (parsedData: ParsedResumeDbData) => {
+    setProfileData(prevData => {
+      const newData = { ...prevData };
+      
+      // Update personal information if available
+      if (parsedData.personal) {
+        const personal = parsedData.personal;
+        
+        if (personal.full_name) {
+          const nameParts = personal.full_name.split(' ');
+          newData.firstName = nameParts[0] || prevData.firstName;
+          newData.lastName = nameParts.slice(1).join(' ') || prevData.lastName;
+        }
+        
+        if (personal.email) newData.email = personal.email;
+        if (personal.phone) newData.phone = personal.phone;
+        if (personal.linkedin_url) newData.website = personal.linkedin_url;
+        if (personal.location_string) newData.location = personal.location_string;
+        if (personal.summary_bio) newData.bio = personal.summary_bio;
+      }
+      
+      // Update education
+      if (parsedData.education && parsedData.education.length > 0) {
+        newData.education = parsedData.education.map((edu, index) => ({
+          id: `parsed-${index}`,
+          school: edu.institution || 'Unknown Institution',
+          degree: edu.degree || 'Degree',
+          fieldOfStudy: edu.field_of_study || 'Field of Study',
+          startDate: edu.start_date || '',
+          endDate: edu.end_date || '',
+          description: edu.description || '',
+        }));
+      }
+      
+      // Update experience
+      if (parsedData.experience && parsedData.experience.length > 0) {
+        newData.experience = parsedData.experience.map((exp, index) => ({
+          id: `parsed-${index}`,
+          title: exp.title || 'Job Title',
+          company: exp.company || 'Company',
+          location: exp.location || '',
+          startDate: exp.start_date || '',
+          endDate: exp.end_date || '',
+          summary: exp.summary || '',
+          description: exp.achievements.join('\n- ') || '',
+        }));
+      }
+      
+      // Update skills
+      if (parsedData.skills && parsedData.skills.length > 0) {
+        newData.skills = parsedData.skills;
+      }
+      
+      return newData;
+    });
+  };
 
   const handleNavClick = (section: string) => {
     setActiveSection(section);
@@ -277,6 +367,7 @@ const ProfilePage = () => {
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-foreground">
                 {profileData.firstName} {profileData.lastName}
+                {isLoadingParsedData && <span className="ml-2 text-xs text-muted-foreground">(Loading resume data...)</span>}
               </h2>
               <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
                 <span>{profileData.email}</span>
@@ -299,7 +390,11 @@ const ProfilePage = () => {
 
           {/* Sidebar */}
           <div className="w-full lg:w-64 flex flex-col gap-2">
-            <Button variant="outline" className="w-full text-sm">
+            <Button 
+              variant="outline" 
+              className="w-full text-sm"
+              onClick={() => navigate('/manage-resumes')}
+            >
               Manage My Resume
             </Button>
             <Button

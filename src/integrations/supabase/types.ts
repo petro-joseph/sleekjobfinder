@@ -57,34 +57,37 @@ export type Database = {
         Row: {
           created_at: string
           degree: string
-          description: string
-          end_date: string
-          field_of_study: string
+          description: string | null
+          end_date: string | null
+          field_of_study: string | null
           id: string
           school: string
           start_date: string
+          updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
           degree: string
-          description: string
-          end_date: string
-          field_of_study: string
+          description?: string | null
+          end_date?: string | null
+          field_of_study?: string | null
           id?: string
           school: string
           start_date: string
+          updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
           degree?: string
-          description?: string
-          end_date?: string
-          field_of_study?: string
+          description?: string | null
+          end_date?: string | null
+          field_of_study?: string | null
           id?: string
           school?: string
           start_date?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -93,34 +96,43 @@ export type Database = {
         Row: {
           company: string
           created_at: string
-          description: string
+          description: string | null
           end_date: string | null
           id: string
-          location: string
+          job_type: string | null
+          location: string | null
           start_date: string
+          summary: string | null
           title: string
+          updated_at: string
           user_id: string
         }
         Insert: {
           company: string
           created_at?: string
-          description: string
+          description?: string | null
           end_date?: string | null
           id?: string
-          location: string
+          job_type?: string | null
+          location?: string | null
           start_date: string
+          summary?: string | null
           title: string
+          updated_at?: string
           user_id: string
         }
         Update: {
           company?: string
           created_at?: string
-          description?: string
+          description?: string | null
           end_date?: string | null
           id?: string
-          location?: string
+          job_type?: string | null
+          location?: string | null
           start_date?: string
+          summary?: string | null
           title?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -219,15 +231,18 @@ export type Database = {
           country: string | null
           created_at: string
           email: string | null
+          employment: Json | null
           first_name: string | null
           id: string
           is_email_verified: boolean | null
           is_onboarding_complete: boolean | null
           job_preferences: Json | null
           last_name: string | null
+          linkedin: string | null
           location: string | null
           onboarding_step: number | null
           phone: string | null
+          primary_cv_id: string | null
           settings: Json | null
           skills: string[] | null
           state: string | null
@@ -245,15 +260,18 @@ export type Database = {
           country?: string | null
           created_at?: string
           email?: string | null
+          employment?: Json | null
           first_name?: string | null
           id: string
           is_email_verified?: boolean | null
           is_onboarding_complete?: boolean | null
           job_preferences?: Json | null
           last_name?: string | null
+          linkedin?: string | null
           location?: string | null
           onboarding_step?: number | null
           phone?: string | null
+          primary_cv_id?: string | null
           settings?: Json | null
           skills?: string[] | null
           state?: string | null
@@ -271,15 +289,18 @@ export type Database = {
           country?: string | null
           created_at?: string
           email?: string | null
+          employment?: Json | null
           first_name?: string | null
           id?: string
           is_email_verified?: boolean | null
           is_onboarding_complete?: boolean | null
           job_preferences?: Json | null
           last_name?: string | null
+          linkedin?: string | null
           location?: string | null
           onboarding_step?: number | null
           phone?: string | null
+          primary_cv_id?: string | null
           settings?: Json | null
           skills?: string[] | null
           state?: string | null
@@ -288,7 +309,15 @@ export type Database = {
           website?: string | null
           zip?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_primary_cv_id_fkey"
+            columns: ["primary_cv_id"]
+            isOneToOne: false
+            referencedRelation: "resumes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       resumes: {
         Row: {
@@ -297,6 +326,7 @@ export type Database = {
           id: string
           is_primary: boolean | null
           name: string
+          parsed_data: Json | null
           updated_at: string
           upload_date: string | null
           user_id: string
@@ -307,6 +337,7 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           name: string
+          parsed_data?: Json | null
           updated_at?: string
           upload_date?: string | null
           user_id: string
@@ -317,6 +348,7 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           name?: string
+          parsed_data?: Json | null
           updated_at?: string
           upload_date?: string | null
           user_id?: string

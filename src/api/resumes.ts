@@ -1,9 +1,9 @@
-
 // src/api/resumes.ts
 import { supabase } from '@/integrations/supabase/client';
 import { Resume } from '@/types';
 import { uploadResumeFile } from '@/integrations/supabase/uploadResume';
 import { ParsedResumeDbData } from '@/supabase/functions/parse-resume-and-store/interfaces/resume'; 
+import { parseResume } from './parseResume';
 
 export const fetchResumes = async (userId: string): Promise<Resume[]> => {
     const { data, error } = await supabase
@@ -151,23 +151,32 @@ export const uploadResume = async (file: File): Promise<Resume> => {
         if (error) throw new Error(`Failed to save resume record: ${error.message}`);
         if (!data) throw new Error('Failed to save resume record');
 
-        // Asynchronously call the Edge Function to parse the resume
-        // No need to await this on the client, let it run in the background
-        supabase.functions.invoke('parse-resume-and-store', {
-            body: { resume_id: data.id },
-        }).then(({ data: funcData, error: funcError }) => {
-            if (funcError) {
-                console.error('Error invoking parse-resume-and-store function:', funcError);
-                // Optionally notify user or admin
-            } else {
-                console.log('Parse function invoked successfully:', funcData);
-            }
-        }).catch(invokeError => {
-            console.error('Catch: Error invoking parse-resume-and-store function:', invokeError);
-        });
+        // Create a resume object for return
+        const newResume = {
+            id: data.id,
+            name: data.name,
+            file_path: data.file_path,
+            isPrimary: data.is_primary,
+            created_at: data.created_at,
+            updated_at: data.updated_at,
+            uploadDate: data.upload_date ? new Date(data.upload_date) : new Date(data.created_at),
+            user_id: data.user_id
+        } as Resume;
 
+        // Trigger resume parsing in the background
+        parseResume(data.id)
+            .then(response => {
+                if (!response.success) {
+                    console.error('Background parsing failed:', response.error);
+                } else {
+                    console.log('Resume parsed successfully in background');
+                }
+            })
+            .catch(parseError => {
+                console.error('Error in background parsing:', parseError);
+            });
 
-        return { /* ... map data to Resume type ... */ } as Resume; // Same as before
+        return newResume;
     } catch (error) {
         console.error('UploadResume Error:', error);
         throw error;
@@ -319,5 +328,49 @@ export const setPrimaryResume = async (resumeId: string, userId: string): Promis
         console.error('Error applying primary resume data to profile:', applyError);
         // Optionally toast an error to the user, but the resume is still primary
         // throw applyError; // Or handle more gracefully
+    }
+};
+
+// New function to get the parsed data for a resume
+export const getResumeWithParsedData = async (resumeId: string): Promise<{resume: Resume, parsedData: ParsedResumeDbData | null}> => {
+    const { data: resumeData, error } = await supabase
+        .from('resumes')
+        .select('*')
+        .eq('id', resumeId)
+        .single();
+        
+    if (error) throw new Error(`Failed to fetch resume: ${error.message}`);
+    
+    // Create resume object
+    const resume = {
+        id: resumeData.id,
+        name: resumeData.name,
+        file_path: resumeData.file_path,
+        isPrimary: resumeData.is_primary,
+        created_at: resumeData.created_at,
+        updated_at: resumeData.updated_at,
+        uploadDate: resumeData.upload_date ? new Date(resumeData.upload_date) : new Date(resumeData.created_at),
+        user_id: resumeData.user_id
+    } as Resume;
+    
+    // Get parsed data if available
+    const parsedData = resumeData.parsed_data as ParsedResumeDbData | null;
+    
+    return { resume, parsedData };
+};
+
+// Force a resume to be parsed (or re-parsed) on demand
+export const forceParseResume = async (resumeId: string): Promise<ParsedResumeDbData | null> => {
+    try {
+        const response = await parseResume(resumeId);
+        
+        if (!response.success || !response.parsed_data) {
+            throw new Error(response.error || 'Failed to parse resume');
+        }
+        
+        return response.parsed_data;
+    } catch (error) {
+        console.error('Force parse resume error:', error);
+        throw error;
     }
 };
