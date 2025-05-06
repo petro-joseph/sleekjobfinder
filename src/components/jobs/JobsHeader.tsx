@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import { Search, CalendarDays, Briefcase, DollarSign, MapPin, X, Building } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -14,12 +14,13 @@ import { JobFilters } from '@/api/jobs';
 
 interface JobsHeaderProps {
   filters: JobFilters;
-  onFilterChange: (filters: Partial<JobFilters>) => void;
+  onFilterChange: (newFilters: Partial<JobFilters>) => void;
   onResetFilters: () => void;
   onJobTypeToggle: (type: string, isSelected: boolean) => void;
   onExpLevelToggle: (level: string, isSelected: boolean) => void;
   jobTypes: Record<string, boolean>;
   expLevels: Record<string, boolean>;
+  isPending: boolean; // Add this prop to match usage in Jobs.tsx
 }
 
 // Helper function to get date posted label
@@ -78,15 +79,16 @@ const FilterButton: React.FC<FilterButtonProps> = ({ children }) => {
   );
 };
 
-export const JobsHeader = ({
+export const JobsHeader: React.FC<JobsHeaderProps> = ({
   filters,
   onFilterChange,
   onResetFilters,
   onJobTypeToggle,
   onExpLevelToggle,
   jobTypes,
-  expLevels
-}: JobsHeaderProps) => {
+  expLevels,
+  isPending
+}) => {
   const [searchTerm, setSearchTerm] = useState(filters.searchTerm);
   const [showSearchButton, setShowSearchButton] = useState(true);
 

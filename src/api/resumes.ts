@@ -1,8 +1,9 @@
+
 // src/api/resumes.ts
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "./client";
 import { Resume } from '@/types';
 import { uploadResumeFile } from '@/integrations/supabase/uploadResume';
-import { ParsedResumeDbData } from '@/supabase/functions/parse-resume-and-store/interfaces/resume'; 
+import { ParsedResumeDbData } from '@/types/parsedResume'; 
 import { parseResume } from './parseResume';
 
 export const fetchResumes = async (userId: string): Promise<Resume[]> => {

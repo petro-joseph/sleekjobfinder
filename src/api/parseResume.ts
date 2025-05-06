@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ParsedResumeDbData } from '@/supabase/functions/parse-resume-and-store/interfaces/resume';
+import { ParsedResumeDbData } from '@/types/parsedResume';
 
 export interface ParseResumeResponse {
   success: boolean;

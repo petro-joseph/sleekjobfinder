@@ -7,7 +7,7 @@ import Layout from '@/components/Layout';
 import { useJobFilters } from '@/hooks/useJobFilters';
 import { useJobSearch } from '@/hooks/useJobSearch';
 import { JobsList } from '@/components/jobs/JobsList';
-import JobsHeader from '@/components/jobs/JobsHeader';
+import JobsHeader from '@/components/jobs/JobsHeader'; // Changed to default import
 import { JobsMetadata } from '@/components/jobs/JobsMetadata';
 import { JobsErrorBoundary } from '@/components/jobs/JobsErrorBoundary';
 import { ErrorState } from '@/components/jobs/ErrorState';

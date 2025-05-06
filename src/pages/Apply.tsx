@@ -85,7 +85,7 @@ const Apply = () => {
   const uploadResumeMutation = useMutation({
     mutationFn: async (file: File) => {
       if (!user?.id) throw new Error("User not authenticated");
-      return await uploadResume(file, user.id);
+      return await uploadResume(file);
     },
     onSuccess: (newResumeData: Resume) => {
       toast.success(`Resume "${newResumeData.name}" uploaded successfully!`);

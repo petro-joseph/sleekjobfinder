@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import ProfileSections from './profile/ProfileSections';
 import EditModal from './profile/EditModal';
 import { Linkedin, User, BookOpen, Briefcase, Wrench, Shield } from 'lucide-react';
 import { getResumeWithParsedData } from '@/api/resumes';
-import { ParsedResumeDbData } from '@/supabase/functions/parse-resume-and-store/interfaces/resume';
+import { ParsedResumeDbData } from '@/types/parsedResume';
 
 const ProfilePage = () => {
   const { user, logout } = useAuthStore();
