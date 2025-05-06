@@ -1,3 +1,4 @@
+
 // src/api/resumes.ts
 import { supabase } from "@/integrations/supabase/client";
 import { Resume } from '@/types';
@@ -197,8 +198,33 @@ export const applyPrimaryResumeDataToProfile = async (userId: string, resumeId: 
         throw new Error(`Failed to fetch parsed data for resume ${resumeId}: ${fetchError?.message || 'No data'}`);
     }
 
-    // Cast the parsed_data to ParsedResumeDbData with type assertion
-    const parsed = resumeData.parsed_data as ParsedResumeDbData;
+    // Cast the parsed_data to ParsedResumeDbData with proper type checking
+    // First cast to unknown then to our specific type to avoid direct unsafe casting
+    const parsedData = resumeData.parsed_data as unknown;
+    
+    // Type guard to ensure parsedData has the expected structure
+    function isValidParsedData(data: unknown): data is ParsedResumeDbData {
+        if (!data || typeof data !== 'object') return false;
+        
+        const d = data as Record<string, unknown>;
+        return (
+            'parser_used' in d &&
+            'parsed_at' in d &&
+            'personal' in d &&
+            'education' in d &&
+            'experience' in d &&
+            'skills' in d &&
+            Array.isArray(d.skills)
+        );
+    }
+    
+    // Verify structure before proceeding
+    if (!isValidParsedData(parsedData)) {
+        console.error(`Resume ${resumeId} has malformed parsed_data`);
+        throw new Error('Invalid resume parsed data format');
+    }
+    
+    const parsed = parsedData as ParsedResumeDbData;
 
     if (parsed.parser_used === 'failed' || parsed.parser_used === 'unsupported_format' || !parsed.personal) {
         console.warn(`Resume ${resumeId} was not successfully parsed or has no personal data. Skipping profile update.`);
@@ -343,8 +369,29 @@ export const getResumeWithParsedData = async (resumeId: string): Promise<{resume
         user_id: resumeData.user_id
     } as Resume;
     
-    // Get parsed data if available - use proper type assertion
-    const parsedData = resumeData.parsed_data as ParsedResumeDbData | null;
+    // Get parsed data if available - use proper type checking with a two-step approach
+    let parsedData: ParsedResumeDbData | null = null;
+    
+    if (resumeData.parsed_data) {
+        // First cast to unknown
+        const rawParsedData = resumeData.parsed_data as unknown;
+        
+        // Then check if it has the expected structure
+        if (
+            rawParsedData && 
+            typeof rawParsedData === 'object' &&
+            'parser_used' in rawParsedData &&
+            'parsed_at' in rawParsedData &&
+            'personal' in rawParsedData &&
+            'education' in rawParsedData &&
+            'experience' in rawParsedData &&
+            'skills' in rawParsedData
+        ) {
+            parsedData = rawParsedData as ParsedResumeDbData;
+        } else {
+            console.warn('Resume has invalid parsed_data structure');
+        }
+    }
     
     return { resume, parsedData };
 };
