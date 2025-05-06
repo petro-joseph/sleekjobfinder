@@ -1,6 +1,5 @@
-
 // src/api/resumes.ts
-import { supabase } from "./client";
+import { supabase } from "@/integrations/supabase/client";
 import { Resume } from '@/types';
 import { uploadResumeFile } from '@/integrations/supabase/uploadResume';
 import { ParsedResumeDbData } from '@/types/parsedResume'; 
