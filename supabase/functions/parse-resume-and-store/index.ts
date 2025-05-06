@@ -1,3 +1,4 @@
+
 // @deno-types="https://deno.land/x/types/index.d.ts"
 // supabase/functions/parse-resume-and-store/index.ts
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
@@ -32,6 +33,38 @@ async function extractTextFromFile(fileBuffer: ArrayBuffer, fileName: string): P
         return null;
     } catch (error) {
         console.error(`Error extracting text from ${fileName}:`, error);
+        return null;
+    }
+}
+
+// --- Helper Functions ---
+
+// Fixed function to handle file path extraction from URLs more robustly
+function extractStoragePathFromUrl(url: string): string | null {
+    try {
+        // First, try direct path extraction (for dev environment)
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split('/');
+        
+        // Look for object/cv-bucket pattern (production)
+        const objectIndex = pathParts.findIndex(part => part === 'object');
+        if (objectIndex !== -1) {
+            const bucketIndex = pathParts.indexOf('cv-bucket', objectIndex);
+            if (bucketIndex !== -1 && pathParts.length > bucketIndex + 1) {
+                return pathParts.slice(bucketIndex + 1).join('/');
+            }
+        }
+        
+        // Look for just cv-bucket (common case)
+        const directBucketIndex = pathParts.indexOf('cv-bucket');
+        if (directBucketIndex !== -1 && pathParts.length > directBucketIndex + 1) {
+            return pathParts.slice(directBucketIndex + 1).join('/');
+        }
+
+        console.error('Could not extract storage path from URL:', url);
+        return null;
+    } catch (e) {
+        console.error('Invalid file_path URL:', url, e);
         return null;
     }
 }
@@ -261,22 +294,31 @@ serve(async (req: Request) => {
             });
         }
 
-        supabaseAdminClient = createClient(
-            Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-        );
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+        if (!supabaseUrl || !serviceRoleKey) {
+            console.error('Missing Supabase credentials in environment variables');
+            return new Response(JSON.stringify({ error: 'Server configuration error: Supabase credentials missing' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 500,
+            });
+        }
+
+        supabaseAdminClient = createClient(supabaseUrl, serviceRoleKey);
 
         const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
         const superParserApiKey = Deno.env.get('SUPERPARSER_API_KEY');
 
-        if (!openAIApiKey || !superParserApiKey) {
-            console.error("Missing API keys for OpenAI or SuperParser");
+        if (!openAIApiKey && !superParserApiKey) {
+            console.error("Missing API keys for OpenAI and SuperParser");
             return new Response(JSON.stringify({ error: 'Server configuration error: API keys missing.' }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 500,
             });
         }
 
+        // Fetch the resume record
         const { data: resumeRecord, error: fetchError } = await supabaseAdminClient
             .from('resumes')
             .select('id, user_id, file_path, name')
@@ -299,25 +341,33 @@ serve(async (req: Request) => {
             });
         }
 
-        let storagePath = '';
-        try {
-            const url = new URL(resumeRecord.file_path);
-            const pathParts = url.pathname.split('/');
-            const bucketName = 'cv-bucket';
-            const bucketIndex = pathParts.indexOf(bucketName);
-            if (bucketIndex !== -1 && pathParts.length > bucketIndex + 1) {
-                storagePath = pathParts.slice(bucketIndex + 1).join('/');
-            } else {
-                throw new Error('Could not determine storage path from URL.');
-            }
-        } catch (e) {
-            console.error('Invalid file_path URL:', resumeRecord.file_path, e);
-            return new Response(JSON.stringify({ error: 'Invalid resume file_path format.' }), {
+        // Extract storage path using the improved function
+        const storagePath = extractStoragePathFromUrl(resumeRecord.file_path);
+        
+        if (!storagePath) {
+            const failedParseData: ParsedResumeDbData = {
+                parser_used: 'failed',
+                parsed_at: new Date().toISOString(),
+                personal: null, education: [], experience: [], skills: [],
+                error_message: `Failed to extract valid storage path from URL: ${resumeRecord.file_path}`
+            };
+            
+            await supabaseAdminClient.from('resumes')
+                .update({ parsed_data: failedParseData })
+                .eq('id', resume_id);
+                
+            return new Response(JSON.stringify({ 
+                error: 'Invalid file path format',
+                parsed_data: failedParseData
+            }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 400,
             });
         }
+        
+        console.log('Attempting to download file from path:', storagePath);
 
+        // Download file with better error handling
         const { data: fileData, error: downloadError } = await supabaseAdminClient.storage
             .from('cv-bucket')
             .download(storagePath);
@@ -328,70 +378,95 @@ serve(async (req: Request) => {
                 parser_used: 'failed',
                 parsed_at: new Date().toISOString(),
                 personal: null, education: [], experience: [], skills: [],
-                error_message: `Failed to download from storage: ${downloadError?.message}`
+                error_message: `Failed to download from storage: ${downloadError?.message || 'Unknown error'}, Path: ${storagePath}`
             };
-            await supabaseAdminClient.from('resumes').update({ parsed_data: failedParseData }).eq('id', resume_id);
-            return new Response(JSON.stringify({ error: `Failed to download resume: ${downloadError?.message}` }), {
+            
+            await supabaseAdminClient.from('resumes')
+                .update({ parsed_data: failedParseData })
+                .eq('id', resume_id);
+                
+            return new Response(JSON.stringify({ 
+                error: `Failed to download resume: ${downloadError?.message}`,
+                parsed_data: failedParseData
+            }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 500,
             });
         }
+
         const fileBuffer = await fileData.arrayBuffer();
         const fileName = resumeRecord.name;
         const fileExtension = fileName.split('.').pop()?.toLowerCase();
 
         let parsedResult: ParsedResumeDbData | null = null;
+        let textContent: string | null = null;
 
+        // Extract text from file first to ensure we have content regardless of parsing method
+        textContent = await extractTextFromFile(fileBuffer, fileName);
+        
+        if (!textContent) {
+            const failedParseData: ParsedResumeDbData = {
+                parser_used: 'failed',
+                parsed_at: new Date().toISOString(),
+                personal: null, education: [], experience: [], skills: [],
+                error_message: `Failed to extract text from ${fileExtension} file`
+            };
+            
+            await supabaseAdminClient.from('resumes')
+                .update({ parsed_data: failedParseData })
+                .eq('id', resume_id);
+                
+            return new Response(JSON.stringify({ 
+                error: 'Text extraction failed',
+                parsed_data: failedParseData
+            }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 400,
+            });
+        }
+
+        // Try SuperParser for PDF/DOCX
         if ((fileExtension === 'pdf' || fileExtension === 'docx') && superParserApiKey) {
-            parsedResult = await parseWithSuperParser(fileBuffer, fileName, superParserApiKey);
-        }
-
-        if (!parsedResult || (parsedResult.parser_used === 'superparser' && !parsedResult.personal?.full_name)) {
-            const textContent = await extractTextFromFile(fileBuffer, fileName);
-            if (textContent && openAIApiKey) {
-                const openAIParseAttempt = await parseWithOpenAI(textContent, openAIApiKey);
-                if (openAIParseAttempt) {
-                    parsedResult = openAIParseAttempt;
-                } else if (!parsedResult && textContent) {
-                    parsedResult = parseInternally(textContent);
+            try {
+                parsedResult = await parseWithSuperParser(fileBuffer, fileName, superParserApiKey);
+                // Add raw text if available
+                if (parsedResult && textContent) {
                     parsedResult.raw_text = textContent;
-                } else if (parsedResult && parsedResult.parser_used === 'superparser' && !parsedResult.personal?.full_name && textContent) {
-                    parsedResult.raw_text = textContent;
-                } else if (!parsedResult && !textContent) {
-                    parsedResult = {
-                        parser_used: 'failed',
-                        parsed_at: new Date().toISOString(),
-                        personal: null, education: [], experience: [], skills: [],
-                        error_message: 'Failed to extract text for OpenAI/Internal parsing.',
-                        raw_text: undefined
-                    };
                 }
-            } else if (!parsedResult) {
-                parsedResult = {
-                    parser_used: 'failed',
-                    parsed_at: new Date().toISOString(),
-                    personal: null, education: [], experience: [], skills: [],
-                    error_message: 'Text extraction failed and no primary parser succeeded.',
-                    raw_text: undefined
-                };
+            } catch (error) {
+                console.error('SuperParser error:', error);
+                // Continue to next method
             }
         }
 
+        // Try OpenAI if SuperParser failed or wasn't applicable
+        if ((!parsedResult || !parsedResult.personal?.full_name) && openAIApiKey && textContent) {
+            try {
+                parsedResult = await parseWithOpenAI(textContent, openAIApiKey);
+            } catch (error) {
+                console.error('OpenAI parsing error:', error);
+                // Continue to fallback
+            }
+        }
+
+        // Fallback to internal parser
+        if (!parsedResult && textContent) {
+            parsedResult = parseInternally(textContent);
+            parsedResult.raw_text = textContent;
+        }
+
+        // Final fallback if all parsing methods failed
         if (!parsedResult) {
-            const textContent = await extractTextFromame(fileBuffer, fileName);
-            if (textContent) {
-                parsedResult = parseInternally(textContent);
-            } else {
-                parsedResult = {
-                    parser_used: 'unsupported_format',
-                    parsed_at: new Date().toISOString(),
-                    personal: null, education: [], experience: [], skills: [],
-                    error_message: 'File type not supported or text extraction failed, and no parser succeeded.',
-                    raw_text: undefined
-                };
-            }
+            parsedResult = {
+                parser_used: 'failed',
+                parsed_at: new Date().toISOString(),
+                personal: null, education: [], experience: [], skills: [],
+                error_message: 'All parsing methods failed',
+                raw_text: textContent || undefined
+            };
         }
 
+        // Update resume record with parsed data
         const { error: updateError } = await supabaseAdminClient
             .from('resumes')
             .update({ parsed_data: parsedResult })
@@ -399,11 +474,17 @@ serve(async (req: Request) => {
 
         if (updateError) {
             console.error('Error updating resume with parsed data:', updateError);
+            return new Response(JSON.stringify({ error: `Failed to update resume: ${updateError.message}` }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 500,
+            });
         }
 
         console.log(`Resume ${resume_id} processed. Parser: ${parsedResult?.parser_used}`);
         return new Response(JSON.stringify({
-            message: 'Resume processed.',
+            success: true,
+            message: 'Resume processed successfully',
+            parsed_data: parsedResult,
             resumeId: resume_id,
             parserUsed: parsedResult?.parser_used,
         }), {
@@ -411,7 +492,7 @@ serve(async (req: Request) => {
             status: 200,
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Main function error:', error);
         if (supabaseAdminClient && req.method !== 'OPTIONS') {
             try {
@@ -422,7 +503,7 @@ serve(async (req: Request) => {
                         parser_used: 'failed',
                         parsed_at: new Date().toISOString(),
                         personal: null, education: [], experience: [], skills: [],
-                        error_message: `Edge function exception: ${error.message}`
+                        error_message: `Edge function exception: ${error.message || 'Unknown error'}`
                     };
                     await supabaseAdminClient.from('resumes').update({ parsed_data: failedParseData }).eq('id', resume_id);
                 }
@@ -430,7 +511,7 @@ serve(async (req: Request) => {
                 console.error("Failed to update DB on main error:", dbError);
             }
         }
-        return new Response(JSON.stringify({ error: error.message || 'Internal server error' }), {
+        return new Response(JSON.stringify({ success: false, error: error.message || 'Internal server error' }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 500,
         });

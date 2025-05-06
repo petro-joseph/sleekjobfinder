@@ -28,6 +28,15 @@ export const parseResume = async (resumeId: string): Promise<ParseResumeResponse
       };
     }
 
+    // Check if data.success is explicitly false (function returned error but HTTP was 200)
+    if (data && data.success === false) {
+      console.error('Function reported error:', data.error);
+      return {
+        success: false,
+        error: data.error || 'Function reported failure without specific error'
+      };
+    }
+
     // Return the successfully parsed data
     return { 
       success: true, 
