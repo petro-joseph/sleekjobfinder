@@ -164,13 +164,6 @@ const ProfilePage = () => {
     });
   };
 
-  const handleLogout = () => {
-    logout();
-    toast.info("You've been logged out", {
-      position: "top-center"
-    });
-    navigate('/login');
-  };
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
