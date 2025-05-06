@@ -3,6 +3,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Resume } from '@/types';
 import { uploadResumeFile } from '@/integrations/supabase/uploadResume';
+import { ParsedResumeDbData } from '@/supabase/functions/parse-resume-and-store/interfaces/resume'; 
 
 export const fetchResumes = async (userId: string): Promise<Resume[]> => {
     const { data, error } = await supabase
@@ -24,83 +25,6 @@ export const fetchResumes = async (userId: string): Promise<Resume[]> => {
         user_id: resume.user_id
     })) as Resume[];
 };
-
-// export const uploadResume = async (file: File): Promise<Resume> => {
-//     try {
-//         // 1. Get authenticated user
-//         const { data: { user }, error: authError } = await supabase.auth.getUser();
-//         if (authError || !user) {
-//             throw new Error('User not authenticated');
-//         }
-//         const userId = user.id;
-
-//         // 2. Upload to Storage
-//         console.log('Uploading file:', file.name);
-//         const filePath = await uploadResumeFile(file, userId);
-//         if (!filePath) throw new Error('File upload failed');
-
-//         // 3. Get count to determine if this is the first resume
-//         const { count, error: countError } = await supabase
-//             .from('resumes')
-//             .select('id', { count: 'estimated' });
-
-//         if (countError) {
-//             console.error('Count error:', countError);
-//             throw new Error(countError.message);
-//         }
-
-//         // 4. Insert record into 'resumes' table
-//         const payload = {
-//             user_id: userId,
-//             name: file.name,
-//             file_path: filePath,
-//             is_primary: count === 0
-//         };
-
-//         const { data, error } = await supabase
-//             .from('resumes')
-//             .insert(payload)
-//             .select()
-//             .single();
-
-//         if (error) {
-//             throw new Error(`Failed to save resume record: ${error.message}`);
-//         }
-//         if (!data) throw new Error('Failed to save resume record');
-
-//         return {
-//             id: data.id,
-//             user_id: data.user_id,
-//             name: data.name,
-//             file_path: data.file_path,
-//             isPrimary: data.is_primary,
-//             created_at: data.created_at,
-//             updated_at: data.updated_at,
-//             uploadDate: data.upload_date ? new Date(data.upload_date) : new Date(data.created_at)
-//         } as Resume;
-//     } catch (error) {
-//         throw error;
-//     }
-// };
-
-// export const setPrimaryResume = async (resumeId: string, userId: string): Promise<void> => {
-//     // First, clear primary status from all resumes for this user
-//     const { error: clearError } = await supabase
-//         .from('resumes')
-//         .update({ is_primary: false })
-//         .eq('user_id', userId);
-    
-//     if (clearError) throw new Error(clearError.message);
-    
-//     // Then set the selected resume as primary
-//     const { error } = await supabase
-//         .from('resumes')
-//         .update({ is_primary: true })
-//         .eq('id', resumeId)
-//         .eq('user_id', userId);
-    
-//     if (error) throw new Error(error.message);
-// };
 
 export const deleteResume = async (resumeId: string, userId: string): Promise<void> => {
     // Get resume info to check if it's primary and get file path
@@ -187,9 +111,6 @@ export const updateResumeName = async (resumeId: string, name: string, userId: s
         uploadDate: data.upload_date ? new Date(data.upload_date) : new Date(data.created_at)
     } as Resume;
 };
-
-// Add:
-// import { ParsedResumeDbData } from './interfaces'; // Create this if not already present from Edge Function dir
 
 export const uploadResume = async (file: File): Promise<Resume> => {
     try {
@@ -375,7 +296,6 @@ export const applyPrimaryResumeDataToProfile = async (userId: string, resumeId: 
 
     console.log(`Profile and related data for user ${userId} updated from resume ${resumeId}`);
 };
-
 
 // Modify setPrimaryResume to call applyPrimaryResumeDataToProfile
 export const setPrimaryResume = async (resumeId: string, userId: string): Promise<void> => {
