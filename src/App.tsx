@@ -7,12 +7,12 @@ import {
 import { Toaster } from "sonner";
 import {
   SignIn,
-  Signup,  // Fixed case to match import
+  Signup,
   Dashboard,
   JobDetail,
   Profile,
   UserPreferences,
-  VerifyOtp,  // Fixed case to match import
+  VerifyOtp,
   ResetPassword,
   ManageResumes
 } from './imports';
