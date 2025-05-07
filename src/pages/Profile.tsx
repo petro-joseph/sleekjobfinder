@@ -302,7 +302,7 @@ const ProfilePage = () => {
     { label: 'Education', section: 'education', icon: BookOpen },
     { label: 'Work Experience', section: 'work', icon: Briefcase },
     { label: 'Skills', section: 'skills', icon: Wrench },
-    { label: 'Equal Employment', section: 'employment', icon: Shield },
+    // { label: 'Equal Employment', section: 'employment', icon: Shield },
   ];
 
   return (

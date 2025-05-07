@@ -203,37 +203,7 @@ const ProfileSections: React.FC<ProfileSectionsProps> = ({
                 )}
             </div>
 
-            {/* Equal Employment Section */}
-            <div
-                id="employment"
-                ref={(el) => (sectionRefs.current.employment = el)}
-                style={{ scrollMarginTop: `${navOffset}px` }}
-            >
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold text-foreground">Equal Employment</h2>
-                    <button onClick={() => onEditClick('employment')}>
-                        <Edit className="w-5 h-5 text-muted-foreground hover:text-foreground" />
-                    </button>
-                </div>
-                <div className="space-y-2 text-sm text-foreground">
-                    <div className="flex justify-between">
-                        <span>Are you authorized to work in the US?</span>
-                        <span>{user.jobPreferences?.locations?.includes('US') ? 'Yes' : 'No'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>Do you have a disability?</span>
-                        <span>No</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>What is your gender?</span>
-                        <span>Male</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>How would you identify your race?</span>
-                        <span>Black or African American</span>
-                    </div>
-                </div>
-            </div>
+        
         </div>
     );
 };
