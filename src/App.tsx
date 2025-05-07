@@ -1,18 +1,18 @@
-
 import {
   BrowserRouter,
   Routes,
   Route,
 } from "react-router-dom";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/theme-provider"
 import {
   SignIn,
-  Signup,
+  SignUp,
   Dashboard,
   JobDetail,
   Profile,
   UserPreferences,
-  VerifyOtp,
+  VerifyOTP,
   ResetPassword,
   ManageResumes
 } from './imports';
@@ -20,21 +20,21 @@ import {
 function App() {
   return (
     <BrowserRouter>
-      <div className="app">
+      <ThemeProvider>
         <Routes>
           <Route path="/" element={<SignIn />} />
           <Route path="/login" element={<SignIn />} />
-          <Route path="/sign-up" element={<Signup />} />
+          <Route path="/sign-up" element={<SignUp />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/job/:id" element={<JobDetail />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/manage-resumes" element={<ManageResumes />} />
           <Route path="/preferences" element={<UserPreferences />} />
-          <Route path="/verify-otp" element={<VerifyOtp />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/reset-password" element={<ResetPassword />} />
         </Routes>
         <Toaster position="bottom-right" />
-      </div>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }
