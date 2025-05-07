@@ -1,18 +1,18 @@
+
 import {
   BrowserRouter,
   Routes,
   Route,
 } from "react-router-dom";
 import { Toaster } from "sonner";
-import { ThemeProvider } from "@/components/theme-provider"
 import {
   SignIn,
-  SignUp,
+  Signup,  // Fixed case to match import
   Dashboard,
   JobDetail,
   Profile,
   UserPreferences,
-  VerifyOTP,
+  VerifyOtp,  // Fixed case to match import
   ResetPassword,
   ManageResumes
 } from './imports';
@@ -20,21 +20,21 @@ import {
 function App() {
   return (
     <BrowserRouter>
-      <ThemeProvider>
+      <div className="app">
         <Routes>
           <Route path="/" element={<SignIn />} />
           <Route path="/login" element={<SignIn />} />
-          <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/sign-up" element={<Signup />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/job/:id" element={<JobDetail />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/manage-resumes" element={<ManageResumes />} />
           <Route path="/preferences" element={<UserPreferences />} />
-          <Route path="/verify-otp" element={<VerifyOTP />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/reset-password" element={<ResetPassword />} />
         </Routes>
         <Toaster position="bottom-right" />
-      </ThemeProvider>
+      </div>
     </BrowserRouter>
   );
 }

@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Job, Resume as BaseResume, Application } from '@/types';
@@ -132,6 +131,7 @@ export interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   register: (userData: UserRegistration) => Promise<void>;
+  signup: (userData: UserRegistration) => Promise<void>; // Added signup method to match usage in SignUp.tsx
   saveJob: (job: Job) => Promise<void>;
   removeJob: (jobId: string) => Promise<void>;
   updateUser: (userData: Partial<User>) => Promise<void>;
@@ -279,6 +279,9 @@ export const useAuthStore = create<AuthState>()(
           console.error("Registration error:", error);
           throw error;
         }
+      },
+      signup: async (userData) => {
+        return get().register(userData);
       },
       fetchUserProfile: async () => {
         try {

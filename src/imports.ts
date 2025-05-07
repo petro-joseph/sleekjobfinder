@@ -1,23 +1,23 @@
 
 // Import all pages here for use in App.tsx
 import SignIn from './pages/SignIn';
-import SignUp from './pages/SignUp';
+import Signup from './pages/Signup'; // Fixed case to match actual file
 import Dashboard from './pages/Dashboard';
 import JobDetail from './pages/JobDetail';
 import Profile from './pages/Profile';
 import UserPreferences from './pages/UserPreferences';
-import VerifyOTP from './pages/VerifyOTP';
+import VerifyOtp from './pages/VerifyOtp'; // Fixed case to match actual file
 import ResetPassword from './pages/ResetPassword';
 import ManageResumes from './pages/ManageResumes';
 
 export {
   SignIn,
-  SignUp,
+  Signup,
   Dashboard,
   JobDetail,
   Profile,
   UserPreferences,
-  VerifyOTP,
+  VerifyOtp,
   ResetPassword,
   ManageResumes
 };
