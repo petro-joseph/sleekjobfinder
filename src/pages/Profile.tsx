@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -6,9 +7,10 @@ import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
 import ProfileSections from './profile/ProfileSections';
 import EditModal from './profile/EditModal';
-import { Linkedin, User, BookOpen, Briefcase, Wrench, Shield, Settings } from 'lucide-react';
+import { Linkedin, User, BookOpen, Briefcase, Wrench, Shield, Settings, Loader2 } from 'lucide-react';
 import { getResumeWithParsedData } from '@/api/resumes';
 import { ParsedResumeDbData } from '@/types/parsedResume';
+import { fetchUserProfile, updateUserProfile } from '@/api/profiles';
 
 const ProfilePage = () => {
   const { user, logout } = useAuthStore();
@@ -19,99 +21,22 @@ const ProfilePage = () => {
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [isScrollingFromClick, setIsScrollingFromClick] = useState(false);
   const [isLoadingParsedData, setIsLoadingParsedData] = useState(false);
+  const [hasUploadedResume, setHasUploadedResume] = useState(false);
   const [profileData, setProfileData] = useState({
-    firstName: "Petro Joseph",
-    lastName: "Ghati",
-    email: "josephaley67@gmail.com",
-    phone: "+255-657-824-541",
-    website: "https://linkedin.com/in/petroghati",
-    bio: "Experienced software developer with a passion for building efficient systems. lorem ",
-    location: "Tanzania",
-    education: [
-      {
-        id: "1",
-        school: "Arusha Technical College (ATC)",
-        degree: "Bachelor of Computer Science",
-        fieldOfStudy: "Computer Science",
-        startDate: "2018-11",
-        endDate: "2021-12",
-        description: "GPA: 4.2",
-      },
-    ],
-    experience: [
-      {
-        id: "1",
-        title: "Software Developer",
-        company: "UBX Tanzania Ltd",
-        location: "Tanzania",
-        startDate: "2022-06",
-        endDate: "Present",
-        summary: "Lead the design, development, and implementation of multiple management and payment systems for various authorities in Zanzibar, significantly improving operational efficiency.",
-        description: `- Lead the design, development, and implementation of multiple management and payment systems for various authorities in Zanzibar, significantly improving operational efficiency key projects are:
-- ZIDRAS: Tax collection system for Zanzibar Revenue Authorities (ZRA) which helped to increase tax collection by over 82%.
-- SACCOSX System: Digitized operations for a local cooperative microfinance society, integrating with Umoja switch ATMs and mobile channels.
-- ZIBS: Streamlined road-related payments for Zanzibar Road Transport and Safety Authority (ZARTSA).
-- COLA Malipo: Simplified land-related transactions for the Commission of Land (COLA).
-- ZPC Malipo: Centralized payments for Zanzibar Port Corporation (ZPC).
-- Troubleshooting hardware and software issues, implemented new tools, and configured systems.
-- Provided technical support for office equipment and local call center systems.
-- Implemented and maintained network infrastructure, ensuring endpoint safety.
-- Performed regular hardware and software inventories, user needs assessments, and performance tests.
-- Collaborated with IT Administrator on IT project management and new tool implementation.
-- Maintained data analysis and incident reports, ensuring accurate documentation and reporting.`,
-      },
-      {
-        id: "2",
-        title: "Deputy Head of ICT Department",
-        company: "Northern College of Health and Allied Sciences",
-        location: "Tanzania",
-        startDate: "2021-12",
-        endDate: "2022-06",
-        description: `- Developed and optimized the college website.
-- Used Microsoft Excel for data management and report generation.
-- Managed IT infrastructure and supervised social media campaigns.
-- Implemented security measures for the student management system, enhancing data protection and user trust.`,
-      },
-    ],
-    skills: [
-      "Strong analytical skills for data analysis and interpretation",
-      "Proficient in creating dashboards and KPI reports",
-      "Excellent communication and interpersonal skills",
-      "Organized, self-directed, and results-oriented",
-      "Proven leadership in guiding cross-functional teams",
-      "Familiarity with cloud-based data platforms like AWS, Azure, or Google Cloud Platform",
-      "Project management skills, with experience in coordinating and delivering data-driven projects on time and within budget",
-      "Strong communication and collaboration skills, with the ability to explain complex data concepts to non-technical stakeholders",
-      "A continuous learning mindset, with a commitment to staying up-to-date with the latest advancements in data analytics and related technologies",
-      "Hardware maintenance",
-      "Troubleshooting network infrastructure",
-      "MS Office",
-      "Google Workspace",
-      "Data Studio",
-      "Project Management",
-      "Process Improvement",
-      "Process Automation",
-      "PHP",
-      "C",
-      "C++",
-      "Java",
-      "Python",
-      "MS SQL",
-      "SQL",
-      "Oracle",
-      "DNS",
-      "JavaScript",
-      "jQuery",
-      "HTTP",
-      "SSL",
-      "HTML",
-      "CSS",
-      "Proficient in English and Swahili",
-    ],
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    website: "",
+    bio: "",
+    location: "",
+    education: [],
+    experience: [],
+    skills: [],
     jobPreferences: {
-      locations: ["Tanzania"],
-      jobTypes: ["Full-time"],
-      industries: ["Technology"],
+      locations: [],
+      jobTypes: [],
+      industries: [],
     },
   });
 
@@ -125,96 +50,127 @@ const ProfilePage = () => {
 
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  const navHeight = 64; // h-11 (44px) + py-4 (16px)
-  const topOffset = 64; // top-16 (64px)
-  const extraSpace = 32; // Increased from 16px to 32px for more breathing room
+  const navHeight = 64; 
+  const topOffset = 64; 
+  const extraSpace = 32; 
   const totalOffset = navHeight + topOffset + extraSpace;
 
-  // Load parsed data from primary resume if available
+  // Load profile and parsed resume data
   useEffect(() => {
-    const loadParsedData = async () => {
-      if (!user?.resumes || user.resumes.length === 0) return;
+    const loadProfileData = async () => {
+      if (!user?.id) return;
       
       try {
         setIsLoadingParsedData(true);
         
-        // Find the primary resume
-        const primaryResume = user.resumes.find(r => r.isPrimary);
-        if (!primaryResume) return;
+        // Fetch user profile from database
+        const profileData = await fetchUserProfile(user.id);
         
-        const { parsedData } = await getResumeWithParsedData(primaryResume.id);
-        
-        if (parsedData && parsedData.parser_used !== 'failed' && parsedData.parser_used !== 'unsupported_format') {
-          updateProfileWithParsedData(parsedData);
+        // Find if user has any resumes
+        const hasResumes = user.resumes && user.resumes.length > 0;
+        setHasUploadedResume(hasResumes);
+
+        // Find primary resume if any
+        const primaryResume = user.resumes?.find(r => r.isPrimary);
+        let parsedData: ParsedResumeDbData | null = null;
+
+        if (primaryResume) {
+          const { parsedData: resumeParsedData } = await getResumeWithParsedData(primaryResume.id);
+          parsedData = resumeParsedData;
         }
+
+        // Update state with profile data
+        setProfileData(prevData => {
+          const newData = { ...prevData };
+          
+          // Set basic profile info from database
+          newData.firstName = profileData.first_name || '';
+          newData.lastName = profileData.last_name || '';
+          newData.email = profileData.email || user.email || '';
+          newData.phone = profileData.phone || '';
+          newData.website = profileData.website || '';
+          newData.bio = profileData.bio || '';
+          newData.location = profileData.location || '';
+          
+          // Set job preferences if available
+          if (profileData.job_preferences) {
+            newData.jobPreferences = {
+              locations: profileData.job_preferences.locations || [],
+              jobTypes: profileData.job_preferences.job_types || [],
+              industries: profileData.job_preferences.industries || []
+            };
+          }
+
+          // Set skills if available
+          if (profileData.skills && profileData.skills.length > 0) {
+            newData.skills = profileData.skills;
+          }
+          
+          // Update with parsed resume data if available
+          if (parsedData && parsedData.parser_used !== 'failed' && parsedData.parser_used !== 'unsupported_format') {
+            // Update personal information if available
+            if (parsedData.personal) {
+              const personal = parsedData.personal;
+              
+              // Only update if fields are empty or if parsed data exists
+              if (personal.full_name && (!newData.firstName || !newData.lastName)) {
+                const nameParts = personal.full_name.split(' ');
+                newData.firstName = nameParts[0] || newData.firstName;
+                newData.lastName = nameParts.slice(1).join(' ') || newData.lastName;
+              }
+              
+              if (personal.email && !newData.email) newData.email = personal.email;
+              if (personal.phone && !newData.phone) newData.phone = personal.phone;
+              if (personal.linkedin_url && !newData.website) newData.website = personal.linkedin_url;
+              if (personal.location_string && !newData.location) newData.location = personal.location_string;
+              if (personal.summary_bio && !newData.bio) newData.bio = personal.summary_bio;
+            }
+            
+            // Update education
+            if (parsedData.education && parsedData.education.length > 0) {
+              newData.education = parsedData.education.map((edu, index) => ({
+                id: `parsed-${index}`,
+                school: edu.institution || 'Unknown Institution',
+                degree: edu.degree || 'Degree',
+                fieldOfStudy: edu.field_of_study || 'Field of Study',
+                startDate: edu.start_date || '',
+                endDate: edu.end_date || '',
+                description: edu.description || '',
+              }));
+            }
+            
+            // Update experience
+            if (parsedData.experience && parsedData.experience.length > 0) {
+              newData.experience = parsedData.experience.map((exp, index) => ({
+                id: `parsed-${index}`,
+                title: exp.title || 'Job Title',
+                company: exp.company || 'Company',
+                location: exp.location || '',
+                startDate: exp.start_date || '',
+                endDate: exp.end_date || '',
+                summary: exp.summary || '',
+                description: exp.achievements.join('\n- ') || '',
+              }));
+            }
+            
+            // Update skills
+            if (parsedData.skills && parsedData.skills.length > 0 && (!newData.skills || newData.skills.length === 0)) {
+              newData.skills = parsedData.skills;
+            }
+          }
+          
+          return newData;
+        });
       } catch (error) {
-        console.error('Error loading parsed resume data:', error);
-        // Don't show error toast to user since this is background loading
+        console.error('Error loading profile data:', error);
+        toast.error('Failed to load profile data');
       } finally {
         setIsLoadingParsedData(false);
       }
     };
     
-    loadParsedData();
-  }, [user?.resumes]);
-
-  // Update profile data with parsed resume data
-  const updateProfileWithParsedData = (parsedData: ParsedResumeDbData) => {
-    setProfileData(prevData => {
-      const newData = { ...prevData };
-      
-      // Update personal information if available
-      if (parsedData.personal) {
-        const personal = parsedData.personal;
-        
-        if (personal.full_name) {
-          const nameParts = personal.full_name.split(' ');
-          newData.firstName = nameParts[0] || prevData.firstName;
-          newData.lastName = nameParts.slice(1).join(' ') || prevData.lastName;
-        }
-        
-        if (personal.email) newData.email = personal.email;
-        if (personal.phone) newData.phone = personal.phone;
-        if (personal.linkedin_url) newData.website = personal.linkedin_url;
-        if (personal.location_string) newData.location = personal.location_string;
-        if (personal.summary_bio) newData.bio = personal.summary_bio;
-      }
-      
-      // Update education
-      if (parsedData.education && parsedData.education.length > 0) {
-        newData.education = parsedData.education.map((edu, index) => ({
-          id: `parsed-${index}`,
-          school: edu.institution || 'Unknown Institution',
-          degree: edu.degree || 'Degree',
-          fieldOfStudy: edu.field_of_study || 'Field of Study',
-          startDate: edu.start_date || '',
-          endDate: edu.end_date || '',
-          description: edu.description || '',
-        }));
-      }
-      
-      // Update experience
-      if (parsedData.experience && parsedData.experience.length > 0) {
-        newData.experience = parsedData.experience.map((exp, index) => ({
-          id: `parsed-${index}`,
-          title: exp.title || 'Job Title',
-          company: exp.company || 'Company',
-          location: exp.location || '',
-          startDate: exp.start_date || '',
-          endDate: exp.end_date || '',
-          summary: exp.summary || '',
-          description: exp.achievements.join('\n- ') || '',
-        }));
-      }
-      
-      // Update skills
-      if (parsedData.skills && parsedData.skills.length > 0) {
-        newData.skills = parsedData.skills;
-      }
-      
-      return newData;
-    });
-  };
+    loadProfileData();
+  }, [user?.id, user?.email, user?.resumes]);
 
   const handleNavClick = (section: string) => {
     setActiveSection(section);
@@ -228,7 +184,7 @@ const ProfilePage = () => {
       });
     }
 
-    // Re-enable observer after scroll completes (approximated with a timeout)
+    // Re-enable observer after scroll completes
     setTimeout(() => {
       setIsScrollingFromClick(false);
     }, 1000);
@@ -244,16 +200,57 @@ const ProfilePage = () => {
     setEditingSection(null);
   };
 
-  const handleSave = (section: string, updatedData: any) => {
-    setProfileData((prev) => ({
-      ...prev,
-      [section === 'work' ? 'experience' : section]: updatedData,
-    }));
-    toast.success(`${section.charAt(0).toUpperCase() + section.slice(1)} section updated successfully`, {
-      position: "top-center",
-    });
-  };
+  const handleSave = async (section: string, updatedData: any) => {
+    try {
+      if (!user?.id) {
+        toast.error('User not authenticated');
+        return;
+      }
 
+      // Update local state
+      setProfileData((prev) => ({
+        ...prev,
+        [section === 'work' ? 'experience' : section]: updatedData,
+      }));
+
+      // Prepare data for API update
+      let updatePayload: any = {};
+
+      // Map section to database fields
+      switch (section) {
+        case 'personal':
+          updatePayload = {
+            first_name: updatedData.firstName,
+            last_name: updatedData.lastName,
+            email: updatedData.email,
+            phone: updatedData.phone,
+            website: updatedData.website,
+            bio: updatedData.bio,
+            location: updatedData.location,
+          };
+          break;
+        
+        case 'skills':
+          updatePayload = { skills: updatedData };
+          break;
+
+        // Add cases for other sections as needed
+        // For education and experience, you might need separate API endpoints
+      }
+
+      // Only call API if we have data to update
+      if (Object.keys(updatePayload).length > 0) {
+        await updateUserProfile(user.id, updatePayload);
+      }
+
+      toast.success(`${section.charAt(0).toUpperCase() + section.slice(1)} section updated successfully`, {
+        position: "top-center",
+      });
+    } catch (error) {
+      console.error(`Error saving ${section}:`, error);
+      toast.error(`Failed to save ${section} section`);
+    }
+  };
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -330,7 +327,6 @@ const ProfilePage = () => {
               <Settings className="mr-2 h-5 w-5" />
               JOB PREFERENCES
             </Button>
-
           </div>
         </div>
 
@@ -367,16 +363,26 @@ const ProfilePage = () => {
             {/* Header */}
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-foreground">
-                {profileData.firstName} {profileData.lastName}
-                {isLoadingParsedData && <span className="ml-2 text-xs text-muted-foreground">(Loading resume data...)</span>}
+                {isLoadingParsedData ? (
+                  <div className="flex items-center">
+                    <span className="mr-2">Loading profile data</span>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </div>
+                ) : (
+                  <>
+                    {profileData.firstName || 'Your'} {profileData.lastName || 'Profile'}
+                  </>
+                )}
               </h2>
               <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
-                <span>{profileData.email}</span>
-                <span>{profileData.phone}</span>
-                <span className="flex items-center gap-1">
-                  <Linkedin className="w-4 h-4" />
-                  LinkedIn
-                </span>
+                {profileData.email && <span>{profileData.email}</span>}
+                {profileData.phone && <span>{profileData.phone}</span>}
+                {profileData.website && (
+                  <span className="flex items-center gap-1">
+                    <Linkedin className="w-4 h-4" />
+                    LinkedIn
+                  </span>
+                )}
               </div>
             </div>
 
@@ -386,6 +392,7 @@ const ProfilePage = () => {
               onEditClick={handleEditClick}
               sectionRefs={sectionRefs}
               navOffset={totalOffset}
+              hasUploadedResume={hasUploadedResume}
             />
           </div>
 
