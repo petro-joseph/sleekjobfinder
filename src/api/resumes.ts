@@ -1,4 +1,3 @@
-
 // src/api/resumes.ts
 import { supabase } from "@/integrations/supabase/client";
 import { Resume } from '@/types';
@@ -121,19 +120,8 @@ export const uploadResume = async (file: File): Promise<Resume> => {
 
         console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
         
-        // Check if storage bucket exists
-        const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-        
-        if (bucketError) {
-            console.error('Error checking buckets:', bucketError);
-            throw new Error(`Failed to check storage buckets: ${bucketError.message}`);
-        }
-        
-        const cvBucketExists = buckets?.some(bucket => bucket.name === 'cv-bucket');
-        if (!cvBucketExists) {
-            console.error('cv-bucket does not exist');
-            throw new Error('Required storage bucket "cv-bucket" does not exist');
-        }
+        // Skip bucket check - bucket has been created via SQL
+        // and unnecessary checks may lead to false negatives
 
         // uploadResumeFile should return the full public URL now if your DB expects it
         const publicUrlPath = await uploadResumeFile(file, userId); // Ensure this returns the PUBLIC URL
