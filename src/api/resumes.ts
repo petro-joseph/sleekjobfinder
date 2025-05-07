@@ -142,7 +142,7 @@ export const uploadResume = async (file: File): Promise<Resume> => {
             name: file.name, // Original file name
             file_path: publicUrlPath, // Store the public URL
             is_primary: (count || 0) === 0, // Make first resume primary for the user
-            file_size: file.size, // Add file size
+            // file_size: file.size, // Add file size
             upload_date: new Date().toISOString(), // Add upload date
         };
 
