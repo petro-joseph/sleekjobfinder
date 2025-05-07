@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
 import ProfileSections from './profile/ProfileSections';
 import EditModal from './profile/EditModal';
-import { Linkedin, User, BookOpen, Briefcase, Wrench, Shield } from 'lucide-react';
+import { Linkedin, User, BookOpen, Briefcase, Wrench, Shield, Settings } from 'lucide-react';
 import { getResumeWithParsedData } from '@/api/resumes';
 import { ParsedResumeDbData } from '@/types/parsedResume';
 
@@ -323,12 +323,14 @@ const ProfilePage = () => {
           </div>
           <div className="mt-4 sm:mt-0">
             <Button
-              onClick={() => handleEditClick('personal')}
+              onClick={() => navigate('/preferences')}
               variant="default"
               className="h-11 px-6 rounded-xl shadow-md transition-all text-sm font-medium"
             >
-              Edit Profile
+              <Settings className="mr-2 h-5 w-5" />
+              JOB PREFERENCES
             </Button>
+
           </div>
         </div>
 
