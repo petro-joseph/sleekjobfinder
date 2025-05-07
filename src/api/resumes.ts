@@ -119,7 +119,22 @@ export const uploadResume = async (file: File): Promise<Resume> => {
         if (authError || !user) throw new Error('User not authenticated');
         const userId = user.id;
 
-        console.log('Uploading file:', file.name);
+        console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
+        
+        // Check if storage bucket exists
+        const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+        
+        if (bucketError) {
+            console.error('Error checking buckets:', bucketError);
+            throw new Error(`Failed to check storage buckets: ${bucketError.message}`);
+        }
+        
+        const cvBucketExists = buckets?.some(bucket => bucket.name === 'cv-bucket');
+        if (!cvBucketExists) {
+            console.error('cv-bucket does not exist');
+            throw new Error('Required storage bucket "cv-bucket" does not exist');
+        }
+
         // uploadResumeFile should return the full public URL now if your DB expects it
         const publicUrlPath = await uploadResumeFile(file, userId); // Ensure this returns the PUBLIC URL
         if (!publicUrlPath) throw new Error('File upload failed');
@@ -143,6 +158,8 @@ export const uploadResume = async (file: File): Promise<Resume> => {
             upload_date: new Date().toISOString(), // Add upload date
         };
 
+        console.log('Inserting resume record with payload:', JSON.stringify(payload));
+
         const { data, error } = await supabase
             .from('resumes')
             .insert(payload)
@@ -151,6 +168,8 @@ export const uploadResume = async (file: File): Promise<Resume> => {
 
         if (error) throw new Error(`Failed to save resume record: ${error.message}`);
         if (!data) throw new Error('Failed to save resume record');
+
+        console.log('Resume record created successfully:', data.id);
 
         // Create a resume object for return
         const newResume = {

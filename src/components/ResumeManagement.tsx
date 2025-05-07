@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Resume } from '@/lib/store';
 import { Button } from '@/components/ui/button';
@@ -58,6 +57,7 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
 
     try {
       setUploading(true);
+      toast.info('Uploading resume...', { duration: 3000 });
       
       const newResume = await uploadResume(file);
       
@@ -65,11 +65,15 @@ const ResumeManagement: React.FC<ResumeManagementProps> = ({
       toast.success('Resume uploaded successfully!', {
         description: 'Your resume is being processed in the background.'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload resume');
+      toast.error('Failed to upload resume', { 
+        description: error.message || 'Please try again later'
+      });
     } finally {
       setUploading(false);
+      // Reset the input value to allow re-uploading the same file
+      e.target.value = '';
     }
   };
 

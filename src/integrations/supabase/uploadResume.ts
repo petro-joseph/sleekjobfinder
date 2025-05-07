@@ -17,9 +17,30 @@ export async function uploadResumeFile(file: File, userId: string): Promise<stri
     const sanitizedFileName = `${timestamp}_resume.${fileExtension}`;
     const fileName = `${userId}/${sanitizedFileName}`;
 
+    // Check if bucket exists before uploading
+    const { data: buckets, error: bucketError } = await supabase.storage
+      .listBuckets();
+      
+    if (bucketError) {
+      console.error('Error checking buckets:', bucketError);
+      throw new Error(`Storage bucket check failed: ${bucketError.message}`);
+    }
+    
+    const cvBucketExists = buckets?.some(bucket => bucket.name === 'cv-bucket');
+    if (!cvBucketExists) {
+      console.error('cv-bucket does not exist');
+      throw new Error('Storage bucket "cv-bucket" does not exist');
+    }
+
+    console.log('Uploading file to bucket "cv-bucket" with path:', fileName);
+    
     const { data, error } = await supabase.storage
       .from("cv-bucket")
-      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+      .upload(fileName, file, { 
+        cacheControl: '3600', 
+        upsert: false,
+        contentType: file.type // Explicitly set the content type
+      });
 
     if (error) {
       console.error('Storage upload error:', error);
