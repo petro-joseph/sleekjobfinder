@@ -38,7 +38,7 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
   const [isDownloading, setIsDownloading] = useState(false);
   
   const [editing, setEditing] = useState<{
-    section: 'summary' | 'skiills' | 'experience' | 'education' | 'projects' | null;
+    section: 'summary' | 'skills' | 'experience' | 'education' | 'projects' | null;
     index?: number;
   }>({ section: null });
   

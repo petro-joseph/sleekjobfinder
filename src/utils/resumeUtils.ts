@@ -1,5 +1,6 @@
 
 import { Resume } from '../types/resume';
+import { Resume as ExtendedResume } from '../types/index';
 
 export function convertParsedDataToResume(parsedData: any, resumeName: string, resumeId?: string): Resume {
   // Safely extract data or provide defaults
@@ -9,7 +10,9 @@ export function convertParsedDataToResume(parsedData: any, resumeName: string, r
   const skills = parsedData?.skills || [];
   
   // Map the parsed data to the Resume type
-  return {
+  const now = new Date();
+  
+  const result: Resume = {
     id: resumeId,
     name: resumeName || personal.full_name || 'Untitled Resume',
     jobTitle: experiences[0]?.title || '',
@@ -38,8 +41,16 @@ export function convertParsedDataToResume(parsedData: any, resumeName: string, r
       endDate: edu.end_date || '',
       gpa: ''
     })),
-    projects: [] // Default to empty array as parsed data may not include projects
+    projects: [],
+    // Add required properties from types/index.ts Resume type
+    file_path: '',
+    isPrimary: false,
+    created_at: now.toISOString(),
+    updated_at: now.toISOString(),
+    uploadDate: now
   };
+  
+  return result;
 }
 
 // Helper function to calculate approximate years of experience from work history

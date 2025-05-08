@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Import React
 // Import necessary icons
 import { Check, X, Info, ArrowRight, ArrowLeft, Download } from 'lucide-react';
@@ -172,7 +171,7 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
         toast({ 
           title: "Resume data not available", 
           description: "The selected resume does not have parsed data available. Please parse or recreate the resume.",
-          variant: "warning" 
+          variant: "destructive" 
         });
       }
     } catch (err) {
@@ -227,7 +226,7 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.auth.session()?.access_token || ''}`
+          'Authorization': `Bearer ${await supabase.auth.getSession().then(res => res.data.session?.access_token || '')}`
         },
         body: JSON.stringify({
           resume_id: resume.id,
