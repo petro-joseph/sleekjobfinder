@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo, Dispatch, SetStateAction } from 'react'; // Import React
+import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Import React
 // Import necessary icons
 import { Check, X, Info, ArrowRight, ArrowLeft, Download } from 'lucide-react';
 import { Button } from '../ui/button'; // Adjusted path
@@ -11,6 +11,8 @@ import { ResumePreviewStep } from './ResumePreviewStep'; // Correctly import the
 import { sampleResume, defaultResume } from '../../data/resume-data'; // Import both sampleResume and defaultResume
 import { Resume, JobPosting, MatchData } from '../../types/resume'; // Adjusted path
 import { useIsMobile } from '../../hooks/use-mobile'; // Adjusted path
+import { supabase } from '../../integrations/supabase/client'; // Import Supabase client
+import { convertParsedDataToResume } from '../../utils/resumeUtils'; // Import helper function
 
 // Constants for steps
 const STEPS = {
@@ -101,6 +103,89 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
 
   // Resume Data - Use default for now, ideally load user's primary resume
   const [resume, setResume] = useState<Resume>(defaultResume);
+  const [userResumesLoading, setUserResumesLoading] = useState(true);
+  const [userResumes, setUserResumes] = useState<Array<{
+    id: string;
+    name: string;
+    file_path: string;
+    isPrimary: boolean;
+    uploadDate: Date;
+  }>>([]);
+
+  // Fetch user's resumes from Supabase
+  useEffect(() => {
+    const fetchUserResumes = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('resumes')
+          .select('id, name, file_path, is_primary, upload_date')
+          .eq('user_id', user.id)
+          .order('is_primary', { ascending: false })
+          .order('upload_date', { ascending: false });
+          
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          setUserResumes(data.map(r => ({
+            id: r.id,
+            name: r.name,
+            file_path: r.file_path || '',
+            isPrimary: r.is_primary || false,
+            uploadDate: r.upload_date ? new Date(r.upload_date) : new Date()
+          })));
+        }
+      } catch (err) {
+        console.error('Error fetching user resumes:', err);
+        toast({ 
+          title: "Failed to load resumes", 
+          description: "There was an issue loading your resumes. Please try again.",
+          variant: "destructive" 
+        });
+      } finally {
+        setUserResumesLoading(false);
+      }
+    };
+    
+    fetchUserResumes();
+  }, [user?.id, toast]);
+
+  // Function to load resume data when selected
+  const loadResumeData = async (resumeId: string) => {
+    if (!resumeId) return;
+    
+    setIsProcessing(true);
+    try {
+      const { data, error } = await supabase
+        .from('resumes')
+        .select('parsed_data, name')
+        .eq('id', resumeId)
+        .single();
+        
+      if (error) throw error;
+      
+      if (data && data.parsed_data) {
+        const mappedResume = convertParsedDataToResume(data.parsed_data, data.name, resumeId);
+        setResume(mappedResume);
+      } else {
+        toast({ 
+          title: "Resume data not available", 
+          description: "The selected resume does not have parsed data available. Please parse or recreate the resume.",
+          variant: "warning" 
+        });
+      }
+    } catch (err) {
+      console.error('Error loading resume data:', err);
+      toast({ 
+        title: "Failed to load resume", 
+        description: "There was an issue loading the resume data. Please try again or select a different resume.",
+        variant: "destructive" 
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   // Analysis and Tailoring State
   const initialMatchData = useMemo(() => calculateMatchData(resume, jobPosting), [resume, jobPosting]);
@@ -118,7 +203,7 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
   }, [initialMatchData]);
 
   // Generate tailored resume
-  const generateTailoredResume = useCallback(() => {
+  const generateTailoredResume = useCallback(async () => {
     if (!matchData) {
       toast({ title: "Analysis data missing", description: "Cannot generate resume without analysis.", variant: "destructive" }); return;
     }
@@ -128,54 +213,67 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
     if (credits <= 0) {
       toast({ title: "Insufficient Credits", description: "You need credits to tailor your resume.", variant: "destructive" }); return;
     }
+    
+    // Only proceed if we have a resume ID
+    if (!resume.id) {
+      toast({ title: "Resume not selected", description: "Please select a resume to tailor.", variant: "destructive" }); return;
+    }
 
     setIsProcessing(true);
-    setTimeout(() => { // Simulate API call
-      try {
-        const tailored = JSON.parse(JSON.stringify(resume)) as Resume;
-
-        // --- Placeholder Tailoring Logic (same as before) ---
-        if (selectedSections.summary) {
-          tailored.summary = `Experienced ${resume.jobTitle} with ${resume.yearsOfExperience} years of expertise in ${resume.industries.join(', ')}. Proven track record of delivering results in [Key Area from Job Posting]. Seeking to leverage my skills in ${jobPosting.requiredSkills.slice(0, 3).join(', ')} to drive innovation at ${jobPosting.company}.`; // Use jobPosting company
-        }
-        if (selectedSections.skills) {
-          const currentSkillsLower = tailored.skills.map(s => s.toLowerCase());
-          const skillsToAdd = selectedSkills.filter(s => !currentSkillsLower.includes(s.toLowerCase()));
-          tailored.skills = [...tailored.skills, ...skillsToAdd];
-        }
-        if (selectedSections.experience) {
-          const numExperiencesToEnhance = selectedSections.editMode === 'quick' ? Math.min(2, tailored.workExperiences.length) : tailored.workExperiences.length;
-          for (let i = 0; i < numExperiencesToEnhance; i++) {
-            if (tailored.workExperiences[i]) {
-              const enhancedResponsibilities = tailored.workExperiences[i].responsibilities.map(resp => {
-                if (Math.random() > 0.8 && jobPosting.requiredSkills.length > 0) {
-                  return `Led initiatives utilizing ${jobPosting.requiredSkills[Math.floor(Math.random() * jobPosting.requiredSkills.length)]} to improve processes and deliver results.`;
-                } return resp;
-              });
-              if (jobPosting.requiredSkills.length > 0 && Math.random() > 0.5) {
-                enhancedResponsibilities.push(`Implemented solutions using ${jobPosting.requiredSkills[Math.floor(Math.random() * jobPosting.requiredSkills.length)]} to solve complex business challenges.`);
-              }
-              tailored.workExperiences[i].responsibilities = enhancedResponsibilities;
-            }
-          }
-        }
-        // --- End Placeholder Tailoring Logic ---
-
-        const finalScore = calculateTailoredScore(matchData, selectedSections, selectedSkills.length, jobPosting);
-        setMatchData(prev => prev ? { ...prev, finalScore: finalScore, summaryMatch: selectedSections.summary } : null);
-        setTailoredResume(tailored);
-        setCredits(prev => Math.max(0, prev - 1));
-        setIsProcessing(false);
-        setCurrentStep(STEPS.PREVIEW);
-        toast({ title: "Resume tailored successfully!", description: `Customized for ${jobPosting.title} at ${jobPosting.company}.` });
-
-      } catch (error) {
-        console.error("Error generating tailored resume:", error);
-        setIsProcessing(false);
-        toast({ title: "Generation Failed", description: "An error occurred. Please try again.", variant: "destructive" });
+    
+    try {
+      // Call the tailor-resume Edge Function
+      const response = await fetch('https://accojxjdilkrycvnfcpj.supabase.co/functions/v1/tailor-resume', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.auth.session()?.access_token || ''}`
+        },
+        body: JSON.stringify({
+          resume_id: resume.id,
+          job_posting: jobPosting,
+          selected_sections: selectedSections,
+          selected_skills: selectedSkills
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to tailor resume');
       }
-    }, 1500);
-  }, [resume, jobPosting, selectedSections, selectedSkills, credits, matchData, toast]);
+      
+      const data = await response.json();
+      
+      if (!data.success || !data.data) {
+        throw new Error('Invalid response from server');
+      }
+      
+      const tailored = data.data as Resume;
+      
+      // Calculate the final score
+      const finalScore = calculateTailoredScore(matchData, selectedSections, selectedSkills.length, jobPosting);
+      setMatchData(prev => prev ? { ...prev, finalScore: finalScore, summaryMatch: selectedSections.summary } : null);
+      
+      setTailoredResume(tailored);
+      setCredits(prev => Math.max(0, prev - 1));
+      
+      toast({ 
+        title: "Resume tailored successfully!", 
+        description: `Customized for ${jobPosting.title} at ${jobPosting.company}.` 
+      });
+      
+      setCurrentStep(STEPS.PREVIEW);
+    } catch (error) {
+      console.error("Error generating tailored resume:", error);
+      toast({ 
+        title: "Generation Failed", 
+        description: error instanceof Error ? error.message : "An error occurred. Please try again.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [resume.id, jobPosting, selectedSections, selectedSkills, credits, matchData, toast]);
 
   // Reset the internal state of the flow (e.g., when restarting within the modal)
   const resetInternalState = useCallback(() => {
@@ -188,7 +286,7 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
     toast({ title: "Restarted Tailoring", description: "You can customize again." });
   }, [initialMatchData, toast]);
 
-  // Placeholder Download Handler
+  // Placeholder Download Handler (will be updated in ResumePreviewStep)
   const handleDownload = useCallback((format: 'pdf' | 'docx') => {
     // In a real implementation, this would generate and download the file
     toast({ // Correct toast usage
@@ -218,7 +316,9 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
             jobPosting={jobPosting} 
             matchData={matchData || null} 
             onContinue={goToNextStep} 
-            userResumes={user?.resumes || []} 
+            userResumes={userResumes}
+            onResumeSelect={loadResumeData}
+            isLoading={isProcessing || userResumesLoading}
           />
         );
       case STEPS.CUSTOMIZE:
@@ -256,7 +356,7 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
         return <div className="text-center p-12"><h3 className="text-destructive">Error Loading Preview</h3><p className="text-muted-foreground">There was an issue generating the preview.</p><Button onClick={resetInternalState} variant="outline">Start Over</Button></div>;
       default: return null; // Should not happen
     }
-  }, [currentStep, resume, jobPosting, matchData, goToNextStep, user?.resumes, selectedSections, setSelectedSections, selectedSkills, setSelectedSkills, generateTailoredResume, isProcessing, tailoredResume, template, setTemplate, handleFeedback, credits, resetInternalState, handleDownload]);
+  }, [currentStep, resume, jobPosting, matchData, goToNextStep, userResumes, loadResumeData, isProcessing, userResumesLoading, selectedSections, setSelectedSections, selectedSkills, setSelectedSkills, generateTailoredResume, tailoredResume, template, setTemplate, handleFeedback, credits, resetInternalState, handleDownload]);
 
   return (
     // Removed Layout wrapper

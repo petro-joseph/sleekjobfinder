@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Check, Download, Edit, Save, X, ThumbsUp, ThumbsDown, CheckCircle, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useToast } from '@/hooks/use-toast';
 
 interface ResumePreviewStepProps {
   originalResume: Resume;
@@ -34,6 +34,9 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
   onFeedback,
   credits
 }) => {
+  const { toast } = useToast();
+  const [isDownloading, setIsDownloading] = useState(false);
+  
   const [editing, setEditing] = useState<{
     section: 'summary' | 'skiills' | 'experience' | 'education' | 'projects' | null;
     index?: number;
@@ -209,10 +212,435 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
     };
   };
   
+  // New function to generate PDF
+  const generatePDF = async () => {
+    try {
+      setIsDownloading(true);
+      
+      // Dynamically import jsPDF
+      const { default: jsPDF } = await import('https://esm.sh/jspdf@2.5.1');
+      
+      // Initialize PDF document
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      // Set font sizes based on template
+      const fontSizes = template === 'compact' 
+        ? { title: 18, heading: 12, subheading: 10, normal: 8, small: 7 }
+        : { title: 20, heading: 14, subheading: 12, normal: 10, small: 8 };
+        
+      // Set margins
+      const margin = template === 'compact' ? 10 : 15;
+      let y = margin;
+      const pageWidth = 210 - (margin * 2); // A4 width minus margins
+      
+      // Helper function to add text with line wrapping
+      const addWrappedText = (text: string, x: number, y: number, maxWidth: number, fontSize: number, fontStyle: string = 'normal') => {
+        doc.setFontSize(fontSize);
+        doc.setFont('helvetica', fontStyle);
+        
+        const lines = doc.splitTextToSize(text, maxWidth);
+        doc.text(lines, x, y);
+        return y + (lines.length * (fontSize / 4)) + (fontSize / 3);
+      };
+      
+      // Add name and contact info
+      y = addWrappedText(tailoredResume.name, margin, y, pageWidth, fontSizes.title, 'bold');
+      
+      // Contact info in a horizontal line
+      const contactInfo = [
+        tailoredResume.contactInfo.phone,
+        tailoredResume.contactInfo.email,
+        tailoredResume.contactInfo.linkedin
+      ].filter(Boolean).join(' | ');
+      y = addWrappedText(contactInfo, margin, y + 5, pageWidth, fontSizes.subheading, 'normal') + 2;
+      
+      // Summary section
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, y, 210 - margin, y);
+      y += 3;
+      y = addWrappedText('PROFESSIONAL SUMMARY', margin, y, pageWidth, fontSizes.heading, 'bold');
+      y = addWrappedText(tailoredResume.summary, margin, y + 2, pageWidth, fontSizes.normal) + 3;
+      
+      // Skills section
+      doc.line(margin, y, 210 - margin, y);
+      y += 3;
+      y = addWrappedText('SKILLS', margin, y, pageWidth, fontSizes.heading, 'bold');
+      y = addWrappedText(tailoredResume.skills.join(', '), margin, y + 2, pageWidth, fontSizes.normal) + 3;
+      
+      // Work Experience
+      doc.line(margin, y, 210 - margin, y);
+      y += 3;
+      y = addWrappedText('PROFESSIONAL EXPERIENCE', margin, y, pageWidth, fontSizes.heading, 'bold');
+      
+      for (const experience of tailoredResume.workExperiences) {
+        if (y > 270) { // Check if we need a new page (A4 height minus margin)
+          doc.addPage();
+          y = margin;
+        }
+        
+        // Job title and date
+        const titleLine = `${experience.title}, ${experience.company}`;
+        y = addWrappedText(titleLine, margin, y + 3, pageWidth, fontSizes.subheading, 'bold');
+        
+        // Date range and location
+        const dateLine = `${experience.startDate} - ${experience.endDate || 'Present'} | ${experience.location}`;
+        y = addWrappedText(dateLine, margin, y + 1, pageWidth, fontSizes.small, 'italic') + 1;
+        
+        // Responsibilities
+        experience.responsibilities.forEach((resp, index) => {
+          if (y > 270) {
+            doc.addPage();
+            y = margin;
+          }
+          
+          // Use bullets for responsibilities
+          y = addWrappedText(`• ${resp}`, margin + 2, y + 2, pageWidth - 4, fontSizes.normal);
+        });
+        
+        y += 3;
+      }
+      
+      // Education
+      if (y > 250) { // Add new page if not enough space
+        doc.addPage();
+        y = margin;
+      }
+      
+      doc.line(margin, y, 210 - margin, y);
+      y += 3;
+      y = addWrappedText('EDUCATION', margin, y, pageWidth, fontSizes.heading, 'bold');
+      
+      for (const education of tailoredResume.education) {
+        if (y > 270) {
+          doc.addPage();
+          y = margin;
+        }
+        
+        // Degree and institution
+        const eduLine = `${education.degree}${education.field ? ` in ${education.field}` : ''}`;
+        y = addWrappedText(eduLine, margin, y + 3, pageWidth, fontSizes.subheading, 'bold');
+        
+        // Institution and date
+        const instLine = `${education.institution} | ${education.startDate} - ${education.endDate}${education.gpa ? ` | GPA: ${education.gpa}` : ''}`;
+        y = addWrappedText(instLine, margin, y + 1, pageWidth, fontSizes.small, 'italic') + 3;
+      }
+      
+      // Projects (if any)
+      if (tailoredResume.projects && tailoredResume.projects.length > 0) {
+        if (y > 250) {
+          doc.addPage();
+          y = margin;
+        }
+        
+        doc.line(margin, y, 210 - margin, y);
+        y += 3;
+        y = addWrappedText('PROJECTS', margin, y, pageWidth, fontSizes.heading, 'bold');
+        
+        for (const project of tailoredResume.projects) {
+          if (y > 270) {
+            doc.addPage();
+            y = margin;
+          }
+          
+          // Project title and date
+          const projLine = `${project.title}`;
+          y = addWrappedText(projLine, margin, y + 3, pageWidth, fontSizes.subheading, 'bold');
+          
+          // Date
+          if (project.date) {
+            y = addWrappedText(project.date, margin, y + 1, pageWidth, fontSizes.small, 'italic') + 1;
+          }
+          
+          // Description
+          y = addWrappedText(project.description, margin, y + 2, pageWidth, fontSizes.normal) + 3;
+        }
+      }
+      
+      // Save the PDF
+      doc.save(`${tailoredResume.name.replace(/\s+/g, '_')}_Resume.pdf`);
+      
+      toast({
+        title: "PDF Downloaded",
+        description: "Your tailored resume PDF has been downloaded."
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Download Failed",
+        description: "There was an error generating the PDF. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+  
+  // New function to generate DOCX
+  const generateDOCX = async () => {
+    try {
+      setIsDownloading(true);
+      
+      // Dynamically import docx
+      const docx = await import('https://esm.sh/docx@9.5.0');
+      const { saveAs } = await import('https://esm.sh/file-saver@2.0.5');
+      
+      // Create document
+      const doc = new docx.Document({
+        sections: [{
+          properties: {},
+          children: [
+            // Name
+            new docx.Paragraph({
+              spacing: { after: 200 },
+              children: [
+                new docx.TextRun({
+                  text: tailoredResume.name,
+                  bold: true,
+                  size: template === 'compact' ? 32 : 36
+                })
+              ]
+            }),
+            
+            // Contact Info
+            new docx.Paragraph({
+              spacing: { after: 400 },
+              children: [
+                new docx.TextRun({
+                  text: [
+                    tailoredResume.contactInfo.phone,
+                    tailoredResume.contactInfo.email,
+                    tailoredResume.contactInfo.linkedin
+                  ].filter(Boolean).join(' | '),
+                  size: template === 'compact' ? 18 : 20
+                })
+              ]
+            }),
+            
+            // Summary Heading
+            new docx.Paragraph({
+              spacing: { before: 200, after: 100 },
+              children: [
+                new docx.TextRun({
+                  text: 'PROFESSIONAL SUMMARY',
+                  bold: true,
+                  size: template === 'compact' ? 22 : 24
+                })
+              ]
+            }),
+            
+            // Summary
+            new docx.Paragraph({
+              spacing: { after: 300 },
+              children: [
+                new docx.TextRun({
+                  text: tailoredResume.summary,
+                  size: template === 'compact' ? 20 : 22
+                })
+              ]
+            }),
+            
+            // Skills Heading
+            new docx.Paragraph({
+              spacing: { before: 200, after: 100 },
+              children: [
+                new docx.TextRun({
+                  text: 'SKILLS',
+                  bold: true,
+                  size: template === 'compact' ? 22 : 24
+                })
+              ]
+            }),
+            
+            // Skills
+            new docx.Paragraph({
+              spacing: { after: 300 },
+              children: [
+                new docx.TextRun({
+                  text: tailoredResume.skills.join(', '),
+                  size: template === 'compact' ? 20 : 22
+                })
+              ]
+            }),
+            
+            // Experience Heading
+            new docx.Paragraph({
+              spacing: { before: 200, after: 100 },
+              children: [
+                new docx.TextRun({
+                  text: 'PROFESSIONAL EXPERIENCE',
+                  bold: true,
+                  size: template === 'compact' ? 22 : 24
+                })
+              ]
+            }),
+            
+            // Work Experience
+            ...tailoredResume.workExperiences.flatMap(exp => [
+              // Job Title and Company
+              new docx.Paragraph({
+                spacing: { before: 200, after: 80 },
+                children: [
+                  new docx.TextRun({
+                    text: `${exp.title}, ${exp.company}`,
+                    bold: true,
+                    size: template === 'compact' ? 20 : 22
+                  })
+                ]
+              }),
+              
+              // Date and Location
+              new docx.Paragraph({
+                spacing: { after: 100 },
+                children: [
+                  new docx.TextRun({
+                    text: `${exp.startDate} - ${exp.endDate || 'Present'} | ${exp.location}`,
+                    italics: true,
+                    size: template === 'compact' ? 18 : 20
+                  })
+                ]
+              }),
+              
+              // Responsibilities
+              ...exp.responsibilities.map(resp => 
+                new docx.Paragraph({
+                  spacing: { after: 80 },
+                  bullet: { level: 0 },
+                  children: [
+                    new docx.TextRun({
+                      text: resp,
+                      size: template === 'compact' ? 20 : 22
+                    })
+                  ]
+                })
+              )
+            ]),
+            
+            // Education Heading
+            new docx.Paragraph({
+              spacing: { before: 300, after: 100 },
+              children: [
+                new docx.TextRun({
+                  text: 'EDUCATION',
+                  bold: true,
+                  size: template === 'compact' ? 22 : 24
+                })
+              ]
+            }),
+            
+            // Education
+            ...tailoredResume.education.flatMap(edu => [
+              // Degree
+              new docx.Paragraph({
+                spacing: { before: 200, after: 80 },
+                children: [
+                  new docx.TextRun({
+                    text: `${edu.degree}${edu.field ? ` in ${edu.field}` : ''}`,
+                    bold: true,
+                    size: template === 'compact' ? 20 : 22
+                  })
+                ]
+              }),
+              
+              // Institution and Date
+              new docx.Paragraph({
+                spacing: { after: 200 },
+                children: [
+                  new docx.TextRun({
+                    text: `${edu.institution} | ${edu.startDate} - ${edu.endDate}${edu.gpa ? ` | GPA: ${edu.gpa}` : ''}`,
+                    italics: true,
+                    size: template === 'compact' ? 18 : 20
+                  })
+                ]
+              })
+            ]),
+            
+            // Projects Section (if any)
+            ...(tailoredResume.projects && tailoredResume.projects.length > 0 ? [
+              new docx.Paragraph({
+                spacing: { before: 300, after: 100 },
+                children: [
+                  new docx.TextRun({
+                    text: 'PROJECTS',
+                    bold: true,
+                    size: template === 'compact' ? 22 : 24
+                  })
+                ]
+              }),
+              
+              ...tailoredResume.projects.flatMap(proj => [
+                // Project Title
+                new docx.Paragraph({
+                  spacing: { before: 200, after: 80 },
+                  children: [
+                    new docx.TextRun({
+                      text: proj.title,
+                      bold: true,
+                      size: template === 'compact' ? 20 : 22
+                    })
+                  ]
+                }),
+                
+                // Date
+                ...(proj.date ? [
+                  new docx.Paragraph({
+                    spacing: { after: 100 },
+                    children: [
+                      new docx.TextRun({
+                        text: proj.date,
+                        italics: true,
+                        size: template === 'compact' ? 18 : 20
+                      })
+                    ]
+                  })
+                ] : []),
+                
+                // Description
+                new docx.Paragraph({
+                  spacing: { after: 200 },
+                  children: [
+                    new docx.TextRun({
+                      text: proj.description,
+                      size: template === 'compact' ? 20 : 22
+                    })
+                  ]
+                })
+              ])
+            ] : [])
+          ]
+        }]
+      });
+      
+      // Generate DOCX file
+      const buffer = await docx.Packer.toBlob(doc);
+      saveAs(buffer, `${tailoredResume.name.replace(/\s+/g, '_')}_Resume.docx`);
+      
+      toast({
+        title: "DOCX Downloaded",
+        description: "Your tailored resume DOCX has been downloaded."
+      });
+    } catch (error) {
+      console.error('Error generating DOCX:', error);
+      toast({
+        title: "Download Failed",
+        description: "There was an error generating the DOCX file. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+  
+  // Updated handleDownload function to use our new generators
   const handleDownload = (format: 'pdf' | 'docx') => {
-    // In a real implementation, this would generate and download the file
-    // For now, we'll just show a toast message
-    alert(`Downloading resume as ${format.toUpperCase()}`);
+    if (format === 'pdf') {
+      generatePDF();
+    } else {
+      generateDOCX();
+    }
   };
   
   const submitFeedback = () => {
@@ -664,6 +1092,36 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
               </Button>
             </div>
           )}
+        </div>
+        
+        {/* Download Options */}
+        <div className="bg-card text-card-foreground rounded-lg border p-4"> {/* Use theme-aware background */}
+          <h3 className="text-lg font-bold mb-3">Download Resume</h3>
+          <div className="space-y-3">
+            <Button
+              variant="outline"
+              className="w-full"
+              size="sm"
+              onClick={() => handleDownload('pdf')}
+              disabled={isDownloading}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {isDownloading ? 'Generating PDF...' : 'Download as PDF'}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              size="sm"
+              onClick={() => handleDownload('docx')}
+              disabled={isDownloading}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {isDownloading ? 'Generating DOCX...' : 'Download as Word (.docx)'}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Files will download directly to your device. No data is saved on our servers.
+          </p>
         </div>
         
         {/* Edit Base Resume Warning */}

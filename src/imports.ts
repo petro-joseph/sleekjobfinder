@@ -9,6 +9,7 @@ import UserPreferences from './pages/UserPreferences';
 import VerifyOTP from './pages/VerifyOTP';
 import ResetPassword from './pages/ResetPassword';
 import ManageResumes from './pages/ManageResumes';
+import ResumeBuilder from './pages/ResumeBuilder';
 
 export {
   SignIn,
@@ -19,5 +20,6 @@ export {
   UserPreferences,
   VerifyOTP,
   ResetPassword,
-  ManageResumes
+  ManageResumes,
+  ResumeBuilder
 };
