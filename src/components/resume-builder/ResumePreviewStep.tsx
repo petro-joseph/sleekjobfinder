@@ -35,7 +35,7 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
   credits
 }) => {
   const [editing, setEditing] = useState<{
-    section: 'summary' | 'skills' | 'experience' | 'education' | 'projects' | null;
+    section: 'summary' | 'skiills' | 'experience' | 'education' | 'projects' | null;
     index?: number;
   }>({ section: null });
   
