@@ -119,9 +119,7 @@ export const uploadResume = async (file: File): Promise<Resume> => {
         const userId = user.id;
 
         console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
-        
-        // Skip bucket check - bucket has been created via SQL
-        // and unnecessary checks may lead to false negatives
+    
 
         // uploadResumeFile should return the full public URL now if your DB expects it
         const publicUrlPath = await uploadResumeFile(file, userId); // Ensure this returns the PUBLIC URL
@@ -142,7 +140,6 @@ export const uploadResume = async (file: File): Promise<Resume> => {
             name: file.name, // Original file name
             file_path: publicUrlPath, // Store the public URL
             is_primary: (count || 0) === 0, // Make first resume primary for the user
-            // file_size: file.size, // remove file size it is not on table
             upload_date: new Date().toISOString(), // Add upload date
         };
 

@@ -12,6 +12,8 @@ import { Resume, JobPosting, MatchData } from '../../types/resume'; // Adjusted 
 import { useIsMobile } from '../../hooks/use-mobile'; // Adjusted path
 import { supabase } from '../../integrations/supabase/client'; // Import Supabase client
 import { convertParsedDataToResume } from '../../utils/resumeUtils'; // Import helper function
+import { toast } from 'sonner';
+import { Json } from '../../integrations/supabase/types';
 
 // Constants for steps
 const STEPS = {
@@ -235,7 +237,8 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
           selected_skills: selectedSkills
         })
       });
-      
+
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to tailor resume');
