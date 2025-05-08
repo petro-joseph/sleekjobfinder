@@ -12,6 +12,7 @@ import { Resume, JobPosting, MatchData } from '../../types/resume'; // Adjusted 
 import { useIsMobile } from '../../hooks/use-mobile'; // Adjusted path
 import { supabase } from '../../integrations/supabase/client'; // Import Supabase client
 import { convertParsedDataToResume } from '../../utils/resumeUtils'; // Import helper function
+import { tailorResume } from '../../api/tailorResume'; // Import our new API function
 
 // Constants for steps
 const STEPS = {
@@ -221,33 +222,13 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
     setIsProcessing(true);
     
     try {
-      // Call the tailor-resume Edge Function
-      const response = await fetch('https://accojxjdilkrycvnfcpj.supabase.co/functions/v1/tailor-resume', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await supabase.auth.getSession().then(res => res.data.session?.access_token || '')}`
-        },
-        body: JSON.stringify({
-          resume_id: resume.id,
-          job_posting: jobPosting,
-          selected_sections: selectedSections,
-          selected_skills: selectedSkills
-        })
+      // Call our API function
+      const tailored = await tailorResume({
+        resumeId: resume.id,
+        jobPosting,
+        selectedSections,
+        selectedSkills
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to tailor resume');
-      }
-      
-      const data = await response.json();
-      
-      if (!data.success || !data.data) {
-        throw new Error('Invalid response from server');
-      }
-      
-      const tailored = data.data as Resume;
       
       // Calculate the final score
       const finalScore = calculateTailoredScore(matchData, selectedSections, selectedSkills.length, jobPosting);
@@ -266,7 +247,7 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
       console.error("Error generating tailored resume:", error);
       toast({ 
         title: "Generation Failed", 
-        description: error instanceof Error ? error.message : "An error occurred. Please try again.", 
+        description: error instanceof Error ? error.message : "Failed to fetch resume data", 
         variant: "destructive" 
       });
     } finally {
@@ -377,7 +358,7 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
       </div>
 
       {/* Progress Steps - Updated Styling */}
-        <div className="relative flex justify-center items-center my-6 px-4 w-full">
+      <div className="relative flex justify-center items-center my-6 px-4 w-full">
         {STEP_CONFIG.map((step, index) => (
           <React.Fragment key={step.num}>
             {/* Connecting Line (before step, except first) */}
@@ -409,7 +390,6 @@ export const ResumeTailoringFlow: React.FC<ResumeTailoringFlowProps> = ({ jobPos
           </React.Fragment>
         ))}
       </div>
-
 
       {/* Main Content Area - Takes remaining space and scrolls */}
       {/* Added bg-muted/30 for slight background contrast like screenshots */}
