@@ -10,6 +10,9 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useToast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
+import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { saveAs } from 'file-saver';
 
 interface ResumePreviewStepProps {
   originalResume: Resume;
@@ -212,13 +215,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
     };
   };
   
-  // New function to generate PDF
+  // Updated function to generate PDF
   const generatePDF = async () => {
     try {
       setIsDownloading(true);
-      
-      // Dynamically import jsPDF
-      const { default: jsPDF } = await import('https://esm.sh/jspdf@2.5.1');
       
       // Initialize PDF document
       const doc = new jsPDF({
@@ -379,25 +379,21 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
     }
   };
   
-  // New function to generate DOCX
+  // Updated function to generate DOCX
   const generateDOCX = async () => {
     try {
       setIsDownloading(true);
       
-      // Dynamically import docx
-      const docx = await import('https://esm.sh/docx@9.5.0');
-      const { saveAs } = await import('https://esm.sh/file-saver@2.0.5');
-      
       // Create document
-      const doc = new docx.Document({
+      const doc = new Document({
         sections: [{
           properties: {},
           children: [
             // Name
-            new docx.Paragraph({
+            new Paragraph({
               spacing: { after: 200 },
               children: [
-                new docx.TextRun({
+                new TextRun({
                   text: tailoredResume.name,
                   bold: true,
                   size: template === 'compact' ? 32 : 36
@@ -406,10 +402,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
             }),
             
             // Contact Info
-            new docx.Paragraph({
+            new Paragraph({
               spacing: { after: 400 },
               children: [
-                new docx.TextRun({
+                new TextRun({
                   text: [
                     tailoredResume.contactInfo.phone,
                     tailoredResume.contactInfo.email,
@@ -421,10 +417,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
             }),
             
             // Summary Heading
-            new docx.Paragraph({
+            new Paragraph({
               spacing: { before: 200, after: 100 },
               children: [
-                new docx.TextRun({
+                new TextRun({
                   text: 'PROFESSIONAL SUMMARY',
                   bold: true,
                   size: template === 'compact' ? 22 : 24
@@ -433,10 +429,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
             }),
             
             // Summary
-            new docx.Paragraph({
+            new Paragraph({
               spacing: { after: 300 },
               children: [
-                new docx.TextRun({
+                new TextRun({
                   text: tailoredResume.summary,
                   size: template === 'compact' ? 20 : 22
                 })
@@ -444,10 +440,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
             }),
             
             // Skills Heading
-            new docx.Paragraph({
+            new Paragraph({
               spacing: { before: 200, after: 100 },
               children: [
-                new docx.TextRun({
+                new TextRun({
                   text: 'SKILLS',
                   bold: true,
                   size: template === 'compact' ? 22 : 24
@@ -456,10 +452,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
             }),
             
             // Skills
-            new docx.Paragraph({
+            new Paragraph({
               spacing: { after: 300 },
               children: [
-                new docx.TextRun({
+                new TextRun({
                   text: tailoredResume.skills.join(', '),
                   size: template === 'compact' ? 20 : 22
                 })
@@ -467,10 +463,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
             }),
             
             // Experience Heading
-            new docx.Paragraph({
+            new Paragraph({
               spacing: { before: 200, after: 100 },
               children: [
-                new docx.TextRun({
+                new TextRun({
                   text: 'PROFESSIONAL EXPERIENCE',
                   bold: true,
                   size: template === 'compact' ? 22 : 24
@@ -481,10 +477,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
             // Work Experience
             ...tailoredResume.workExperiences.flatMap(exp => [
               // Job Title and Company
-              new docx.Paragraph({
+              new Paragraph({
                 spacing: { before: 200, after: 80 },
                 children: [
-                  new docx.TextRun({
+                  new TextRun({
                     text: `${exp.title}, ${exp.company}`,
                     bold: true,
                     size: template === 'compact' ? 20 : 22
@@ -493,10 +489,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
               }),
               
               // Date and Location
-              new docx.Paragraph({
+              new Paragraph({
                 spacing: { after: 100 },
                 children: [
-                  new docx.TextRun({
+                  new TextRun({
                     text: `${exp.startDate} - ${exp.endDate || 'Present'} | ${exp.location}`,
                     italics: true,
                     size: template === 'compact' ? 18 : 20
@@ -506,11 +502,11 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
               
               // Responsibilities
               ...exp.responsibilities.map(resp => 
-                new docx.Paragraph({
+                new Paragraph({
                   spacing: { after: 80 },
                   bullet: { level: 0 },
                   children: [
-                    new docx.TextRun({
+                    new TextRun({
                       text: resp,
                       size: template === 'compact' ? 20 : 22
                     })
@@ -520,10 +516,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
             ]),
             
             // Education Heading
-            new docx.Paragraph({
+            new Paragraph({
               spacing: { before: 300, after: 100 },
               children: [
-                new docx.TextRun({
+                new TextRun({
                   text: 'EDUCATION',
                   bold: true,
                   size: template === 'compact' ? 22 : 24
@@ -534,10 +530,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
             // Education
             ...tailoredResume.education.flatMap(edu => [
               // Degree
-              new docx.Paragraph({
+              new Paragraph({
                 spacing: { before: 200, after: 80 },
                 children: [
-                  new docx.TextRun({
+                  new TextRun({
                     text: `${edu.degree}${edu.field ? ` in ${edu.field}` : ''}`,
                     bold: true,
                     size: template === 'compact' ? 20 : 22
@@ -546,10 +542,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
               }),
               
               // Institution and Date
-              new docx.Paragraph({
+              new Paragraph({
                 spacing: { after: 200 },
                 children: [
-                  new docx.TextRun({
+                  new TextRun({
                     text: `${edu.institution} | ${edu.startDate} - ${edu.endDate}${edu.gpa ? ` | GPA: ${edu.gpa}` : ''}`,
                     italics: true,
                     size: template === 'compact' ? 18 : 20
@@ -560,10 +556,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
             
             // Projects Section (if any)
             ...(tailoredResume.projects && tailoredResume.projects.length > 0 ? [
-              new docx.Paragraph({
+              new Paragraph({
                 spacing: { before: 300, after: 100 },
                 children: [
-                  new docx.TextRun({
+                  new TextRun({
                     text: 'PROJECTS',
                     bold: true,
                     size: template === 'compact' ? 22 : 24
@@ -573,10 +569,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
               
               ...tailoredResume.projects.flatMap(proj => [
                 // Project Title
-                new docx.Paragraph({
+                new Paragraph({
                   spacing: { before: 200, after: 80 },
                   children: [
-                    new docx.TextRun({
+                    new TextRun({
                       text: proj.title,
                       bold: true,
                       size: template === 'compact' ? 20 : 22
@@ -586,10 +582,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
                 
                 // Date
                 ...(proj.date ? [
-                  new docx.Paragraph({
+                  new Paragraph({
                     spacing: { after: 100 },
                     children: [
-                      new docx.TextRun({
+                      new TextRun({
                         text: proj.date,
                         italics: true,
                         size: template === 'compact' ? 18 : 20
@@ -599,10 +595,10 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
                 ] : []),
                 
                 // Description
-                new docx.Paragraph({
+                new Paragraph({
                   spacing: { after: 200 },
                   children: [
-                    new docx.TextRun({
+                    new TextRun({
                       text: proj.description,
                       size: template === 'compact' ? 20 : 22
                     })
@@ -615,7 +611,7 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
       });
       
       // Generate DOCX file
-      const buffer = await docx.Packer.toBlob(doc);
+      const buffer = await Packer.toBlob(doc);
       saveAs(buffer, `${tailoredResume.name.replace(/\s+/g, '_')}_Resume.docx`);
       
       toast({
