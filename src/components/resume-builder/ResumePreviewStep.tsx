@@ -596,8 +596,7 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
                   new TextRun({
                     text: `\t${exp.startDate} - ${exp.endDate || 'Present'}`,
                     size: 18,
-                    italics: true,
-                    alignment: 'right'
+                    italics: true
                   })
                 ]
               }),
