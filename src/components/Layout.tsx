@@ -9,7 +9,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import BottomNav from './BottomNav';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-
+import { SpeedInsights } from "@vercel/speed-insights/next"
 interface LayoutProps {
   children: React.ReactNode;
   hideFooter?: boolean;

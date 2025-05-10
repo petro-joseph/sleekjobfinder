@@ -223,7 +223,7 @@ const Dashboard = () => {
                   icon={<BarChart className="h-5 w-5 text-purple-500" />}
                   value={user.resumes?.length || 0}
                   label="Resumes"
-                  onClick={() => navigate('/resume-builder')}
+                  onClick={() => navigate('/manage-resumes')}
                 />
               </motion.div>
 
