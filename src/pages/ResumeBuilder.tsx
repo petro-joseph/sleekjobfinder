@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
+import { useState, useEffect, useCallback, useMemo, Suspense, lazy } from 'react';
 import { ArrowRight, FileText, Plus } from 'lucide-react';
 import Layout from '../components/Layout';
 import { Button } from '../components/ui/button';
@@ -9,9 +9,13 @@ import { useAuthStore } from '../lib/store';
 import { Resume } from '../types/resume';
 import { LoadingSpinner } from '../components/jobs/LoadingState';
 
-// Lazy load only the components that are not immediately needed
+// Import directly for immediate use
 import { ResumeCreationFlow } from '../components/resume-builder/ResumeCreationFlow';
-const ResumeTailoringFlow = React.lazy(() => import('../components/resume-builder/ResumeTailoringFlow'));
+// Lazy load ResumeTailoringFlow properly with a wrapper for default export compatibility
+const ResumeTailoringFlow = lazy(() => 
+  import('../components/resume-builder/ResumeTailoringFlow')
+  .then(module => ({ default: module.ResumeTailoringFlow }))
+);
 
 const ResumeBuilder = () => {
   const { toast } = useToast();
