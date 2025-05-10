@@ -10,6 +10,7 @@ import BottomNav from './BottomNav';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react"
 
 interface LayoutProps {
   children: React.ReactNode;
