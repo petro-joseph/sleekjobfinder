@@ -1,6 +1,6 @@
 
-import React, { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import React, { lazy, Suspense, useEffect, memo, startTransition } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { ThemeProvider } from 'next-themes'
 import { supabase } from './integrations/supabase/client'
 import { useAuthStore } from './lib/store'
@@ -17,10 +17,15 @@ import 'react-loading-skeleton/dist/skeleton.css'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as SonnerToaster } from '@/components/ui/sonner'
 
-// Lazy-load all pages
-const Home = lazy(() => import('./pages/Index'))
-const Login = lazy(() => import('./pages/Login'))
-const Signup = lazy(() => import('./pages/Signup'))
+// Eagerly import frequently used components for better performance
+import Home from './pages/Index'
+import Jobs from './pages/Jobs'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import JobDetail from './pages/JobDetail'
+import Dashboard from './pages/Dashboard'
+
+// Lazy-load less frequently accessed pages
 const VerifyOtp = lazy(() => import('./pages/VerifyOtp'))
 const Pricing = lazy(() => import('./pages/Pricing'))
 const Blog = lazy(() => import('./pages/Blog'))
@@ -36,11 +41,8 @@ const Careers = lazy(() => import('./pages/Careers'))
 const Contact = lazy(() => import('./pages/Contact'))
 const Privacy = lazy(() => import('./pages/Privacy'))
 const Terms = lazy(() => import('./pages/Terms'))
-const Jobs = lazy(() => import('./pages/Jobs'))
-const JobDetail = lazy(() => import('./pages/JobDetail'))
 const Apply = lazy(() => import('./pages/Apply'))
 const ResumeBuilder = lazy(() => import('./pages/ResumeBuilder'))
-const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Profile = lazy(() => import('./pages/Profile'))
 const SavedJobs = lazy(() => import('./pages/SavedJobs'))
 const Progress = lazy(() => import('./pages/Progress'))
@@ -49,6 +51,40 @@ const CareerAssistant = lazy(() => import('./pages/CareerAssistant'))
 const Callback = lazy(() => import('./pages/auth/Callback'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const ManageResumes = lazy(() => import('./pages/ManageResumes'))
+
+// Create optimized loading component
+const PageLoader = memo(() => <LoadingSpinner />)
+
+// Preload important routes for better UX
+function RoutePreloader() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Preload the next most likely routes based on current location
+    if (location.pathname === '/') {
+      // Preload common routes from homepage
+      startTransition(() => {
+        import('./pages/Jobs');
+        import('./pages/Login');
+        import('./pages/Signup');
+      });
+    } else if (location.pathname.startsWith('/jobs')) {
+      // Preload job details when on jobs page
+      startTransition(() => {
+        import('./pages/JobDetail');
+        import('./pages/Apply');
+      });
+    } else if (location.pathname === '/login' || location.pathname === '/signup') {
+      // Preload dashboard when on auth pages
+      startTransition(() => {
+        import('./pages/Dashboard');
+        import('./pages/Profile');
+      });
+    }
+  }, [location.pathname]);
+  
+  return null;
+}
 
 function App() {
   const { login, logout } = useAuthStore()
@@ -114,7 +150,8 @@ function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <BrowserRouter>
-        <Suspense fallback={<LoadingSpinner />}>
+        <RoutePreloader />
+        <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* Public */}
             <Route path="/" element={<Home />} />

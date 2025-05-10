@@ -1,6 +1,7 @@
 
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { fetchJobs, JobFilters } from '@/api/jobs';
+import { useMemo } from 'react';
 import { JobSearchResponse } from '@/types';
 
 export const useJobSearch = (filters: JobFilters) => {
@@ -22,11 +23,16 @@ export const useJobSearch = (filters: JobFilters) => {
       return lastPage.hasMore ? lastPage.nextPage : undefined;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
-    initialPageParam: 1
+    initialPageParam: 1,
+    refetchOnWindowFocus: false, // Prevent unnecessary refetches
+    refetchOnMount: true,
+    refetchOnReconnect: false
   });
 
-  // Flatten pages of results into a single array
-  const jobs = data?.pages.flatMap(page => page.jobs) || [];
+  // Memoize the flattened jobs array to prevent unnecessary re-renders
+  const jobs = useMemo(() => {
+    return data?.pages.flatMap(page => page.jobs) || [];
+  }, [data?.pages]);
 
   return { 
     jobs, 

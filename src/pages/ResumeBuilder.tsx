@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { ArrowRight, FileText, Plus } from 'lucide-react';
 import Layout from '../components/Layout';
 import { Button } from '../components/ui/button';
@@ -7,8 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { useToast } from '../hooks/use-toast';
 import { useAuthStore } from '../lib/store';
 import { Resume } from '../types/resume';
+import { LoadingSpinner } from '../components/jobs/LoadingState';
+
+// Lazy load only the components that are not immediately needed
 import { ResumeCreationFlow } from '../components/resume-builder/ResumeCreationFlow';
-import { ResumeTailoringFlow } from '../components/resume-builder/ResumeTailoringFlow';
+const ResumeTailoringFlow = React.lazy(() => import('../components/resume-builder/ResumeTailoringFlow'));
 
 const ResumeBuilder = () => {
   const { toast } = useToast();
@@ -20,14 +23,14 @@ const ResumeBuilder = () => {
     return () => setMode('select');
   }, []);
 
-  const handleResumeComplete = (resume: Resume) => {
+  const handleResumeComplete = useCallback((resume: Resume) => {
     toast({
       title: "Resume created successfully!",
       description: "Your new resume has been saved.",
     });
     // In a real app, save resume to user's profile
     setMode('select');
-  };
+  }, [toast]);
 
   return (
     <Layout>
@@ -89,22 +92,26 @@ const ResumeBuilder = () => {
         )}
 
         {mode === 'tailor' && (
-          <ResumeTailoringFlow 
-            onClose={() => setMode('select')}
-            jobPosting={{
-              title: '',
-              company: '',
-              location: '',
-              salaryRange: '',
-              description: '',
-              employmentType: '',
-              requiredYearsOfExperience: 0,
-              industries: [],
-              requiredSkills: []
-            }}
-          />
+          <Suspense fallback={<LoadingSpinner />}>
+            <ResumeTailoringFlow 
+              onClose={() => setMode('select')}
+              jobPosting={{
+                title: '',
+                company: '',
+                location: '',
+                salaryRange: '',
+                description: '',
+                employmentType: '',
+                requiredYearsOfExperience: 0,
+                industries: [],
+                requiredSkills: []
+              }}
+            />
+          </Suspense>
         )}
       </div>
     </Layout>
   );
-};export default ResumeBuilder;
+};
+
+export default ResumeBuilder;

@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef, useTransition } from 'react';
+import { useState, useEffect, useRef, useTransition, useCallback, useMemo, memo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInView } from 'react-intersection-observer';
 import { useQueryClient } from '@tanstack/react-query';
@@ -7,7 +7,7 @@ import Layout from '@/components/Layout';
 import { useJobFilters } from '@/hooks/useJobFilters';
 import { useJobSearch } from '@/hooks/useJobSearch';
 import { JobsList } from '@/components/jobs/JobsList';
-import JobsHeader from '@/components/jobs/JobsHeader'; // Changed to default import
+import JobsHeader from '@/components/jobs/JobsHeader';
 import { JobsMetadata } from '@/components/jobs/JobsMetadata';
 import { JobsErrorBoundary } from '@/components/jobs/JobsErrorBoundary';
 import { ErrorState } from '@/components/jobs/ErrorState';
@@ -19,6 +19,10 @@ import { seedJobs } from '@/utils/seed';
 import { useAuthStore } from '@/lib/store';
 import { toast } from 'sonner';
 import { saveJob, removeSavedJob } from '@/api/savedJobs';
+import { preloadRouteGroup } from '@/utils/preloadRoutes';
+
+// Memoized JobsList to prevent unnecessary re-renders
+const MemoizedJobsList = memo(JobsList);
 
 const Jobs = () => {
   // Use transition for state updates that may cause suspension
@@ -54,6 +58,9 @@ const Jobs = () => {
   // Run seeding once on initial load
   useEffect(() => {
     seedJobs().catch(err => console.error('Error seeding jobs:', err));
+    
+    // Preload related routes when on jobs page
+    preloadRouteGroup('jobs');
   }, []);
 
   // Infinite scroll setup
@@ -90,38 +97,39 @@ const Jobs = () => {
     });
   }, [filters, jobs?.length, currentPage]);
 
-  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
+  // Memoize callbacks to prevent unnecessary re-renders
+  const handleFilterChange = useCallback((newFilters: Partial<typeof filters>) => {
     startTransition(() => {
       updateFilters(newFilters);
       setCurrentPage(1);
       analytics.track('Filter Change', { newFilters });
     });
-  };
+  }, [updateFilters, setCurrentPage, analytics]);
 
-  const handleJobTypeToggle = (type: string, isSelected: boolean) => {
+  const handleJobTypeToggle = useCallback((type: string, isSelected: boolean) => {
     startTransition(() => {
       setJobTypes((prev) => ({ ...prev, [type]: isSelected }));
       analytics.track('Job Type Toggle', { type, isSelected });
     });
-  };
+  }, [setJobTypes, analytics]);
 
-  const handleExpLevelToggle = (level: string, isSelected: boolean) => {
+  const handleExpLevelToggle = useCallback((level: string, isSelected: boolean) => {
     startTransition(() => {
       setExpLevels((prev) => ({ ...prev, [level]: isSelected }));
       analytics.track('Experience Level Toggle', { level, isSelected });
     });
-  };
+  }, [setExpLevels, analytics]);
 
-  const handleResetFilters = () => {
+  const handleResetFilters = useCallback(() => {
     startTransition(() => {
       resetFilters();
       setCurrentPage(1);
       analytics.track('Filters Reset');
     });
-  };
+  }, [resetFilters, analytics]);
 
   // Save/Unsave Job Handler
-  const handleSaveToggle = async (jobToToggle: Job) => {
+  const handleSaveToggle = useCallback(async (jobToToggle: Job) => {
     if (!isAuthenticated || !user) {
       toast.error("Please log in to save jobs.");
       return;
@@ -158,7 +166,42 @@ const Jobs = () => {
       toast.error("Failed to update saved job status");
       console.error("Error saving/removing job:", error);
     }
-  };
+  }, [isAuthenticated, user, toast]);
+
+  // Memoize the saved jobs array to prevent unnecessary re-renders
+  const savedJobs = useMemo(() => user?.savedJobs || [], [user?.savedJobs]);
+
+  // Optimize rendering by memoizing the JSX structure
+  const renderJobsList = useMemo(() => {
+    if (error) {
+      return <ErrorState error={error} onRetry={() => fetchNextPage()} />;
+    }
+    
+    return (
+      <MemoizedJobsList
+        jobs={jobs || []}
+        isLoading={isLoading || isPending}
+        onIndustryClick={(industry) => handleFilterChange({ industry })}
+        loadMoreRef={loadMoreRef}
+        isFetchingNextPage={isFetchingNextPage}
+        savedJobs={savedJobs}
+        onSaveToggle={handleSaveToggle}
+        isAuthenticated={isAuthenticated}
+      />
+    );
+  }, [
+    error, 
+    jobs, 
+    isLoading, 
+    isPending, 
+    handleFilterChange, 
+    loadMoreRef, 
+    isFetchingNextPage, 
+    savedJobs, 
+    handleSaveToggle, 
+    isAuthenticated, 
+    fetchNextPage
+  ]);
 
   return (
     <JobsErrorBoundary>
@@ -189,20 +232,7 @@ const Jobs = () => {
               />
 
               <main ref={jobListingsRef}>
-                {error ? (
-                  <ErrorState error={error} onRetry={() => fetchNextPage()} />
-                ) : (
-                  <JobsList
-                    jobs={jobs || []}
-                    isLoading={isLoading || isPending}
-                    onIndustryClick={(industry) => handleFilterChange({ industry })}
-                    loadMoreRef={loadMoreRef}
-                    isFetchingNextPage={isFetchingNextPage}
-                    savedJobs={user?.savedJobs || []}
-                    onSaveToggle={handleSaveToggle}
-                    isAuthenticated={isAuthenticated}
-                  />
-                )}
+                {renderJobsList}
               </main>
             </div>
           </div>
