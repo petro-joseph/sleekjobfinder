@@ -12,6 +12,20 @@ import { toast } from "sonner";
 import { useAuthStore, signInWithGoogle, signInWithLinkedIn } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
 
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: any) => void;
+          renderButton: (element: HTMLElement, options: any) => void;
+          prompt: (momentListener?: any) => void;
+        };
+      };
+    };
+  }
+}
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,7 +38,72 @@ const Login = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuthStore();
 
+  // Initialize Google One Tap
   useEffect(() => {
+    // Load the Google Identity Services API script
+    const loadGoogleScript = () => {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = initializeOneTap;
+      document.body.appendChild(script);
+    };
+
+    // Initialize One Tap after script is loaded
+    const initializeOneTap = () => {
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.initialize({
+          client_id: '290315115196-25pkfantef0g4kc7lpj9nlqcgr1ks0kl.apps.googleusercontent.com', // Use the same client ID as in Supabase
+          callback: handleOneTapResponse,
+          auto_select: true,
+          cancel_on_tap_outside: false,
+          prompt_parent_id: 'oneTapContainer',
+          context: 'signin'
+        });
+
+        // Only show One Tap if user is not authenticated
+        if (!isAuthenticated) {
+          try {
+            window.google.accounts.id.prompt((notification: any) => {
+              if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                // One Tap was not displayed or was skipped - don't show any error
+                console.log('One Tap not displayed or skipped:', notification.getNotDisplayedReason() || notification.getSkippedReason());
+              }
+            });
+          } catch (err) {
+            console.error('Failed to prompt One Tap:', err);
+          }
+        }
+      }
+    };
+
+    // Handle the response from One Tap
+    const handleOneTapResponse = async (response: any) => {
+      try {
+        setIsLoading(true);
+        setError('');
+        
+        // Pass the credential token to Supabase
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: response.credential,
+        });
+
+        if (error) throw error;
+        
+        // Auth state will be handled by the Supabase listener in App.tsx
+        toast.success("Signed in with Google successfully!");
+        navigate('/dashboard');
+      } catch (error: any) {
+        console.error('One Tap sign in error:', error);
+        toast.error(error.message || 'Failed to sign in with Google One Tap');
+        setError(error.message || 'Failed to sign in with Google One Tap');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     // Clear any existing errors when component mounts
     setError('');
     setNeedsVerification(false);
@@ -32,7 +111,22 @@ const Login = () => {
     // Check if user is already authenticated and redirect
     if (isAuthenticated) {
       navigate('/dashboard');
+    } else {
+      // Only load Google script if not authenticated
+      loadGoogleScript();
     }
+
+    return () => {
+      // Clean up any Google One Tap resources when component unmounts
+      if (window.google?.accounts?.id) {
+        // Cancel any ongoing One Tap prompts
+        try {
+          window.google.accounts.id.cancel();
+        } catch (err) {
+          console.error('Failed to cancel One Tap:', err);
+        }
+      }
+    };
   }, [isAuthenticated, navigate]);
 
   const togglePasswordVisibility = () => {
@@ -141,6 +235,7 @@ const Login = () => {
 
   return (
     <Layout>
+      <div id="oneTapContainer" style={{ position: 'fixed', top: 0, right: 0, zIndex: 9999 }}></div>
       <div className="min-h-[calc(100vh-180px)] py-12 flex items-center">
         <div className="container mx-auto px-6">
           <div className="max-w-md mx-auto">

@@ -6,6 +6,7 @@ import { supabase } from './integrations/supabase/client'
 import { useAuthStore } from './lib/store'
 import ProtectedRoute from './components/ProtectedRoute'
 import { LoadingSpinner } from './components/jobs/LoadingState'
+import { toast } from 'sonner'
 
 // Global CSS
 import './index.css'
@@ -63,11 +64,22 @@ function App() {
             // Use setTimeout to prevent potential deadlocks with Supabase client
             setTimeout(() => {
               fetchAndStoreProfile(session.user.id, session.user.email || '')
+              console.log('[Auth] User signed in, redirecting to dashboard...')
+              
+              // Show welcome toast for new sign-ins
+              toast.success("Welcome back!", {
+                description: "You've been successfully signed in."
+              })
             }, 0);
           } else if (event === 'SIGNED_OUT') {
             // No need to call logout here as it will create a circular reference
             // The state is already updated in the logout function in the store
             console.log('Auth state change: signed out');
+            
+            // Show signed out toast
+            toast.info("You've been signed out", {
+              description: "See you again soon!"
+            })
           }
         }
       );
@@ -100,7 +112,7 @@ function App() {
     try {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('email')
+        .select('*')
         .eq('id', userId)
         .single()
 

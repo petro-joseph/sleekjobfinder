@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Job, Resume as BaseResume, Application } from '@/types';
@@ -228,6 +227,8 @@ export const useAuthStore = create<AuthState>()(
             if (data.user) {
               // Fetch additional user data after login
               await get().fetchUserProfile();
+              
+              // Redirect happens in the component
             }
           }
         } catch (error: any) {
@@ -289,6 +290,8 @@ export const useAuthStore = create<AuthState>()(
             set({ isAuthenticated: false, user: null }); 
             return;
           }
+          
+          console.log("[fetchUserProfile] User fetched:", user.id);
           
           // Fetch profile data
           const { data: profile, error: profileError } = await supabase
@@ -585,6 +588,7 @@ export const signInWithGoogle = async () => {
         access_type: 'offline',
         prompt: 'consent',
       },
+      redirectTo: `${window.location.origin}/dashboard`,  // Direct redirect to dashboard after auth
     },
   });
   if (error) throw error;
@@ -593,6 +597,9 @@ export const signInWithGoogle = async () => {
 export const signInWithLinkedIn = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'linkedin_oidc',
+    options: {
+      redirectTo: `${window.location.origin}/dashboard`, // Direct redirect to dashboard after auth
+    }
   });
   if (error) throw error;
 };

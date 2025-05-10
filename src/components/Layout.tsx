@@ -1,3 +1,4 @@
+
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { useLocation } from 'react-router-dom';
@@ -25,7 +26,8 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
   const isDashboardOrPreferences =
     location.pathname === '/dashboard' ||
     location.pathname === '/user-preferences';
-
+  
+  // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
@@ -48,6 +50,8 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
         </main>
         {!hideFooter && <Footer />}
         {isAuthenticated && <BottomNav />}
+        <SpeedInsights />
+        <Analytics />
       </div>
     </SkeletonTheme>
   );

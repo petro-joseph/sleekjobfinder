@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { User, Mail, Lock, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: any) => void;
+          renderButton: (element: HTMLElement, options: any) => void;
+          prompt: (momentListener?: any) => void;
+        };
+      };
+    };
+  }
+}
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -21,6 +35,88 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // Initialize Google One Tap
+  useEffect(() => {
+    // Load the Google Identity Services API script
+    const loadGoogleScript = () => {
+      // Check if already loaded
+      if (document.querySelector('script[src="https://accounts.google.com/gsi/client"]')) {
+        initializeOneTap();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = initializeOneTap;
+      document.body.appendChild(script);
+    };
+
+    // Initialize One Tap after script is loaded
+    const initializeOneTap = () => {
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.initialize({
+          client_id: '290315115196-25pkfantef0g4kc7lpj9nlqcgr1ks0kl.apps.googleusercontent.com', // Use the same client ID as in Supabase
+          callback: handleOneTapResponse,
+          auto_select: true,
+          cancel_on_tap_outside: false,
+          prompt_parent_id: 'signupOneTapContainer',
+          context: 'signup'
+        });
+
+        try {
+          window.google.accounts.id.prompt((notification: any) => {
+            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+              // One Tap was not displayed or was skipped
+              console.log('One Tap not displayed or skipped:', notification.getNotDisplayedReason() || notification.getSkippedReason());
+            }
+          });
+        } catch (err) {
+          console.error('Failed to prompt One Tap:', err);
+        }
+      }
+    };
+
+    // Handle the response from One Tap
+    const handleOneTapResponse = async (response: any) => {
+      try {
+        setIsLoading(true);
+        setError('');
+        
+        // Use the credential token with Supabase
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: response.credential,
+        });
+
+        if (error) throw error;
+        
+        toast.success("Account created with Google successfully!");
+        navigate('/dashboard');
+      } catch (error: any) {
+        console.error('One Tap sign in error:', error);
+        toast.error(error.message || 'Failed to sign up with Google One Tap');
+        setError(error.message || 'Failed to sign up with Google One Tap');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadGoogleScript();
+
+    return () => {
+      // Clean up any Google One Tap resources when component unmounts
+      if (window.google?.accounts?.id) {
+        try {
+          window.google.accounts.id.cancel();
+        } catch (err) {
+          console.error('Failed to cancel One Tap:', err);
+        }
+      }
+    };
+  }, [navigate]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -105,7 +201,13 @@ const Signup = () => {
       setError('');
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/dashboard` },
+        options: { 
+          redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            prompt: 'consent',
+            access_type: 'offline',
+          }
+        },
       });
       if (error) throw error;
     } catch (error: any) {
@@ -117,7 +219,7 @@ const Signup = () => {
     try {
       setError('');
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'linkedin',
+        provider: 'linkedin_oidc',
         options: { redirectTo: `${window.location.origin}/dashboard` },
       });
       if (error) throw error;
@@ -128,6 +230,7 @@ const Signup = () => {
 
   return (
     <Layout>
+      <div id="signupOneTapContainer" style={{ position: 'fixed', top: 0, right: 0, zIndex: 9999 }}></div>
       <div className="min-h-[calc(100vh-180px)] py-12 flex items-center">
         <div className="container mx-auto px-6">
           <div className="max-w-md mx-auto">
