@@ -1,5 +1,5 @@
 
-import { useEffect, memo } from 'react';
+import { useEffect, memo, useCallback } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { useLocation } from 'react-router-dom';
@@ -11,7 +11,8 @@ import BottomNav from './BottomNav';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
+import { preloadRelatedRoutes } from '@/utils/preloadRoutes';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -34,10 +35,36 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
     location.pathname === '/dashboard' ||
     location.pathname === '/user-preferences';
   
-  // Scroll to top on route change
+  // Enhanced scroll to top with smoother behavior
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'auto' });
   }, [location.pathname]);
+  
+  // Preload related routes when navigating
+  useEffect(() => {
+    preloadRelatedRoutes(location.pathname);
+  }, [location.pathname]);
+
+  // Memoized class name calculation for performance
+  const mainClassName = useCallback(() => {
+    let className = 'flex-grow';
+    
+    if (isAuthenticated) {
+      className += ' page-with-bottom-nav';
+    }
+    
+    if (!isMobile) {
+      className += ' pt-12';
+    } else {
+      className += ' pt-14 mt-4';
+    }
+    
+    if (isDashboardOrPreferences && !isMobile) {
+      className += ' pt-20';
+    }
+    
+    return className;
+  }, [isAuthenticated, isMobile, isDashboardOrPreferences]);
 
   return (
     <SkeletonTheme
@@ -50,9 +77,7 @@ const Layout = ({ children, hideFooter = false }: LayoutProps) => {
         </div>
         <MemoizedNavbar />
         {isAuthenticated && isMobile && <MemoizedMobileProfileBar />}
-        <main className={`flex-grow ${isAuthenticated ? 'page-with-bottom-nav' : ''} ${!isMobile ? 'pt-12' : 'pt-14 mt-4'
-          } ${isDashboardOrPreferences && !isMobile ? 'pt-20' : ''
-          }`}>
+        <main className={mainClassName()}>
           {children}
         </main>
         {!hideFooter && <MemoizedFooter />}

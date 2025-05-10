@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ import {
 import { Application, RecentActivity, JobAlert } from '@/types';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { preloadRouteGroup } from '@/utils/preloadRoutes';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -51,6 +53,46 @@ const itemVariants = {
   show: { opacity: 1, y: 0 },
 };
 
+// Memoized statistic card component to prevent unnecessary re-renders
+const MobileStatCard = memo(({
+  icon,
+  value,
+  label,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  value: number;
+  label: string;
+  onClick: () => void;
+}) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+    >
+      <Card
+        className="backdrop-blur-xl border-primary/20 border-2 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer group hover:border-primary/40 rounded-xl"
+        onClick={onClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      >
+        <CardContent className="p-4 flex items-center">
+          <div className="mr-3 p-2 rounded-full bg-background/50 transition-all group-hover:scale-110">{icon}</div>
+          <div>
+            <div className="text-2xl font-bold">{value}</div>
+            <div className="text-xs text-muted-foreground">{label}</div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+});
+
+// Add display name for React DevTools
+MobileStatCard.displayName = 'MobileStatCard';
+
 const Dashboard = () => {
   const { user, isAuthenticated, saveJob, removeJob } = useAuthStore();
   const navigate = useNavigate();
@@ -65,7 +107,15 @@ const Dashboard = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Fetch applications
+  // Preload related routes when dashboard is loaded
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Preload job-related routes when the user visits the dashboard
+      preloadRouteGroup('jobs');
+    }
+  }, [isAuthenticated]);
+
+  // Optimized applications query with proper caching
   const {
     data: applications = [],
     isLoading: isLoadingApplications,
@@ -75,12 +125,16 @@ const Dashboard = () => {
     queryKey: ['applications', user?.id],
     queryFn: () => fetchApplications(user!.id),
     enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes caching
+    gcTime: 10 * 60 * 1000, // Keep unused data in cache for 10 minutes
   });
 
   // Compute active applications count (excluding archived, matching Progress)
-  const activeApplicationsCount = applications.filter((app) => app.status !== 'archived').length;
+  const activeApplicationsCount = useMemo(() => 
+    applications.filter((app) => app.status !== 'archived').length
+  , [applications]);
 
-  // Fetch job alerts
+  // Optimized job alerts query with proper caching
   const {
     data: jobAlerts = [],
     isLoading: isLoadingJobAlerts,
@@ -90,9 +144,11 @@ const Dashboard = () => {
     queryKey: ['job_alerts', user?.id],
     queryFn: () => fetchJobAlerts(user!.id),
     enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes caching
+    gcTime: 10 * 60 * 1000, // Keep unused data in cache for 10 minutes
   });
 
-  // Handle errors
+  // Handle query errors
   useEffect(() => {
     if (isApplicationsError && applicationsError) {
       toast.error(`Failed to load recent activities: ${applicationsError.message}`);
@@ -102,18 +158,20 @@ const Dashboard = () => {
     }
   }, [isApplicationsError, applicationsError, isJobAlertsError, jobAlertsError]);
 
-  // Map applications to recentActivities
-  const recentActivities: RecentActivity[] = applications.slice(0, 3).map((app: Application) => ({
-    id: app.id,
-    position: app.position,
-    company: app.company,
-    date: app.applied_at
-      ? format(new Date(app.applied_at), 'yyyy-MM-dd')
-      : format(new Date(app.updated_at), 'yyyy-MM-dd'),
-    status: app.status.charAt(0).toUpperCase() + app.status.replace('_', ' ').slice(1), // e.g., "offer_received" -> "Offer Received"
-  }));
+  // Map applications to recentActivities with memoization to avoid unnecessary processing
+  const recentActivities: RecentActivity[] = useMemo(() => 
+    applications.slice(0, 3).map((app: Application) => ({
+      id: app.id,
+      position: app.position,
+      company: app.company,
+      date: app.applied_at
+        ? format(new Date(app.applied_at), 'yyyy-MM-dd')
+        : format(new Date(app.updated_at), 'yyyy-MM-dd'),
+      status: app.status.charAt(0).toUpperCase() + app.status.replace('_', ' ').slice(1),
+    }))
+  , [applications]);
 
-  // Fetch jobs
+  // Optimized jobs query with proper caching
   const { data: allJobs = [], isLoading: isLoadingJobs } = useQuery({
     queryKey: ['dashboardJobs'],
     queryFn: async () => {
@@ -129,23 +187,32 @@ const Dashboard = () => {
       });
       return response.jobs;
     },
+    staleTime: 2 * 60 * 1000, // 2 minutes caching
+    gcTime: 5 * 60 * 1000, // Keep unused data in cache for 5 minutes
   });
 
-  // Pagination for jobs
-  const indexOfLastJob = currentPage * jobsPerPage;
-  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
-  const currentJobs = allJobs.slice(indexOfFirstJob, indexOfLastJob);
-  const totalPages = Math.ceil(allJobs.length / jobsPerPage);
+  // Pagination calculation with memoization
+  const { currentJobs, totalPages } = useMemo(() => {
+    const indexOfLastJob = currentPage * jobsPerPage;
+    const indexOfFirstJob = indexOfLastJob - jobsPerPage;
+    return {
+      currentJobs: allJobs.slice(indexOfFirstJob, indexOfLastJob),
+      totalPages: Math.ceil(allJobs.length / jobsPerPage)
+    };
+  }, [allJobs, currentPage, jobsPerPage]);
 
   const isOnboardingComplete = user?.isOnboardingComplete || false;
 
-  const handleBookmarkToggle = async (jobId: string) => {
+  // Memoized bookmark toggle handler to prevent unnecessary re-renders
+  const handleBookmarkToggle = useCallback(async (jobId: string) => {
     if (!user) {
       toast.error('You must be logged in to save jobs.');
       return;
     }
+    
     const jobToToggle = allJobs.find((job) => job.id === jobId);
     if (!jobToToggle) return;
+    
     try {
       if (user.savedJobs.some((j) => j.id === jobId)) {
         await removeJob(jobId);
@@ -157,7 +224,16 @@ const Dashboard = () => {
     } catch (error) {
       toast.error('Failed to update saved job');
     }
-  };
+  }, [user, allJobs, saveJob, removeJob]);
+
+  // Memoized navigation handler
+  const handleNavigate = useCallback((path: string) => {
+    // Preload destination route content
+    if (path.startsWith('/jobs/')) {
+      preloadRouteGroup('jobs');
+    }
+    navigate(path);
+  }, [navigate]);
 
   // Guard against unauthenticated state
   if (!isAuthenticated || !user) {
@@ -183,14 +259,14 @@ const Dashboard = () => {
                     {isOnboardingComplete ? (
                       <Button
                         className="group w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg"
-                        onClick={() => navigate('/jobs')}
+                        onClick={() => handleNavigate('/jobs')}
                       >
                         Find Jobs <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </Button>
                     ) : (
                       <Button
                         className="group w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg"
-                        onClick={() => navigate('/preferences')}
+                        onClick={() => handleNavigate('/preferences')}
                       >
                         Complete your profile{' '}
                         <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -205,31 +281,31 @@ const Dashboard = () => {
                   icon={<Briefcase className="h-5 w-5 text-blue-500" />}
                   value={isLoadingApplications ? 0 : activeApplicationsCount}
                   label="Applications"
-                  onClick={() => navigate('/progress')}
+                  onClick={() => handleNavigate('/progress')}
                 />
                 <MobileStatCard
                   icon={<BookmarkCheck className="h-5 w-5 text-green-500" />}
                   value={user.savedJobs?.length || 0}
                   label="Saved Jobs"
-                  onClick={() => navigate('/saved-jobs')}
+                  onClick={() => handleNavigate('/saved-jobs')}
                 />
                 <MobileStatCard
                   icon={<Bell className="h-5 w-5 text-yellow-500" />}
                   value={isLoadingJobAlerts ? 0 : jobAlerts.length}
                   label="Job Alerts"
-                  onClick={() => navigate('/progress')}
+                  onClick={() => handleNavigate('/progress')}
                 />
                 <MobileStatCard
                   icon={<BarChart className="h-5 w-5 text-purple-500" />}
                   value={user.resumes?.length || 0}
                   label="Resumes"
-                  onClick={() => navigate('/manage-resumes')}
+                  onClick={() => handleNavigate('/manage-resumes')}
                 />
               </motion.div>
 
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">Recommended for you</h2>
-                <Button variant="link" className="text-primary text-sm" onClick={() => navigate('/jobs')}>
+                <Button variant="link" className="text-primary text-sm" onClick={() => handleNavigate('/jobs')}>
                   View all <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </div>
@@ -267,7 +343,7 @@ const Dashboard = () => {
                               <div className="pt-1">
                                 <h3
                                   className="font-semibold text-lg mb-1"
-                                  onClick={() => navigate(`/jobs/${job.id}`)}
+                                  onClick={() => handleNavigate(`/jobs/${job.id}`)}
                                   style={{ cursor: 'pointer' }}
                                 >
                                   {job.title}
@@ -307,10 +383,10 @@ const Dashboard = () => {
                             </div>
                           </div>
                           <div className="mt-4">
-                            <Button onClick={() => navigate(`/jobs/${job.id}`)} variant="outline" className="mr-2">
+                            <Button onClick={() => handleNavigate(`/jobs/${job.id}`)} variant="outline" className="mr-2">
                               View Details
                             </Button>
-                            <Button onClick={() => navigate(`/apply/${job.id}`)}>Apply Now</Button>
+                            <Button onClick={() => handleNavigate(`/apply/${job.id}`)}>Apply Now</Button>
                           </div>
                         </CardContent>
                       </Card>
@@ -372,7 +448,7 @@ const Dashboard = () => {
                     Get personalized career advice, interview preparation, and salary negotiation tips from our AI assistant.
                   </p>
                   <Button
-                    onClick={() => navigate('/career-assistant')}
+                    onClick={() => handleNavigate('/career-assistant')}
                     variant="outline"
                     className="w-full touch-button"
                   >
@@ -405,7 +481,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <Button
-                    onClick={() => navigate('/pricing')}
+                    onClick={() => handleNavigate('/pricing')}
                     variant="gradient"
                     className="w-full touch-button bg-primary text-primary-foreground"
                   >
@@ -463,7 +539,7 @@ const Dashboard = () => {
                         </motion.div>
                       ))}
                       <Button
-                        onClick={() => navigate('/progress')}
+                        onClick={() => handleNavigate('/progress')}
                         variant="ghost"
                         className="w-full text-primary justify-center mt-2 touch-button"
                       >
@@ -478,44 +554,6 @@ const Dashboard = () => {
         </div>
       </div>
     </Layout>
-  );
-};
-
-const MobileStatCard = ({
-  icon,
-  value,
-  label,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  value: number;
-  label: string;
-  onClick: () => void;
-}) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5, transition: { duration: 0.2 } }}
-    >
-      <Card
-        className="backdrop-blur-xl border-primary/20 border-2 shadow-sm transition-all duration-300 hover:shadow-md cursor-pointer group hover:border-primary/40 rounded-xl"
-
-
-        onClick={onClick}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => e.key === 'Enter' && onClick()}
-      >
-        <CardContent className="p-4 flex items-center">
-          <div className="mr-3 p-2 rounded-full bg-background/50 transition-all group-hover:scale-110">{icon}</div>
-          <div>
-            <div className="text-2xl font-bold">{value}</div>
-            <div className="text-xs text-muted-foreground">{label}</div>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
   );
 };
 
