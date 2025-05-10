@@ -3,7 +3,15 @@ import { Resume as BaseResume, WorkExperience, Education, Project } from '../typ
 
 // Re-export the types from index.ts
 export type { WorkExperience, Education, Project };
-export type Resume = BaseResume;
+
+// Extended Resume type with additional properties
+export interface Resume extends BaseResume {
+  certifications?: Array<{
+    name: string;
+    dateRange: string;
+  }>;
+  additionalSkills?: string[];
+}
 
 export interface JobPosting {
   title: string;

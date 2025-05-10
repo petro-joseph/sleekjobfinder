@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/collapsible";
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
-import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { Document, Packer, Paragraph, TextRun, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
 
 interface ResumePreviewStepProps {
@@ -270,7 +270,7 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
       let y = margin;
       const pageWidth = 210 - (margin * 2);
 
-      const addWrappedText = (text: string, x: number, y: number, maxWidth: number, fontSize: number, fontStyle: string = 'normal', align: string = 'left') => {
+      const addWrappedText = (text: string, x: number, y: number, maxWidth: number, fontSize: number, fontStyle: string = 'normal', align: 'left' | 'center' | 'right' = 'left') => {
         doc.setFontSize(fontSize);
         doc.setFont('helvetica', fontStyle);
         const lines = doc.splitTextToSize(text, maxWidth);
@@ -466,13 +466,12 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
               spacing: { after: 200 },
               children: [
                 new TextRun({
-                  text: tailoredResume.contactInfo.name,
+                  text: tailoredResume.name,
                   bold: true,
                   size: 40,
-                  alignment: 'center'
                 })
               ],
-              alignment: 'center'
+              alignment: AlignmentType.CENTER
             }),
 
             new Paragraph({
@@ -485,10 +484,9 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
                     tailoredResume.contactInfo.linkedin
                   ].filter(Boolean).join(' | '),
                   size: 20,
-                  alignment: 'center'
                 })
               ],
-              alignment: 'center'
+              alignment: AlignmentType.CENTER
             }),
 
             new Paragraph({

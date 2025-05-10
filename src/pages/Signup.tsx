@@ -35,6 +35,7 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const isAuthenticated = false; // Example state variable
 
   // Initialize Google One Tap
   useEffect(() => {
@@ -106,17 +107,20 @@ const Signup = () => {
 
     loadGoogleScript();
 
+    // Clean up any Google One Tap resources when component unmounts
     return () => {
-      // Clean up any Google One Tap resources when component unmounts
       if (window.google?.accounts?.id) {
         try {
-          window.google.accounts.id.cancel();
+          // Note: Try to cancel if method exists, but don't throw error if it doesn't
+          if (typeof window.google.accounts.id.cancel === 'function') {
+            window.google.accounts.id.cancel();
+          }
         } catch (err) {
           console.error('Failed to cancel One Tap:', err);
         }
       }
     };
-  }, [navigate]);
+  }, [isAuthenticated, navigate]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);

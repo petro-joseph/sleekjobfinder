@@ -67,6 +67,23 @@ export const sampleResume: Resume = {
       date: "2021-11-01",
       description: "Built a task management application with React and Firebase, featuring real-time updates and user authentication."
     }
+  ],
+  // Add the new properties
+  certifications: [
+    {
+      name: "AWS Certified Developer",
+      dateRange: "2022-2025"
+    },
+    {
+      name: "Microsoft Certified: Azure Developer Associate",
+      dateRange: "2021-2024"
+    }
+  ],
+  additionalSkills: [
+    "Docker",
+    "CI/CD",
+    "Agile Methodology",
+    "Technical Writing"
   ]
 };
 

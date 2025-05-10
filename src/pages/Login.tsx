@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -116,14 +115,13 @@ const Login = () => {
       loadGoogleScript();
     }
 
+    // Clean up any Google One Tap resources when component unmounts
     return () => {
-      // Clean up any Google One Tap resources when component unmounts
+      // Cancel any ongoing One Tap prompts
       if (window.google?.accounts?.id) {
-        // Cancel any ongoing One Tap prompts
-        try {
+        // Note: Try to cancel if method exists, but don't throw error if it doesn't
+        if (typeof window.google.accounts.id.cancel === 'function') {
           window.google.accounts.id.cancel();
-        } catch (err) {
-          console.error('Failed to cancel One Tap:', err);
         }
       }
     };
