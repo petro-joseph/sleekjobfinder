@@ -1,5 +1,5 @@
 
-import { Resume } from '@/types';
+import { Resume } from '@/types/resume';
 
 // Sample resume data that matches the Resume interface
 export const sampleResume: Resume = {
@@ -68,7 +68,6 @@ export const sampleResume: Resume = {
       description: "Built a task management application with React and Firebase, featuring real-time updates and user authentication."
     }
   ],
-  // Add the new properties
   certifications: [
     {
       name: "AWS Certified Developer",

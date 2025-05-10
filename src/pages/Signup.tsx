@@ -112,8 +112,9 @@ const Signup = () => {
       if (window.google?.accounts?.id) {
         try {
           // Note: Try to cancel if method exists, but don't throw error if it doesn't
-          if (typeof window.google.accounts.id.cancel === 'function') {
-            window.google.accounts.id.cancel();
+          const googleId = window.google.accounts.id;
+          if (typeof googleId['cancel'] === 'function') {
+            googleId['cancel']();
           }
         } catch (err) {
           console.error('Failed to cancel One Tap:', err);
