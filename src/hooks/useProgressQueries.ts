@@ -1,7 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from '@/integrations/supabase/client';
-import { Application, JobAlert, ApplicationStatus } from "@/types/progress";
+import { Application, JobAlert, ApplicationStatus, APPLICATION_STATUSES } from "@/types/progress";
 
 export const useProgressQueries = (userId?: string) => {
   // Applications query

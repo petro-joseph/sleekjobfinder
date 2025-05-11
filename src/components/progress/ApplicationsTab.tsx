@@ -2,7 +2,7 @@
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
-import { Application, ApplicationStatus } from '@/types/progress';
+import { Application, ApplicationStatus, APPLICATION_STATUSES } from '@/types/progress';
 import { formatStatusLabel, formatDate } from '@/utils/progressHelpers';
 
 // UI Components
