@@ -1,11 +1,12 @@
+
 import React, { lazy, Suspense, useEffect, memo, startTransition } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useRoutes } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { ThemeProvider } from 'next-themes'
 import { supabase } from './integrations/supabase/client'
 import { useAuthStore } from './lib/store'
 import ProtectedRoute from './components/ProtectedRoute'
-import { getSuspenseFallback } from './config/suspense'
-import { QueryProvider } from './providers/QueryProvider'
+import { LoadingSpinner } from './components/jobs/LoadingState'
+import { toast } from 'sonner'
 
 // Global CSS
 import './index.css'
@@ -18,25 +19,13 @@ import { Toaster as SonnerToaster } from '@/components/ui/sonner'
 
 // Eagerly import frequently used components for better performance
 import Home from './pages/Index'
+import Jobs from './pages/Jobs'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import JobDetail from './pages/JobDetail'
+import Dashboard from './pages/Dashboard'
 
-// Route components with suspense and performance optimization
-const RouteComponent = ({ Component }: { Component: React.ComponentType }) => {
-  const location = useLocation();
-  const fallback = getSuspenseFallback(location.pathname);
-  
-  return (
-    <Suspense fallback={fallback}>
-      <Component />
-    </Suspense>
-  );
-};
-
-// Lazily import routes with automatic code splitting
-const Jobs = lazy(() => import('./pages/Jobs'))
-const JobDetail = lazy(() => import('./pages/JobDetail'))
-const Dashboard = lazy(() => import('./pages/Dashboard'))
+// Lazy-load less frequently accessed pages
 const VerifyOtp = lazy(() => import('./pages/VerifyOtp'))
 const Pricing = lazy(() => import('./pages/Pricing'))
 const Blog = lazy(() => import('./pages/Blog'))
@@ -63,18 +52,19 @@ const Callback = lazy(() => import('./pages/auth/Callback'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const ManageResumes = lazy(() => import('./pages/ManageResumes'))
 
+// Create optimized loading component
+const PageLoader = memo(() => <LoadingSpinner />)
+
 // Preload important routes for better UX
 function RoutePreloader() {
   const location = useLocation();
 
   useEffect(() => {
     // Only preload if we're not on a slow connection
-    // Type-safe check for navigator.connection
-    const connection = 'connection' in navigator && (navigator as any).connection;
-    if (connection &&
-        (connection.saveData ||
-         connection.effectiveType === '2g' ||
-         connection.effectiveType === 'slow-2g')) {
+    if (navigator.connection &&
+      (navigator.connection.saveData ||
+        navigator.connection.effectiveType === '2g' ||
+        navigator.connection.effectiveType === 'slow-2g')) {
       return; // Skip preloading on slow connections
     }
 
@@ -196,59 +186,56 @@ function App() {
   }
 
   return (
-    <QueryProvider>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <BrowserRouter>
-          <RoutePreloader />
-          
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <BrowserRouter>
+        <RoutePreloader />
+        <Suspense fallback={<PageLoader />}>
           <Routes>
-            {/* Public routes - not using suspense for critical landing page */}
+            {/* Public */}
             <Route path="/" element={<Home />} />
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<Signup />} />
-            
-            {/* Public routes with suspense */}
-            <Route path="verify-otp" element={<RouteComponent Component={VerifyOtp} />} />
-            <Route path="pricing" element={<RouteComponent Component={Pricing} />} />
-            <Route path="blog" element={<RouteComponent Component={Blog} />} />
-            <Route path="blog/:id" element={<RouteComponent Component={BlogDetail} />} />
-            <Route path="career-guides" element={<RouteComponent Component={CareerGuides} />} />
-            <Route path="guides/resume" element={<RouteComponent Component={ResumeGuide} />} />
-            <Route path="guides/interview" element={<RouteComponent Component={InterviewGuide} />} />
-            <Route path="guides/salary" element={<RouteComponent Component={SalaryGuide} />} />
-            <Route path="faq" element={<RouteComponent Component={FAQ} />} />
-            <Route path="support" element={<RouteComponent Component={Support} />} />
-            <Route path="about" element={<RouteComponent Component={About} />} />
-            <Route path="careers" element={<RouteComponent Component={Careers} />} />
-            <Route path="contact" element={<RouteComponent Component={Contact} />} />
-            <Route path="privacy" element={<RouteComponent Component={Privacy} />} />
-            <Route path="terms" element={<RouteComponent Component={Terms} />} />
-            <Route path="jobs" element={<RouteComponent Component={Jobs} />} />
-            <Route path="jobs/:id" element={<RouteComponent Component={JobDetail} />} />
-            <Route path="apply/:id" element={<RouteComponent Component={Apply} />} />
-            <Route path="resume-builder" element={<RouteComponent Component={ResumeBuilder} />} />
-            <Route path="auth/callback" element={<RouteComponent Component={Callback} />} />
+            <Route path="verify-otp" element={<VerifyOtp />} />
+            <Route path="pricing" element={<Pricing />} />
+            <Route path="blog" element={<Blog />} />
+            <Route path="blog/:id" element={<BlogDetail />} />
+            <Route path="career-guides" element={<CareerGuides />} />
+            <Route path="guides/resume" element={<ResumeGuide />} />
+            <Route path="guides/interview" element={<InterviewGuide />} />
+            <Route path="guides/salary" element={<SalaryGuide />} />
+            <Route path="faq" element={<FAQ />} />
+            <Route path="support" element={<Support />} />
+            <Route path="about" element={<About />} />
+            <Route path="careers" element={<Careers />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="privacy" element={<Privacy />} />
+            <Route path="terms" element={<Terms />} />
+            <Route path="jobs" element={<Jobs />} />
+            <Route path="jobs/:id" element={<JobDetail />} />
+            <Route path="apply/:id" element={<Apply />} />
+            <Route path="resume-builder" element={<ResumeBuilder />} />
+            <Route path="auth/callback" element={<Callback />} />
 
-            {/* Protected routes with suspense */}
+            {/* Protected */}
             <Route element={<ProtectedRoute />}>
-              <Route path="dashboard" element={<RouteComponent Component={Dashboard} />} />
-              <Route path="saved-jobs" element={<RouteComponent Component={SavedJobs} />} />
-              <Route path="profile" element={<RouteComponent Component={Profile} />} />
-              <Route path="progress" element={<RouteComponent Component={Progress} />} />
-              <Route path="preferences" element={<RouteComponent Component={UserPreferences} />} />
-              <Route path="career-assistant" element={<RouteComponent Component={CareerAssistant} />} />
-              <Route path="manage-resumes" element={<RouteComponent Component={ManageResumes} />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="saved-jobs" element={<SavedJobs />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="progress" element={<Progress />} />
+              <Route path="preferences" element={<UserPreferences />} />
+              <Route path="career-assistant" element={<CareerAssistant />} />
+              <Route path="/manage-resumes" element={<ManageResumes />} />
             </Route>
 
             {/* catch-all */}
-            <Route path="*" element={<RouteComponent Component={NotFound} />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
+        </Suspense>
 
-          <SonnerToaster position="top-center" />
-          <Toaster />
-        </BrowserRouter>
-      </ThemeProvider>
-    </QueryProvider>
+        <SonnerToaster position="top-center" />
+        <Toaster />
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }
 
