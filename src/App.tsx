@@ -1,4 +1,3 @@
-
 import React, { lazy, Suspense, useEffect, memo, startTransition } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useRoutes } from 'react-router-dom'
 import { ThemeProvider } from 'next-themes'
@@ -70,10 +69,12 @@ function RoutePreloader() {
 
   useEffect(() => {
     // Only preload if we're not on a slow connection
-    if (navigator.connection &&
-      (navigator.connection.saveData ||
-        navigator.connection.effectiveType === '2g' ||
-        navigator.connection.effectiveType === 'slow-2g')) {
+    // Type-safe check for navigator.connection
+    const connection = 'connection' in navigator && (navigator as any).connection;
+    if (connection &&
+        (connection.saveData ||
+         connection.effectiveType === '2g' ||
+         connection.effectiveType === 'slow-2g')) {
       return; // Skip preloading on slow connections
     }
 

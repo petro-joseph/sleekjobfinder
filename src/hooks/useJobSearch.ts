@@ -1,7 +1,7 @@
 
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { fetchJobs, JobFilters } from '@/api/jobs';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useEffect } from 'react';
 import { JobSearchResponse } from '@/types';
 
 /**

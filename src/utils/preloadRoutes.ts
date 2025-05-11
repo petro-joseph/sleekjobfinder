@@ -84,6 +84,17 @@ export const preloadRoute = (importFn: () => Promise<any>) => {
  * @param currentPath - The current route path
  */
 export const preloadRelatedRoutes = (currentPath: string) => {
+  // Type-safe check for navigator.connection
+  const connection = 'connection' in navigator ? (navigator as any).connection : null;
+  
+  // Don't preload on slow connections or if data saver is enabled
+  if (connection && 
+     (connection.saveData || 
+      connection.effectiveType === '2g' || 
+      connection.effectiveType === 'slow-2g')) {
+    return;
+  }
+
   // Determine which routes to preload based on current path
   if (currentPath.startsWith('/jobs')) {
     preloadRouteGroup('jobs');
@@ -97,4 +108,3 @@ export const preloadRelatedRoutes = (currentPath: string) => {
     preloadRouteGroup('application');
   }
 };
-

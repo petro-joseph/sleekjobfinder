@@ -94,11 +94,14 @@ export function markRouteTransition(from: string, to: string) {
  * Initialize route prefetching based on current page
  */
 export function initializePrefetching(currentPath: string) {
+  // Type-safe check for navigator.connection
+  const connection = 'connection' in navigator ? (navigator as any).connection : null;
+  
   // Don't prefetch on slow connections
-  if (navigator.connection && 
-      (navigator.connection.saveData || 
-       navigator.connection.effectiveType === '2g' ||
-       navigator.connection.effectiveType === 'slow-2g')) {
+  if (connection && 
+      (connection.saveData || 
+       connection.effectiveType === '2g' ||
+       connection.effectiveType === 'slow-2g')) {
     return;
   }
   
