@@ -8,8 +8,8 @@ import { ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { useNavigate } from 'react-router-dom';
 import { preloadRouteGroup } from '@/utils/preloadRoutes';
-import { ProgressiveLoad, InitialMount } from '@/components/dashboard/ProgressiveLoad';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { ProgressiveLoad, InitialMount } from '@/components/dashboard/ProgressiveLoad';
 
 // Import modularized components
 import DashboardStats from '@/components/dashboard/DashboardStats';
