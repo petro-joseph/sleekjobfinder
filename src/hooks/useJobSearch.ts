@@ -91,3 +91,49 @@ export const useFeaturedJobs = (limit: number = 3) => {
     gcTime: 1000 * 60 * 30, // Keep featured jobs in cache longer (30 minutes)
   });
 };
+
+/**
+ * Hook for prefetching job details when hovering over job cards
+ * This improves perceived performance when users click on jobs
+ */
+export const usePrefetchJob = () => {
+  const queryClient = useQueryClient();
+  
+  const prefetchJob = useCallback((jobId: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ['job', jobId],
+      queryFn: () => fetchJobDetails(jobId),
+      staleTime: 1000 * 60 * 5 // Keep prefetched job valid for 5 minutes
+    });
+  }, [queryClient]);
+
+  return prefetchJob;
+};
+
+// Mock fetchJobDetails function - this should be implemented in your API layer
+const fetchJobDetails = (jobId: string) => {
+  // This is a placeholder - you should implement the actual API call
+  return Promise.resolve({ id: jobId });
+};
+
+import { useQueryClient } from '@tanstack/react-query';
+
+/**
+ * Custom hook to preload the next page of job results
+ * for smoother infinite scrolling experience
+ */
+export const usePreloadNextJobsPage = (filters: JobFilters, currentPage: number) => {
+  const queryClient = useQueryClient();
+  
+  useEffect(() => {
+    queryClient.prefetchInfiniteQuery({
+      queryKey: ['jobs', {...filters, page: currentPage + 1}],
+      queryFn: ({ pageParam = currentPage + 1 }) => fetchJobs({
+        ...filters,
+        page: pageParam as number,
+        limit: 10
+      }),
+      initialPageParam: currentPage + 1,
+    });
+  }, [queryClient, filters, currentPage]);
+};
