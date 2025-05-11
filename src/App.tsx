@@ -13,6 +13,18 @@ import './index.css'
 import './styles/mobile.css'
 import 'react-loading-skeleton/dist/skeleton.css'
 
+// Define a custom interface for Navigator with connection property
+interface NetworkInformation {
+  saveData?: boolean;
+  effectiveType?: string;
+}
+
+declare global {
+  interface Navigator {
+    connection?: NetworkInformation;
+  }
+}
+
 // Toasters
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as SonnerToaster } from '@/components/ui/sonner'

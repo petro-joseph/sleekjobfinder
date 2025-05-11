@@ -1,4 +1,3 @@
-
 import { useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -137,4 +136,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
