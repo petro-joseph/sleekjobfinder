@@ -70,8 +70,9 @@ export const useFeaturedJobs = (limit: number = 3) => {
     searchTerm: '',
     industry: '',
     location: '',
-    sortBy: 'featured',
+    sortBy: 'newest', // Changed from 'featured' to 'newest' to match the allowed values
     datePosted: '',
+    featured: true, // Use this property to filter featured jobs instead
   }), []);
   
   return useInfiniteQuery({

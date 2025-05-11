@@ -11,7 +11,7 @@ export interface JobFilters {
   location: string;
   sortBy: 'newest' | 'relevant';
   datePosted: string;
-  featured?: boolean;
+  featured?: boolean; // Added this explicitly to support featured jobs
   page?: number;
   limit?: number;
 }
