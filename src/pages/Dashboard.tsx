@@ -36,6 +36,7 @@ import { Application, RecentActivity, JobAlert } from '@/types';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { preloadRouteGroup } from '@/utils/preloadRoutes';
+import { Loader2, Info } from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -214,14 +215,14 @@ const Dashboard = () => {
     
     try {
       if (user.savedJobs.some((j) => j.id === jobId)) {
+        toast.info('Removing Job from saved jobs');
         await removeJob(jobId);
-        toast.info('Job removed from saved jobs');
       } else {
+        toast.info('saving Job to saved jobs');
         await saveJob(jobToToggle);
-        toast.success('Job saved successfully');
       }
     } catch (error) {
-      toast.error('Failed to update saved job');
+      toast.error('Failed to update saved job' );
     }
   }, [user, allJobs, saveJob, removeJob]);
 

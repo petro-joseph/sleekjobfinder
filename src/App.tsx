@@ -58,36 +58,74 @@ const PageLoader = memo(() => <LoadingSpinner />)
 // Preload important routes for better UX
 function RoutePreloader() {
   const location = useLocation();
-  
+
   useEffect(() => {
-    // Preload the next most likely routes based on current location
+    // Only preload if we're not on a slow connection
+    if (navigator.connection &&
+      (navigator.connection.saveData ||
+        navigator.connection.effectiveType === '2g' ||
+        navigator.connection.effectiveType === 'slow-2g')) {
+      return; // Skip preloading on slow connections
+    }
+
+    // Create a queue of preloads to manage resource priority
+    const preloadQueue = [];
+
     if (location.pathname === '/') {
-      // Preload common routes from homepage
-      startTransition(() => {
-        import('./pages/Jobs');
-        import('./pages/Login');
-        import('./pages/Signup');
-      });
+      preloadQueue.push(
+        () => import('./pages/Jobs'),
+        () => import('./pages/Login'),
+        () => import('./pages/Signup')
+      );
     } else if (location.pathname.startsWith('/jobs')) {
-      // Preload job details when on jobs page
-      startTransition(() => {
-        import('./pages/JobDetail');
-        import('./pages/Apply');
-      });
-    } else if (location.pathname === '/login' || location.pathname === '/signup') {
-      // Preload dashboard when on auth pages
-      startTransition(() => {
-        import('./pages/Dashboard');
-        import('./pages/Profile');
-      });
+      preloadQueue.push(
+        () => import('./pages/JobDetail'),
+        () => import('./pages/Apply')
+      );
+    } else if (['/login', '/signup'].includes(location.pathname)) {
+      preloadQueue.push(
+        () => import('./pages/Dashboard'),
+        () => import('./pages/Profile')
+      );
+    }
+
+    // Execute preloads with a delay to not block main thread
+    let index = 0;
+    const loadNext = () => {
+      if (index < preloadQueue.length) {
+        startTransition(() => {
+          preloadQueue[index]().then(() => {
+            index++;
+            setTimeout(loadNext, 200); // Stagger preloads
+          });
+        });
+      }
+    };
+
+    // Start preloading
+    if (preloadQueue.length) {
+      setTimeout(loadNext, 300); // Start after initial render completes
     }
   }, [location.pathname]);
-  
+
   return null;
 }
 
 function App() {
   const { login, logout } = useAuthStore()
+
+  useEffect(() => {
+    if (!document.startViewTransition) return;
+
+    const handleNavigation = () => {
+      document.startViewTransition(() => {
+        // React will update the DOM during this callback
+      });
+    };
+
+    window.addEventListener('beforenavigate', handleNavigation);
+    return () => window.removeEventListener('beforenavigate', handleNavigation);
+  }, []);
 
   useEffect(() => {
     // 1) Listen for auth changes - using a local variable to prevent memory leaks
