@@ -36,14 +36,6 @@ const Dashboard = () => {
   const { user, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      console.log('[Dashboard Effect] User unauthenticated, redirecting to /login...');
-      navigate('/login', { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
-
   // Preload related routes when dashboard is loaded
   useEffect(() => {
     if (isAuthenticated) {
@@ -60,12 +52,6 @@ const Dashboard = () => {
     }
     navigate(path);
   }, [navigate]);
-
-  // Guard against unauthenticated state
-  if (!isAuthenticated || !user) {
-    console.log('[Dashboard Render] Not authenticated or no user, returning null.');
-    return null;
-  }
 
   const isOnboardingComplete = user?.isOnboardingComplete || false;
 

@@ -21,7 +21,7 @@ export function SectionHeading({
       className
     )}>
       <h2 className="heading-lg">{title}</h2>
-      {subtitle && <p className="paragraph max-w-[80ch]">{subtitle}</p>}
+      {subtitle && <p className="paragraph text-center mx-auto max-w-[80ch]">{subtitle}</p>}
     </div>
   );
 }
