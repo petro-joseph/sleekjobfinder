@@ -1,0 +1,111 @@
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Edit, Save, X } from 'lucide-react';
+import { WorkExperience as WorkExperienceType } from '@/types/resume';
+
+interface WorkExperienceProps {
+    experiences: WorkExperienceType[];
+    editing: { section: string | null; index?: number };
+    editValues: any;
+    startEditing: (section: string, index?: number) => void;
+    cancelEditing: () => void;
+    saveEdits: () => void;
+    updateResponsibility: (index: number, value: string) => void;
+    addResponsibility: () => void;
+    removeResponsibility: (index: number) => void;
+    template: string;
+}
+
+const WorkExperience: React.FC<WorkExperienceProps> = ({
+    experiences,
+    editing,
+    editValues,
+    startEditing,
+    cancelEditing,
+    saveEdits,
+    updateResponsibility,
+    addResponsibility,
+    removeResponsibility,
+    template,
+}) => (
+    <div>
+        <h2 className={`font-bold ${template === 'compact' ? 'text-lg mb-1' : 'text-xl mb-2'} border-b pb-1`}>
+            Professional Experience
+        </h2>
+        <div className={`space-y-${template === 'compact' ? '2' : '4'}`}>
+            {experiences.map((experience, expIndex) => (
+                <div key={expIndex} className="relative group">
+                    <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <button
+                            className="p-1 bg-green-500 rounded-full text-white"
+                            onClick={() => startEditing('experience', expIndex)}
+                        >
+                            <Edit className="h-3 w-3" />
+                        </button>
+                    </div>
+                    <div>
+                        <div className="flex justify-between">
+                            <h3 className="font-bold">{experience.title}</h3>
+                            <span className="text-sm text-muted-foreground">
+                                {experience.startDate} - {experience.endDate || 'Present'}
+                            </span>
+                        </div>
+                        <p className={`text-lg ${template === 'compact' ? 'mb-1' : 'mb-2'}`}>
+                            {experience.company} - {experience.location}
+                        </p>
+                        {editing.section === 'experience' && editing.index === expIndex ? (
+                            <div className="space-y-3">
+                                <div className="space-y-2">
+                                    {editValues.experience?.responsibilities.map((resp: string, rIndex: number) => (
+                                        <div key={rIndex} className="flex gap-2">
+                                            <Textarea
+                                                value={resp}
+                                                onChange={(e) => updateResponsibility(rIndex, e.targetLatin1.value)}
+                                                className="flex-1"
+                                                rows={2}
+                                            />
+                                            <button
+                                                className="text-red-500 self-start mt-2"
+                                                onClick={() => removeResponsibility(rIndex)}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={addResponsibility}
+                                        className="flex-1"
+                                    >
+                                        Add Responsibility
+                                    </Button>
+                                </div>
+                                <div className="flex justify-end space-x-2">
+                                    <Button variant="outline" size="sm" onClick={cancelEditing}>
+                                        Cancel
+                                    </Button>
+                                    <Button size size="sm" onClick={saveEdits}>
+                                        <Save className="mr-1 h-3 w-3" />
+                                        Save
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <ul className={`pl-5 ${template === 'compact' ? 'space-y-0.5' : 'space-y-1'}`}>
+                                {experience.responsibilities.map((resp, rIndex) => (
+                                    <li key={rIndex} className="list-decimal">{resp}</li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
+export default WorkExperience;
