@@ -12,6 +12,7 @@ const routeGroups = {
   ],
   jobs: [
     () => import('../pages/Jobs'),
+    () => import('../pages/Apply'),
     () => import('../pages/JobDetail'),
     () => import('../pages/SavedJobs')
   ],
