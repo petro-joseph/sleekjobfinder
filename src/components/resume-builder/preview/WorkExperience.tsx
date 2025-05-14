@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Edit, Plus, Save, Trash } from 'lucide-react';
 import { WorkExperience as WorkExperienceType } from '@/types/resume';
+import { safeToString, isValidArray } from '@/lib/utils';
 
 interface WorkExperienceProps {
     experiences: WorkExperienceType[];
@@ -47,12 +48,12 @@ const WorkExperience: React.FC<WorkExperienceProps> = ({
                     </div>
                     <div>
                         <div className="flex justify-between">
-                            <h3 className="font-bold">{exp.title}</h3>
+                            <h3 className="font-bold">{safeToString(exp.title)}</h3>
                             <span className="text-sm text-muted-foreground">
-                                {exp.startDate} - {exp.endDate || 'Present'}
+                                {safeToString(exp.startDate)} - {safeToString(exp.endDate || 'Present')}
                             </span>
                         </div>
-                        <p className="text-sm">{exp.company}, {exp.location}</p>
+                        <p className="text-sm">{safeToString(exp.company)}, {safeToString(exp.location)}</p>
                         
                         {editing.section === 'experience' && editing.index === expIndex ? (
                             <div className="mt-2 space-y-2">
@@ -98,19 +99,19 @@ const WorkExperience: React.FC<WorkExperienceProps> = ({
                         ) : (
                             <ul className="mt-1 space-y-1 text-sm list-disc list-inside">
                                 {exp.responsibilities.map((resp, respIndex) => (
-                                    <li key={respIndex}>{resp}</li>
+                                    <li key={respIndex}>{safeToString(resp)}</li>
                                 ))}
                             </ul>
                         )}
                         
-                        {exp.subSections && exp.subSections.length > 0 && (
+                        {isValidArray(exp.subSections) && (
                             <div className="mt-2">
                                 {exp.subSections.map((sub, subIndex) => (
                                     <div key={subIndex} className="mt-2">
-                                        <h4 className="font-medium text-sm">{sub.title}</h4>
+                                        <h4 className="font-medium text-sm">{safeToString(sub.title)}</h4>
                                         <ul className="list-disc list-inside text-sm">
                                             {sub.details.map((detail, detailIndex) => (
-                                                <li key={detailIndex}>{detail}</li>
+                                                <li key={detailIndex}>{safeToString(detail)}</li>
                                             ))}
                                         </ul>
                                     </div>
