@@ -15,4 +15,12 @@ export interface Job {
   url?: string;
   tags: string[];
   created_at?: string;
+  // Make sure we handle potential project-like data correctly
+  projects?: Array<{
+    title: string;
+    role?: string;
+    impact?: string;
+    technologies?: string[];
+    description?: string;
+  }>;
 }

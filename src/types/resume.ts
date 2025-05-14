@@ -18,6 +18,8 @@ export interface Project {
   date: string;
   description: string;
   role?: string;
+  impact?: string;
+  technologies?: string[];
 }
 
 // Extended Resume type with additional properties

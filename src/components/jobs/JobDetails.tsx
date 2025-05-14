@@ -51,6 +51,38 @@ const JobDetails = ({ job }: JobDetailsProps) => {
     "401(k) matching program"
   ];
 
+  // Safely render projects if they exist
+  const renderProjects = () => {
+    if (!job.projects || !Array.isArray(job.projects) || job.projects.length === 0) {
+      return null;
+    }
+    
+    return (
+      <section>
+        <h2 className="text-lg font-semibold mb-3">Projects</h2>
+        <div className="space-y-4">
+          {job.projects.map((project, index) => (
+            <div key={index} className="border-l-2 border-primary/20 pl-4">
+              <h3 className="font-medium">{project.title}</h3>
+              {project.role && <p className="text-sm text-muted-foreground">Role: {project.role}</p>}
+              {project.impact && <p className="text-sm">{project.impact}</p>}
+              {project.description && <p className="text-sm">{project.description}</p>}
+              {project.technologies && Array.isArray(project.technologies) && project.technologies.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {project.technologies.map((tech, techIndex) => (
+                    <Badge key={techIndex} variant="outline" className="text-xs">
+                      {tech}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
   return (
     <div className="bg-card rounded-lg border shadow-sm overflow-hidden flex flex-col h-[calc(100vh-14rem)]">
       <div className="p-6 border-b">
@@ -136,6 +168,9 @@ const JobDetails = ({ job }: JobDetailsProps) => {
             </ul>
           </section>
           
+          {/* Projects Section (conditionally rendered) */}
+          {renderProjects()}
+          
           {/* Job Types */}
           <section>
             <h2 className="text-lg font-semibold mb-3">Job Type</h2>
@@ -168,7 +203,7 @@ const JobDetails = ({ job }: JobDetailsProps) => {
           <section>
             <h2 className="text-lg font-semibold mb-3">Skills</h2>
             <div className="flex flex-wrap gap-2">
-              {job.tags.map((tag, index) => (
+              {job.tags && Array.isArray(job.tags) && job.tags.map((tag, index) => (
                 <Badge key={index} variant="outline">
                   {tag}
                 </Badge>
