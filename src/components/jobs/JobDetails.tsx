@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Job } from '@/data/jobs';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
+import { isValidArray, safeToString } from '@/lib/utils';
 
 interface JobDetailsProps {
   job: Job;
@@ -53,7 +53,7 @@ const JobDetails = ({ job }: JobDetailsProps) => {
 
   // Safely render projects if they exist
   const renderProjects = () => {
-    if (!job.projects || !Array.isArray(job.projects) || job.projects.length === 0) {
+    if (!isValidArray(job.projects)) {
       return null;
     }
     
@@ -63,15 +63,15 @@ const JobDetails = ({ job }: JobDetailsProps) => {
         <div className="space-y-4">
           {job.projects.map((project, index) => (
             <div key={index} className="border-l-2 border-primary/20 pl-4">
-              <h3 className="font-medium">{project.title}</h3>
-              {project.role && <p className="text-sm text-muted-foreground">Role: {project.role}</p>}
-              {project.impact && <p className="text-sm">{project.impact}</p>}
-              {project.description && <p className="text-sm">{project.description}</p>}
-              {project.technologies && Array.isArray(project.technologies) && project.technologies.length > 0 && (
+              <h3 className="font-medium">{safeToString(project.title)}</h3>
+              {project.role && <p className="text-sm text-muted-foreground">Role: {safeToString(project.role)}</p>}
+              {project.impact && <p className="text-sm">{safeToString(project.impact)}</p>}
+              {project.description && <p className="text-sm">{safeToString(project.description)}</p>}
+              {isValidArray(project.technologies) && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {project.technologies.map((tech, techIndex) => (
                     <Badge key={techIndex} variant="outline" className="text-xs">
-                      {tech}
+                      {safeToString(tech)}
                     </Badge>
                   ))}
                 </div>
@@ -203,9 +203,9 @@ const JobDetails = ({ job }: JobDetailsProps) => {
           <section>
             <h2 className="text-lg font-semibold mb-3">Skills</h2>
             <div className="flex flex-wrap gap-2">
-              {job.tags && Array.isArray(job.tags) && job.tags.map((tag, index) => (
+              {isValidArray(job.tags) && job.tags.map((tag, index) => (
                 <Badge key={index} variant="outline">
-                  {tag}
+                  {safeToString(tag)}
                 </Badge>
               ))}
             </div>

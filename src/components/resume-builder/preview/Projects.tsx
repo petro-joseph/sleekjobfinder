@@ -24,43 +24,46 @@ const Projects: React.FC<ProjectsProps> = ({
   template,
 }) => {
   const isEditing = editing.section === 'projects';
-
+  
   // Safe check for projects data
   const hasProjects = isValidArray(projects);
 
   return (
     <div className="relative group">
-      <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+      <div className="flex justify-between items-center mb-2">
+        <h3 className={template === 'compact' ? 'text-md font-bold' : 'text-lg font-bold'}>Projects</h3>
         <button
-          className="p-1 bg-green-500 rounded-full text-white"
           onClick={() => startEditing('projects')}
+          className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-primary hover:text-primary/80"
         >
-          <span className="sr-only">Edit</span>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-          </svg>
+          Edit
         </button>
       </div>
-      <h2 className={`font-bold ${template === 'compact' ? 'text-lg mb-1' : 'text-xl mb-2'} border-b pb-1`}>
-        Projects
-      </h2>
+
       {isEditing ? (
         <div className="space-y-4">
-          {/* Edit form would go here */}
-          <div className="flex justify-end space-x-2">
-            <button 
-              className="px-3 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
-              onClick={cancelEditing}
-            >
+          <div className="space-y-2">
+            {editValues.projects?.map((project: Project, index: number) => (
+              <div key={index} className="space-y-2 p-2 border rounded-md">
+                <input
+                  value={project.title || ''}
+                  onChange={(e) => {
+                    const updatedProjects = [...editValues.projects];
+                    updatedProjects[index] = { ...updatedProjects[index], title: e.target.value };
+                    editValues.projects = updatedProjects;
+                  }}
+                  className="w-full p-1 border rounded"
+                  placeholder="Project Title"
+                />
+                {/* Add more fields as needed */}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-end gap-2">
+            <button onClick={cancelEditing} className="px-3 py-1 text-sm bg-gray-200 rounded">
               Cancel
             </button>
-            <button 
-              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 flex items-center gap-1"
-              onClick={saveEdits}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+            <button onClick={saveEdits} className="px-3 py-1 text-sm bg-primary text-white rounded">
               Save
             </button>
           </div>
