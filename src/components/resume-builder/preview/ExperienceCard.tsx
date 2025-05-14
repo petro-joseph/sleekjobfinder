@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { WorkExperience } from '@/types/resume';
+import { safeToString, isValidArray } from '@/lib/utils';
 
 interface ExperienceCardProps {
   experience: WorkExperience;
@@ -27,22 +28,22 @@ const ExperienceCard: React.FC<ExperienceCardProps> = ({
       
       <ul className={`pl-5 ${compact ? 'space-y-0.5 text-xs' : 'space-y-1 text-sm'}`}>
         {experience.responsibilities.map((resp, idx) => (
-          <li key={idx} className="list-decimal">{resp}</li>
+          <li key={idx} className="list-decimal">{safeToString(resp)}</li>
         ))}
       </ul>
 
-      {experience.subSections && experience.subSections.length > 0 && (
+      {isValidArray(experience.subSections) && (
         <div className={`mt-1 ${compact ? 'space-y-1' : 'space-y-2'}`}>
           {experience.subSections.map((section, idx) => (
             <div key={idx} className="ml-2">
               {section.title && (
                 <h4 className={`font-medium ${compact ? 'text-xs' : 'text-sm'}`}>
-                  {section.title}
+                  {safeToString(section.title)}
                 </h4>
               )}
               <ul className={`pl-5 ${compact ? 'space-y-0.5 text-xs' : 'space-y-1 text-sm'}`}>
                 {section.details.map((detail, detailIdx) => (
-                  <li key={detailIdx} className="list-disc">{detail}</li>
+                  <li key={detailIdx} className="list-disc">{safeToString(detail)}</li>
                 ))}
               </ul>
             </div>
