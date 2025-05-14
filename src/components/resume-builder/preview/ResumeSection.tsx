@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Edit, Save, X } from 'lucide-react';
 
 interface ResumeSectionProps {
   title: string;
-  section: 'summary' | 'skills' | 'additionalSkills';
+  section: string;
   editing: { section: string | null; index?: number };
   editValues: any;
   startEditing: (section: string, index?: number) => void;
@@ -15,7 +16,7 @@ interface ResumeSectionProps {
   template: string;
 }
 
-const ResumeSection: React.FC<ResumeSectionProps> = ({
+export const ResumeSection: React.FC<ResumeSectionProps> = ({
   title,
   section,
   editing,
@@ -26,22 +27,24 @@ const ResumeSection: React.FC<ResumeSectionProps> = ({
   content,
   editContent,
   template,
-}) => (
-  <div className="relative group">
-    <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-      <button
-        className="p-1 bg-green-500 rounded-full text-white"
-        onClick={() => startEditing(section)}
-      >
-        <Edit className="h-3 w-3" />
-      </button>
-    </div>
-    <div>
+}) => {
+  const isEditing = editing.section === section && (editing.index === undefined);
+  
+  return (
+    <div className="relative group">
+      <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        <button
+          className="p-1 bg-green-500 rounded-full text-white"
+          onClick={() => startEditing(section)}
+        >
+          <Edit className="h-3 w-3" />
+        </button>
+      </div>
       <h2 className={`font-bold ${template === 'compact' ? 'text-lg mb-1' : 'text-xl mb-2'} border-b pb-1`}>
         {title}
       </h2>
-      {editing.section === section ? (
-        <div className="space-y-2">
+      {isEditing ? (
+        <div className="space-y-4">
           {editContent}
           <div className="flex justify-end space-x-2">
             <Button variant="outline" size="sm" onClick={cancelEditing}>
@@ -54,10 +57,8 @@ const ResumeSection: React.FC<ResumeSectionProps> = ({
           </div>
         </div>
       ) : (
-        content
+        <div>{content}</div>
       )}
     </div>
-  </div>
-);
-
-export default ResumeSection;
+  );
+};

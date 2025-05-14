@@ -1,15 +1,13 @@
 
 import React from 'react';
 
-interface Project {
-  title: string;
-  date: string;
+interface SoftSkill {
+  name: string;
   description: string;
-  role?: string;
 }
 
-interface ProjectsProps {
-  projects: Project[];
+interface SoftSkillsProps {
+  skills: SoftSkill[];
   editing: { section: string | null; index?: number };
   editValues: any;
   startEditing: (section: string, index?: number) => void;
@@ -18,8 +16,8 @@ interface ProjectsProps {
   template: string;
 }
 
-const Projects: React.FC<ProjectsProps> = ({
-  projects,
+const SoftSkills: React.FC<SoftSkillsProps> = ({
+  skills,
   editing,
   editValues,
   startEditing,
@@ -27,14 +25,14 @@ const Projects: React.FC<ProjectsProps> = ({
   saveEdits,
   template,
 }) => {
-  const isEditing = editing.section === 'projects';
+  const isEditing = editing.section === 'softSkills';
 
   return (
     <div className="relative group">
       <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
         <button
           className="p-1 bg-green-500 rounded-full text-white"
-          onClick={() => startEditing('projects')}
+          onClick={() => startEditing('softSkills')}
         >
           <span className="sr-only">Edit</span>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -43,7 +41,7 @@ const Projects: React.FC<ProjectsProps> = ({
         </button>
       </div>
       <h2 className={`font-bold ${template === 'compact' ? 'text-lg mb-1' : 'text-xl mb-2'} border-b pb-1`}>
-        Projects
+        Soft Skills
       </h2>
       {isEditing ? (
         <div className="space-y-4">
@@ -67,17 +65,11 @@ const Projects: React.FC<ProjectsProps> = ({
           </div>
         </div>
       ) : (
-        <div className={`${template === 'compact' ? 'space-y-2' : 'space-y-4'}`}>
-          {projects.map((project, index) => (
+        <div className={`${template === 'compact' ? 'space-y-1' : 'space-y-2'}`}>
+          {skills.map((skill, index) => (
             <div key={index}>
-              <div className="flex justify-between items-start">
-                <h3 className="font-medium text-sm">{project.title}</h3>
-                {project.date && <span className="text-sm text-muted-foreground">{project.date}</span>}
-              </div>
-              {project.role && (
-                <p className="text-xs italic">{project.role}</p>
-              )}
-              <p className="text-sm">{project.description}</p>
+              <p className="text-sm font-medium">{skill.name}</p>
+              {skill.description && <p className="text-xs text-muted-foreground">{skill.description}</p>}
             </div>
           ))}
         </div>
@@ -86,4 +78,4 @@ const Projects: React.FC<ProjectsProps> = ({
   );
 };
 
-export default Projects;
+export default SoftSkills;

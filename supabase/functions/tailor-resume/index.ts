@@ -3,6 +3,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+// Define CORS headers for cross-origin requests
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 // Define types to match the frontend
 interface JobPosting {
   title: string;
@@ -26,13 +32,35 @@ interface Resume {
   summary: string;
   contactInfo: { phone: string; email: string; linkedin: string };
   workExperiences: Array<{
-    title: string; company: string; location: string; startDate: string; endDate: string; responsibilities: string[];
+    title: string; 
+    company: string; 
+    location: string; 
+    startDate: string; 
+    endDate: string; 
+    responsibilities: string[];
+    subSections?: Array<{title: string; details: string[]}>;
   }>;
   education: Array<{
-    institution: string; degree: string; startDate: string; endDate: string; gpa?: string;
+    institution: string; 
+    degree: string; 
+    startDate: string; 
+    endDate: string; 
+    gpa?: string;
   }>;
-  projects: Array<{
-    title: string; date: string; description: string;
+  projects?: Array<{
+    title: string; 
+    date: string; 
+    description: string;
+    role?: string;
+  }>;
+  certifications?: Array<{
+    name: string; 
+    dateRange: string;
+  }>;
+  additionalSkills?: string[];
+  softSkills?: Array<{
+    name: string;
+    description: string;
   }>;
 }
 
@@ -55,6 +83,10 @@ function convertParsedDataToResume(parsedData: any): Resume {
   const experiences = parsedData?.experience || [];
   const education = parsedData?.education || [];
   const skills = parsedData?.skills || [];
+  const certifications = parsedData?.certifications || [];
+  const projects = parsedData?.projects || [];
+  const additionalSkills = parsedData?.additional_skills || [];
+  const softSkills = parsedData?.soft_skills || [];
   
   // Map the parsed data to the Resume type
   return {
@@ -69,22 +101,40 @@ function convertParsedDataToResume(parsedData: any): Resume {
       email: personal.email || '',
       linkedin: personal.linkedin_url || ''
     },
-    workExperiences: experiences.map(exp => ({
+    workExperiences: experiences.map((exp) => ({
       title: exp.title || '',
       company: exp.company || '',
       location: exp.location || '',
       startDate: exp.start_date || '',
       endDate: exp.end_date || 'Present',
-      responsibilities: exp.achievements || []
+      responsibilities: exp.achievements || [],
+      subSections: Array.isArray(exp.sub_sections) ? exp.sub_sections.map((sub) => ({
+        title: sub.title || '',
+        details: sub.details || []
+      })) : [] // Ensure subSections is always an array
     })),
-    education: education.map(edu => ({
+    education: education.map((edu) => ({
       institution: edu.institution || '',
       degree: edu.degree || '',
       startDate: edu.start_date || '',
       endDate: edu.end_date || '',
-      gpa: ''
+      gpa: edu.gpa || edu.description?.match(/GPA\s*([\d.]+)/)?.[1] || ''
     })),
-    projects: [] // Default to empty array as parsed data may not include projects
+    certifications: certifications.map((cert) => ({
+      name: cert.name || '',
+      dateRange: cert.date_range || ''
+    })),
+    projects: projects.map((proj) => ({
+      title: proj.title || '',
+      date: proj.date || '',
+      description: proj.description || '',
+      role: proj.role || proj.user_role || proj.position || 'Contributor'
+    })),
+    additionalSkills: additionalSkills,
+    softSkills: softSkills.map((skill) => ({
+      name: skill.name || '',
+      description: skill.description || ''
+    }))
   };
 }
 
@@ -127,6 +177,9 @@ function deriveIndustriesFromExperience(experiences: any[]): string[] {
     if (exp.job_type) {
       industries.add(exp.job_type);
     }
+    if (exp.industry) {
+      industries.add(exp.industry);
+    }
     // Add more industry inference logic as needed
   });
   
@@ -166,8 +219,8 @@ async function tailorResume(resume: Resume, jobPosting: JobPosting, selectedSect
     Please provide the following ${selectedSections.summary ? 'including an improved summary' : 'without changing the summary'}
     ${selectedSections.experience ? ', including improved work experience descriptions' : ', without changing work experience'}:
     
-    1. ${selectedSections.summary ? 'An improved professional summary that highlights relevant skills and experience for this job.' : ''}
-    2. ${selectedSections.experience ? 'Improved bullet points for work experience that emphasize achievements and skills relevant to this job.' : ''}
+    1. ${selectedSections.summary ? 'An improved professional summary that highlights relevant skills and experience for this job. Make it ATS-friendly by incorporating key terms from the job posting while keeping it readable for humans.' : ''}
+    2. ${selectedSections.experience ? 'Improved bullet points for work experience that emphasize achievements and skills relevant to this job. Format as clear, action-oriented statements that quantify impact where possible.' : ''}
     
     Format your response as a JSON object with these keys:
     ${selectedSections.summary ? '"summary": "improved summary text",' : ''}
@@ -186,7 +239,7 @@ async function tailorResume(resume: Resume, jobPosting: JobPosting, selectedSect
         messages: [
           {
             role: 'system',
-            content: 'You are a professional resume writer who helps tailor resumes to specific job descriptions.'
+            content: 'You are a professional resume writer who helps tailor resumes to specific job descriptions. Create ATS-optimized content while keeping it readable for humans.'
           },
           {
             role: 'user',
@@ -259,12 +312,6 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Define CORS headers
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -281,6 +328,8 @@ serve(async (req) => {
       );
     }
 
+    console.log(`Fetching resume with id: ${resume_id}`);
+    
     // Fetch the resume from Supabase
     const { data: resumeData, error: resumeError } = await supabase
       .from('resumes')
@@ -305,10 +354,12 @@ serve(async (req) => {
       );
     }
     
+    console.log('Converting parsed data');
     const resume = convertParsedDataToResume(parsedData);
     resume.name = resumeData.name; // Ensure the name from the resumes table is used
     
     // Tailor the resume using OpenAI
+    console.log('Tailoring resume');
     const tailoredResume = await tailorResume(resume, job_posting, selected_sections, selected_skills);
 
     return new Response(

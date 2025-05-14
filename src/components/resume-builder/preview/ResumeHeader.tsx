@@ -1,26 +1,23 @@
+
 import React from 'react';
 import { Resume } from '@/types/resume';
 
 interface ResumeHeaderProps {
-    resume: Resume;
-    template: string;
+  resume: Resume;
+  template: string;
 }
 
-const ResumeHeader: React.FC<ResumeHeaderProps> = ({ resume, template }) => (
-    <div className="text-center">
-        <h1 className="text-3xl font-bold">{resume.name}</h1>
-        <div className={`flex flex-wrap justify-center gap-x-4 ${template === 'compact' ? 'mt-1' : 'mt-2'}`}>
-            <a href={`tel:${resume.contactInfo.phone}`} className="text-primary hover:underline">
-                {resume.contactInfo.phone} |
-            </a>
-            <a href={`mailto:${resume.contactInfo.email}`} className="text-primary hover:underline">
-                {resume.contactInfo.email} |
-            </a>
-            <a href={`https://${resume.contactInfo.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                {resume.contactInfo.linkedin}
-            </a>
-        </div>
+const ResumeHeader: React.FC<ResumeHeaderProps> = ({ resume, template }) => {
+  return (
+    <div className={`${template === 'compact' ? 'space-y-1' : 'space-y-3'}`}>
+      <h1 className="text-2xl font-bold text-center">{resume.name}</h1>
+      <div className="text-sm text-center text-muted-foreground">
+        {[resume.contactInfo.phone, resume.contactInfo.email, resume.contactInfo.linkedin]
+          .filter(Boolean)
+          .join(' | ')}
+      </div>
     </div>
-);
+  );
+};
 
 export default ResumeHeader;

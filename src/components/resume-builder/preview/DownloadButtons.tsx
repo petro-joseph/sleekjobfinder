@@ -1,14 +1,11 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface DownloadButtonsProps {
-    onDownload: (format: 'pdf' | 'docx', toast: (props: {
-        title: string;
-        description: string;
-        variant?: 'default' | 'destructive';
-    }) => void) => void;
+    onDownload: (format: 'pdf' | 'docx') => Promise<void>;
 }
 
 const DownloadButtons: React.FC<DownloadButtonsProps> = ({ onDownload }) => {
@@ -20,10 +17,10 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({ onDownload }) => {
         if (format === 'pdf') {
             setIsGeneratingPDF(true);
             try {
-                await onDownload(format, toast.toast); // Pass toast.toast (the function)
+                await onDownload(format);
             } catch (error) {
                 console.error(`Error generating ${format.toUpperCase()}:`, error);
-                toast.toast({
+                toast({
                     title: 'Download Failed',
                     description: `There was an error generating the ${format.toUpperCase()} file. Please try again.`,
                     variant: 'destructive',
@@ -34,10 +31,10 @@ const DownloadButtons: React.FC<DownloadButtonsProps> = ({ onDownload }) => {
         } else {
             setIsGeneratingDOCX(true);
             try {
-                await onDownload(format, toast.toast); // Pass toast.toast (the function)
+                await onDownload(format);
             } catch (error) {
                 console.error(`Error generating ${format.toUpperCase()}:`, error);
-                toast.toast({
+                toast({
                     title: 'Download Failed',
                     description: `There was an error generating the ${format.toUpperCase()} file. Please try again.`,
                     variant: 'destructive',

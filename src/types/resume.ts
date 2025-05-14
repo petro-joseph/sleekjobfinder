@@ -1,16 +1,35 @@
 
-import { Resume as BaseResume, WorkExperience, Education, Project } from '../types/index';
+import { Resume as BaseResume, WorkExperience as BaseWorkExperience, Education, Project } from '../types/index';
 
 // Re-export the types from index.ts
-export type { WorkExperience, Education, Project };
+export type { Education };
+
+// Extended WorkExperience type with subSections
+export interface WorkExperience extends BaseWorkExperience {
+  subSections?: Array<{
+    title: string;
+    details: string[];
+  }>;
+}
+
+// Extended Project type with role
+export interface Project extends Omit<Project, 'role'> {
+  role?: string;
+}
 
 // Extended Resume type with additional properties
-export interface Resume extends BaseResume {
+export interface Resume extends Omit<BaseResume, 'workExperiences' | 'projects'> {
+  workExperiences: WorkExperience[];
+  projects?: Project[];
   certifications?: Array<{
     name: string;
     dateRange: string;
   }>;
   additionalSkills?: string[];
+  softSkills?: Array<{
+    name: string;
+    description: string;
+  }>;
 }
 
 export interface JobPosting {
