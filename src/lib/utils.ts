@@ -1,14 +1,12 @@
 
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
- 
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
-/**
- * Safely converts any value to a string
- */
+// Safe string conversion utility to prevent rendering objects directly
 export function safeToString(value: any): string {
   if (value === null || value === undefined) {
     return '';
@@ -18,20 +16,23 @@ export function safeToString(value: any): string {
     return value;
   }
   
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  
   if (typeof value === 'object') {
+    // For objects, either stringify them or return a placeholder
     try {
       return JSON.stringify(value);
     } catch (e) {
-      return String(value);
+      return '[Object]';
     }
   }
   
-  return String(value);
+  return '';
 }
 
-/**
- * Checks if the value is a valid array and has items
- */
-export function isValidArray(value: any): boolean {
-  return Array.isArray(value) && value.length > 0;
+// Check if an array is valid for rendering
+export function isValidArray(arr: any): boolean {
+  return Array.isArray(arr) && arr.length > 0;
 }

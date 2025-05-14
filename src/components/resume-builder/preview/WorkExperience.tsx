@@ -98,7 +98,7 @@ const WorkExperience: React.FC<WorkExperienceProps> = ({
                             </div>
                         ) : (
                             <ul className="mt-1 space-y-1 text-sm list-disc list-inside">
-                                {exp.responsibilities.map((resp, respIndex) => (
+                                {exp.responsibilities && exp.responsibilities.map((resp, respIndex) => (
                                     <li key={respIndex}>{safeToString(resp)}</li>
                                 ))}
                             </ul>
@@ -110,8 +110,14 @@ const WorkExperience: React.FC<WorkExperienceProps> = ({
                                     <div key={subIndex} className="mt-2">
                                         <h4 className="font-medium text-sm">{safeToString(sub.title)}</h4>
                                         <ul className="list-disc list-inside text-sm">
-                                            {sub.details.map((detail, detailIndex) => (
-                                                <li key={detailIndex}>{safeToString(detail)}</li>
+                                            {Array.isArray(sub.details) && sub.details.map((detail, detailIndex) => (
+                                                <li key={detailIndex}>
+                                                    {typeof detail === 'string' 
+                                                        ? safeToString(detail)
+                                                        : typeof detail === 'object' 
+                                                            ? `${safeToString(detail.title || '')} - ${safeToString(detail.role || '')}`
+                                                            : ''}
+                                                </li>
                                             ))}
                                         </ul>
                                     </div>

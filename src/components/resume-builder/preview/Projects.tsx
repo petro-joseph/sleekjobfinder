@@ -2,7 +2,7 @@
 import React from 'react';
 import { Project } from '@/types/resume';
 import { Badge } from '@/components/ui/badge';
-import { isValidArray, safeToString } from '@/lib/utils';
+import { safeToString, isValidArray } from '@/lib/utils';
 
 interface ProjectsProps {
   projects: Project[];
@@ -46,7 +46,7 @@ const Projects: React.FC<ProjectsProps> = ({
             {editValues.projects?.map((project: Project, index: number) => (
               <div key={index} className="space-y-2 p-2 border rounded-md">
                 <input
-                  value={project.title || ''}
+                  value={safeToString(project.title) || ''}
                   onChange={(e) => {
                     const updatedProjects = [...editValues.projects];
                     updatedProjects[index] = { ...updatedProjects[index], title: e.target.value };
@@ -79,7 +79,7 @@ const Projects: React.FC<ProjectsProps> = ({
               {project.role && (
                 <p className="text-xs italic">{safeToString(project.role)}</p>
               )}
-              <p className="text-sm">{safeToString(project.description)}</p>
+              <p className="text-sm">{safeToString(project.description || project.impact || '')}</p>
               
               {/* Display technologies if available */}
               {isValidArray(project.technologies) && (
