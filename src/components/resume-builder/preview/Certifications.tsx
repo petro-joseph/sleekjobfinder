@@ -1,5 +1,8 @@
 
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Edit, Plus, Save, X } from 'lucide-react';
 
 interface Certification {
   name: string;
@@ -27,6 +30,33 @@ const Certifications: React.FC<CertificationsProps> = ({
 }) => {
   const isEditing = editing.section === 'certifications';
 
+  const updateCertification = (index: number, field: string, value: string) => {
+    if (!editValues.certifications) return;
+    
+    const updatedCertifications = [...editValues.certifications];
+    updatedCertifications[index] = {
+      ...updatedCertifications[index],
+      [field]: value
+    };
+    
+    editValues.certifications = updatedCertifications;
+  };
+
+  const addCertification = () => {
+    if (!editValues.certifications) return;
+    
+    editValues.certifications = [
+      ...editValues.certifications,
+      { name: '', dateRange: '' }
+    ];
+  };
+
+  const removeCertification = (index: number) => {
+    if (!editValues.certifications) return;
+    
+    editValues.certifications = editValues.certifications.filter((_: any, i: number) => i !== index);
+  };
+
   return (
     <div className="relative group">
       <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
@@ -34,10 +64,7 @@ const Certifications: React.FC<CertificationsProps> = ({
           className="p-1 bg-green-500 rounded-full text-white"
           onClick={() => startEditing('certifications')}
         >
-          <span className="sr-only">Edit</span>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-          </svg>
+          <Edit className="h-3 w-3" />
         </button>
       </div>
       <h2 className={`font-bold ${template === 'compact' ? 'text-lg mb-1' : 'text-xl mb-2'} border-b pb-1`}>
@@ -45,23 +72,49 @@ const Certifications: React.FC<CertificationsProps> = ({
       </h2>
       {isEditing ? (
         <div className="space-y-4">
-          {/* Edit form would go here */}
+          {editValues.certifications?.map((cert: Certification, index: number) => (
+            <div key={index} className="flex gap-2 items-start">
+              <div className="flex-1 space-y-2">
+                <Input
+                  value={cert.name || ''}
+                  onChange={(e) => updateCertification(index, 'name', e.target.value)}
+                  placeholder="Certification name"
+                  className="mb-1"
+                />
+                <Input
+                  value={cert.dateRange || ''}
+                  onChange={(e) => updateCertification(index, 'dateRange', e.target.value)}
+                  placeholder="Date range (e.g., Jan 2023 - Feb 2024)"
+                />
+              </div>
+              <Button 
+                size="icon" 
+                variant="destructive"
+                onClick={() => removeCertification(index)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={addCertification} 
+            className="flex items-center"
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            Add Certification
+          </Button>
+          
           <div className="flex justify-end space-x-2">
-            <button 
-              className="px-3 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
-              onClick={cancelEditing}
-            >
+            <Button variant="outline" size="sm" onClick={cancelEditing}>
               Cancel
-            </button>
-            <button 
-              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 flex items-center gap-1"
-              onClick={saveEdits}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+            </Button>
+            <Button size="sm" onClick={saveEdits}>
+              <Save className="mr-1 h-3 w-3" />
               Save
-            </button>
+            </Button>
           </div>
         </div>
       ) : (

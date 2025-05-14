@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Resume } from '@/types/resume';
 
@@ -6,7 +7,7 @@ const useResumeEditing = (
     setTailoredResume: React.Dispatch<React.SetStateAction<Resume | null>>
 ) => {
     const [editing, setEditing] = useState<{
-        section: 'summary' | 'skills' | 'experience' | 'education' | 'projects' | 'certifications' | 'additionalSkills' | null;
+        section: 'summary' | 'skills' | 'experience' | 'education' | 'projects' | 'certifications' | 'additionalSkills' | 'softSkills' | null;
         index?: number;
     }>({ section: null });
 
@@ -16,12 +17,21 @@ const useResumeEditing = (
         experience?: { index: number; responsibilities: string[] };
         education?: { index: number; institution?: string; degree?: string; startDate?: string; endDate?: string };
         project?: { index: number; title?: string; date?: string; description?: string };
-        certification?: { index: number; name?: string; dateRange?: string };
+        certifications?: Array<{ name: string; dateRange: string }>;
+        projects?: Array<{
+            title: string;
+            date: string;
+            description: string;
+            role?: string;
+            impact?: string;
+            technologies?: string[];
+        }>;
         additionalSkills?: string[];
+        softSkills?: Array<{ name: string; description: string }>;
     }>({});
 
     const startEditing = (
-        section: 'summary' | 'skills' | 'experience' | 'education' | 'projects' | 'certifications' | 'additionalSkills',
+        section: 'summary' | 'skills' | 'experience' | 'education' | 'projects' | 'certifications' | 'additionalSkills' | 'softSkills',
         index?: number
     ) => {
         setEditing({ section, index });
@@ -47,27 +57,22 @@ const useResumeEditing = (
                     endDate: edu.endDate,
                 },
             });
-        } else if (section === 'projects' && typeof index === 'number') {
-            const proj = tailoredResume.projects[index];
+        } else if (section === 'projects') {
             setEditValues({
-                project: {
-                    index,
-                    title: proj.title,
-                    date: proj.date,
-                    description: proj.description,
-                },
+                projects: tailoredResume.projects ? [...tailoredResume.projects] : [],
             });
-        } else if (section === 'certifications' && typeof index === 'number') {
-            const cert = tailoredResume.certifications[index];
-            setEditValues({
-                certification: {
-                    index,
-                    name: cert.name,
-                    dateRange: cert.dateRange,
-                },
+        } else if (section === 'certifications') {
+            setEditValues({ 
+                certifications: tailoredResume.certifications ? [...tailoredResume.certifications] : [] 
             });
         } else if (section === 'additionalSkills') {
-            setEditValues({ additionalSkills: [...tailoredResume.additionalSkills] });
+            setEditValues({ 
+                additionalSkills: tailoredResume.additionalSkills ? [...tailoredResume.additionalSkills] : [] 
+            });
+        } else if (section === 'softSkills') {
+            setEditValues({ 
+                softSkills: tailoredResume.softSkills ? [...tailoredResume.softSkills] : [] 
+            });
         }
     };
 
@@ -78,7 +83,7 @@ const useResumeEditing = (
 
     const saveEdits = () => {
         const updated = { ...tailoredResume };
-        if (editing.section === 'summary' && editValues.summary) {
+        if (editing.section === 'summary' && editValues.summary !== undefined) {
             updated.summary = editValues.summary;
         } else if (editing.section === 'skills' && editValues.skills) {
             updated.skills = editValues.skills;
@@ -90,17 +95,14 @@ const useResumeEditing = (
             if (edu.degree) updated.education[editing.index].degree = edu.degree;
             if (edu.startDate) updated.education[editing.index].startDate = edu.startDate;
             if (edu.endDate) updated.education[editing.index].endDate = edu.endDate;
-        } else if (editing.section === 'projects' && editValues.project && typeof editing.index === 'number') {
-            const proj = editValues.project;
-            if (proj.title) updated.projects[editing.index].title = proj.title;
-            if (proj.date) updated.projects[editing.index].date = proj.date;
-            if (proj.description) updated.projects[editing.index].description = proj.description;
-        } else if (editing.section === 'certifications' && editValues.certification && typeof editing.index === 'number') {
-            const cert = editValues.certification;
-            if (cert.name) updated.certifications[editing.index].name = cert.name;
-            if (cert.dateRange) updated.certifications[editing.index].dateRange = cert.dateRange;
+        } else if (editing.section === 'projects' && editValues.projects) {
+            updated.projects = editValues.projects;
+        } else if (editing.section === 'certifications' && editValues.certifications) {
+            updated.certifications = editValues.certifications;
         } else if (editing.section === 'additionalSkills' && editValues.additionalSkills) {
             updated.additionalSkills = editValues.additionalSkills;
+        } else if (editing.section === 'softSkills' && editValues.softSkills) {
+            updated.softSkills = editValues.softSkills;
         }
         setTailoredResume(updated);
         setEditing({ section: null });
@@ -109,25 +111,25 @@ const useResumeEditing = (
 
     const addSkill = (skill: string) => {
         if (editValues.skills && !editValues.skills.includes(skill)) {
-            setEditValues({ skills: [...editValues.skills, skill] });
+            setEditValues({ ...editValues, skills: [...editValues.skills, skill] });
         }
     };
 
     const removeSkill = (skill: string) => {
         if (editValues.skills) {
-            setEditValues({ skills: editValues.skills.filter(s => s !== skill) });
+            setEditValues({ ...editValues, skills: editValues.skills.filter(s => s !== skill) });
         }
     };
 
     const addAdditionalSkill = (skill: string) => {
         if (editValues.additionalSkills && !editValues.additionalSkills.includes(skill)) {
-            setEditValues({ additionalSkills: [...editValues.additionalSkills, skill] });
+            setEditValues({ ...editValues, additionalSkills: [...editValues.additionalSkills, skill] });
         }
     };
 
     const removeAdditionalSkill = (skill: string) => {
         if (editValues.additionalSkills) {
-            setEditValues({ additionalSkills: editValues.additionalSkills.filter(s => s !== skill) });
+            setEditValues({ ...editValues, additionalSkills: editValues.additionalSkills.filter(s => s !== skill) });
         }
     };
 
@@ -136,6 +138,7 @@ const useResumeEditing = (
             const updated = [...editValues.experience.responsibilities];
             updated[index] = value;
             setEditValues({
+                ...editValues,
                 experience: {
                     index: editValues.experience.index,
                     responsibilities: updated,
@@ -147,6 +150,7 @@ const useResumeEditing = (
     const addResponsibility = () => {
         if (editValues.experience) {
             setEditValues({
+                ...editValues,
                 experience: {
                     index: editValues.experience.index,
                     responsibilities: [...editValues.experience.responsibilities, ''],
@@ -159,6 +163,7 @@ const useResumeEditing = (
         if (editValues.experience) {
             const updated = editValues.experience.responsibilities.filter((_, i) => i !== index);
             setEditValues({
+                ...editValues,
                 experience: {
                     index: editValues.experience.index,
                     responsibilities: updated,

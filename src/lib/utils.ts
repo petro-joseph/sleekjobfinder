@@ -1,23 +1,34 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
-/**
- * Safely converts a value to a string, handling undefined and null values
- */
+// Safe string conversion utility
 export function safeToString(value: any): string {
-  if (value === undefined || value === null) {
-    return '';
-  }
+  if (value === null || value === undefined) return '';
   return String(value);
 }
 
-/**
- * Checks if a value is a valid non-empty array
- */
-export function isValidArray(value: any): boolean {
-  return Array.isArray(value) && value.length > 0;
+// Safe array check utility
+export function isValidArray(arr: any): boolean {
+  return Array.isArray(arr) && arr.length > 0;
+}
+
+// Helper to format project details
+export function formatDetail(detail: string | { title?: string; role?: string; description?: string }): string {
+  if (typeof detail === 'string') {
+    return detail;
+  }
+  
+  let result = '';
+  if (detail.title) result += detail.title;
+  if (detail.role) result += result ? ` - ${detail.role}` : detail.role;
+  if (detail.description && !result.includes(detail.description)) {
+    result += result ? `: ${detail.description}` : detail.description;
+  }
+  
+  return result || '';
 }

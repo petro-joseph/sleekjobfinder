@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { Edit, Plus, Save, X } from 'lucide-react';
 
 interface AdditionalSkillsProps {
   skills: string[];
@@ -11,8 +11,6 @@ interface AdditionalSkillsProps {
   startEditing: (section: string, index?: number) => void;
   cancelEditing: () => void;
   saveEdits: () => void;
-  addSkill: (skill: string) => void;
-  removeSkill: (skill: string) => void;
   template: string;
 }
 
@@ -23,11 +21,27 @@ const AdditionalSkills: React.FC<AdditionalSkillsProps> = ({
   startEditing,
   cancelEditing,
   saveEdits,
-  addSkill,
-  removeSkill,
   template,
 }) => {
   const isEditing = editing.section === 'additionalSkills';
+  const [newSkill, setNewSkill] = React.useState('');
+
+  const addSkill = (skill: string) => {
+    if (!skill.trim() || !editValues.additionalSkills) return;
+    
+    if (!editValues.additionalSkills.includes(skill.trim())) {
+      editValues.additionalSkills = [...editValues.additionalSkills, skill.trim()];
+    }
+    setNewSkill('');
+  };
+
+  const removeSkill = (skill: string) => {
+    if (!editValues.additionalSkills) return;
+    
+    editValues.additionalSkills = editValues.additionalSkills.filter(
+      (s: string) => s !== skill
+    );
+  };
 
   return (
     <div className="relative group">
@@ -36,10 +50,7 @@ const AdditionalSkills: React.FC<AdditionalSkillsProps> = ({
           className="p-1 bg-green-500 rounded-full text-white"
           onClick={() => startEditing('additionalSkills')}
         >
-          <span className="sr-only">Edit</span>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-          </svg>
+          <Edit className="h-3 w-3" />
         </button>
       </div>
       <h2 className={`font-bold ${template === 'compact' ? 'text-lg mb-1' : 'text-xl mb-2'} border-b pb-1`}>
@@ -60,20 +71,28 @@ const AdditionalSkills: React.FC<AdditionalSkillsProps> = ({
               </span>
             ))}
           </div>
-          <Input
-            placeholder="Add a skill..."
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && e.currentTarget.value) {
-                addSkill(e.currentTarget.value);
-                e.currentTarget.value = '';
-              }
-            }}
-          />
+          
+          <div className="flex gap-2">
+            <Input
+              value={newSkill}
+              onChange={(e) => setNewSkill(e.target.value)}
+              placeholder="Add a skill..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addSkill(newSkill);
+                }
+              }}
+            />
+            <Button onClick={() => addSkill(newSkill)}>Add</Button>
+          </div>
+          
           <div className="flex justify-end space-x-2">
             <Button variant="outline" size="sm" onClick={cancelEditing}>
               Cancel
             </Button>
             <Button size="sm" onClick={saveEdits}>
+              <Save className="mr-1 h-3 w-3" />
               Save
             </Button>
           </div>

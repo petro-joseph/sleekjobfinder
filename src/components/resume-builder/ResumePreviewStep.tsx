@@ -8,14 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import useResumeEditing from '@/hooks/useResumeEditing';
 
 // Import modular components
 import ResumeHeader from './preview/ResumeHeader';
 import { ResumeSection } from './preview/ResumeSection';
 import SkillsDisplay from './preview/SkillsDisplay';
 import SummaryCard from './preview/SummaryCard';
-import ExperienceCard from './preview/ExperienceCard';
-import EducationCard from './preview/EducationCard';
 import WorkExperience from './preview/WorkExperience';
 import Education from './preview/Education';
 import Certifications from './preview/Certifications';
@@ -53,169 +52,23 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
   credits,
 }) => {
   const { toast } = useToast();
-  const [editing, setEditing] = React.useState<{ section: string | null; index?: number }>({ section: null });
-  const [editValues, setEditValues] = React.useState<any>({});
-
-  // Start editing a section
-  const startEditing = (section: string, index?: number) => {
-    let sectionValues: any = {};
-    
-    // Clone the relevant section for editing
-    switch (section) {
-      case 'summary':
-        sectionValues = { summary: tailoredResume.summary };
-        break;
-      case 'skills':
-        sectionValues = { skills: [...tailoredResume.skills] };
-        break;
-      case 'experience':
-        sectionValues = { 
-          experience: {
-            ...tailoredResume.workExperiences[index || 0],
-            responsibilities: [...tailoredResume.workExperiences[index || 0].responsibilities]
-          }
-        };
-        break;
-      case 'education':
-        sectionValues = { education: {...tailoredResume.education[index || 0]} };
-        break;
-      case 'additionalSkills':
-        sectionValues = { additionalSkills: tailoredResume.additionalSkills ? [...tailoredResume.additionalSkills] : [] };
-        break;
-      case 'softSkills':
-        sectionValues = { softSkills: tailoredResume.softSkills ? [...tailoredResume.softSkills] : [] };
-        break;
-      case 'certifications':
-        sectionValues = { certifications: tailoredResume.certifications ? [...tailoredResume.certifications] : [] };
-        break;
-      case 'projects':
-        sectionValues = { projects: tailoredResume.projects ? [...tailoredResume.projects] : [] };
-        break;
-      default:
-        break;
-    }
-
-    setEditValues(sectionValues);
-    setEditing({ section, index });
-  };
-
-  // Cancel editing
-  const cancelEditing = () => {
-    setEditing({ section: null });
-    setEditValues({});
-  };
-
-  // Save edits
-  const saveEdits = () => {
-    const sectionName = editing.section;
-    if (!sectionName) return;
-
-    // Create a copy of the resume
-    const updatedResume = { ...tailoredResume };
-
-    // Update the appropriate section
-    switch (sectionName) {
-      case 'summary':
-        updatedResume.summary = editValues.summary;
-        break;
-      case 'skills':
-        updatedResume.skills = editValues.skills;
-        break;
-      case 'experience':
-        if (editing.index !== undefined && updatedResume.workExperiences[editing.index]) {
-          updatedResume.workExperiences[editing.index].responsibilities = 
-            editValues.experience.responsibilities;
-        }
-        break;
-      case 'education':
-        if (editing.index !== undefined) {
-          updatedResume.education[editing.index] = editValues.education;
-        }
-        break;
-      case 'additionalSkills':
-        updatedResume.additionalSkills = editValues.additionalSkills;
-        break;
-      case 'softSkills':
-        updatedResume.softSkills = editValues.softSkills;
-        break;
-      case 'certifications':
-        updatedResume.certifications = editValues.certifications;
-        break;
-      case 'projects':
-        updatedResume.projects = editValues.projects;
-        break;
-      default:
-        break;
-    }
-
-    // Update the resume and exit editing mode
-    setTailoredResume(updatedResume);
-    cancelEditing();
-  };
-
-  // Skills management functions
-  const addSkill = (skill: string) => {
-    if (!editValues.skills) return;
-    if (!editValues.skills.includes(skill)) {
-      setEditValues({ ...editValues, skills: [...editValues.skills, skill] });
-    }
-  };
-
-  const removeSkill = (skill: string) => {
-    if (!editValues.skills) return;
-    setEditValues({ ...editValues, skills: editValues.skills.filter((s: string) => s !== skill) });
-  };
-
-  // Additional skills management
-  const addAdditionalSkill = (skill: string) => {
-    if (!editValues.additionalSkills) return;
-    if (!editValues.additionalSkills.includes(skill)) {
-      setEditValues({ ...editValues, additionalSkills: [...editValues.additionalSkills, skill] });
-    }
-  };
-
-  const removeAdditionalSkill = (skill: string) => {
-    if (!editValues.additionalSkills) return;
-    setEditValues({ ...editValues, additionalSkills: editValues.additionalSkills.filter((s: string) => s !== skill) });
-  };
-
-  // Work experience responsibilities management
-  const updateResponsibility = (index: number, value: string) => {
-    if (!editValues.experience || !editValues.experience.responsibilities) return;
-    const updatedResponsibilities = [...editValues.experience.responsibilities];
-    updatedResponsibilities[index] = value;
-    setEditValues({
-      ...editValues,
-      experience: {
-        ...editValues.experience,
-        responsibilities: updatedResponsibilities
-      }
-    });
-  };
-
-  const addResponsibility = () => {
-    if (!editValues.experience || !editValues.experience.responsibilities) return;
-    setEditValues({
-      ...editValues,
-      experience: {
-        ...editValues.experience,
-        responsibilities: [...editValues.experience.responsibilities, ""]
-      }
-    });
-  };
-
-  const removeResponsibility = (index: number) => {
-    if (!editValues.experience || !editValues.experience.responsibilities) return;
-    const updatedResponsibilities = [...editValues.experience.responsibilities];
-    updatedResponsibilities.splice(index, 1);
-    setEditValues({
-      ...editValues,
-      experience: {
-        ...editValues.experience,
-        responsibilities: updatedResponsibilities
-      }
-    });
-  };
+  
+  // Use the hook for all resume editing functionality
+  const {
+    editing,
+    editValues,
+    setEditValues,
+    startEditing,
+    cancelEditing,
+    saveEdits,
+    addSkill,
+    removeSkill,
+    addAdditionalSkill,
+    removeAdditionalSkill,
+    updateResponsibility,
+    addResponsibility,
+    removeResponsibility,
+  } = useResumeEditing(tailoredResume, setTailoredResume);
 
   // PDF and DOCX generation
   const handleDownload = async (format: 'pdf' | 'docx') => {
@@ -227,13 +80,18 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
       }
     } catch (error) {
       console.error(`Error generating ${format}:`, error);
+      toast({
+        title: `Error generating ${format.toUpperCase()}`,
+        description: "Please try again or contact support if the problem persists.",
+        variant: "destructive"
+      });
     }
   };
 
   return (
     <div className="grid md:grid-cols-10 gap-6">
       <div className="md:col-span-7 space-y-6">
-        <div className={`bg-card text-card-foreground rounded-lg border p-6 ${template === 'compact' ? 'space-y-3' : 'space-y-6'}`}>
+        <div className={`bg-card text-card-foreground rounded-lg border p-6 ${template === 'compact' ? 'space-y-3' : 'space-y-6'} shadow-sm`}>
           <ResumeHeader resume={tailoredResume} template={template} />
           
           <ResumeSection
@@ -318,9 +176,9 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
             template={template}
           />
           
-          {tailoredResume.certifications && tailoredResume.certifications.length > 0 && (
-            <Certifications
-              certifications={tailoredResume.certifications}
+          {tailoredResume.projects && tailoredResume.projects.length > 0 && (
+            <Projects
+              projects={tailoredResume.projects}
               editing={editing}
               editValues={editValues}
               startEditing={startEditing}
@@ -330,9 +188,9 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
             />
           )}
           
-          {tailoredResume.projects && tailoredResume.projects.length > 0 && (
-            <Projects
-              projects={tailoredResume.projects}
+          {tailoredResume.certifications && tailoredResume.certifications.length > 0 && (
+            <Certifications
+              certifications={tailoredResume.certifications}
               editing={editing}
               editValues={editValues}
               startEditing={startEditing}
@@ -350,8 +208,6 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
               startEditing={startEditing}
               cancelEditing={cancelEditing}
               saveEdits={saveEdits}
-              addSkill={addAdditionalSkill}
-              removeSkill={removeAdditionalSkill}
               template={template}
             />
           )}
