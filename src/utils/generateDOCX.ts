@@ -26,7 +26,7 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
         const doc = new Document();
         
         // Create helper functions to add content
-        const addHeading = (text: string, level: HeadingLevel) => {
+        const addHeading = (text: string, level: typeof HeadingLevel) => {
             return new Paragraph({
                 heading: level,
                 children: [new TextRun(text)]
@@ -235,3 +235,4 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
         throw error;
     }
 };
+
