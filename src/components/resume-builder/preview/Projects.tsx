@@ -1,12 +1,6 @@
 
 import React from 'react';
-
-interface Project {
-  title: string;
-  date: string;
-  description: string;
-  role?: string;
-}
+import { Project } from '@/types/resume'; // Import the correct Project type
 
 interface ProjectsProps {
   projects: Project[];
@@ -68,7 +62,7 @@ const Projects: React.FC<ProjectsProps> = ({
         </div>
       ) : (
         <div className={`${template === 'compact' ? 'space-y-2' : 'space-y-4'}`}>
-          {projects.map((project, index) => (
+          {Array.isArray(projects) ? projects.map((project, index) => (
             <div key={index}>
               <div className="flex justify-between items-start">
                 <h3 className="font-medium text-sm">{project.title}</h3>
@@ -79,7 +73,9 @@ const Projects: React.FC<ProjectsProps> = ({
               )}
               <p className="text-sm">{project.description}</p>
             </div>
-          ))}
+          )) : (
+            <p className="text-sm text-muted-foreground">No projects available</p>
+          )}
         </div>
       )}
     </div>
