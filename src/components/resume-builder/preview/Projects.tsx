@@ -1,6 +1,8 @@
 
 import React from 'react';
-import { Project } from '@/types/resume'; // Import the correct Project type
+import { Project } from '@/types/resume';
+import { Badge } from '@/components/ui/badge';
+import { isValidArray, safeToString } from '@/lib/utils';
 
 interface ProjectsProps {
   projects: Project[];
@@ -22,6 +24,9 @@ const Projects: React.FC<ProjectsProps> = ({
   template,
 }) => {
   const isEditing = editing.section === 'projects';
+
+  // Safe check for projects data
+  const hasProjects = isValidArray(projects);
 
   return (
     <div className="relative group">
@@ -62,16 +67,27 @@ const Projects: React.FC<ProjectsProps> = ({
         </div>
       ) : (
         <div className={`${template === 'compact' ? 'space-y-2' : 'space-y-4'}`}>
-          {Array.isArray(projects) ? projects.map((project, index) => (
+          {hasProjects ? projects.map((project, index) => (
             <div key={index}>
               <div className="flex justify-between items-start">
-                <h3 className="font-medium text-sm">{project.title}</h3>
-                {project.date && <span className="text-sm text-muted-foreground">{project.date}</span>}
+                <h3 className="font-medium text-sm">{safeToString(project.title)}</h3>
+                {project.date && <span className="text-sm text-muted-foreground">{safeToString(project.date)}</span>}
               </div>
               {project.role && (
-                <p className="text-xs italic">{project.role}</p>
+                <p className="text-xs italic">{safeToString(project.role)}</p>
               )}
-              <p className="text-sm">{project.description}</p>
+              <p className="text-sm">{safeToString(project.description)}</p>
+              
+              {/* Display technologies if available */}
+              {isValidArray(project.technologies) && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {project.technologies!.map((tech, techIndex) => (
+                    <Badge key={techIndex} variant="outline" className="text-xs">
+                      {safeToString(tech)}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           )) : (
             <p className="text-sm text-muted-foreground">No projects available</p>
