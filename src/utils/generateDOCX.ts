@@ -28,7 +28,7 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
         });
         
         // Create helper functions to add content
-        const addHeading = (text: string, level: HeadingLevel) => {
+        const addHeading = (text: string, level: typeof HeadingLevel[keyof typeof HeadingLevel]) => {
             return new Paragraph({
                 heading: level,
                 children: [new TextRun(text)]
@@ -213,7 +213,7 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
             });
         }
 
-        // Create a new section and add all content to it
+        // Create the document with all content
         doc.addSection({
             children: content
         });
@@ -237,4 +237,3 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
         throw error;
     }
 };
-
