@@ -1,4 +1,3 @@
-
 import {
     Document,
     Paragraph,
@@ -22,8 +21,13 @@ type ToastFunction = (props: {
 
 export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
     try {
-        // Create document with sections
-        const doc = new Document();
+        // Create document with proper initialization
+        const doc = new Document({
+            sections: [{
+                properties: {},
+                children: []
+            }]
+        });
         
         // Create helper functions to add content
         const addHeading = (text: string, level: typeof HeadingLevel[keyof typeof HeadingLevel]) => {
@@ -211,10 +215,9 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
             });
         }
 
-        // Add all content to the document
-        doc.addSection({
-            children: content
-        });
+        // Add all content to the document by setting the children of the first section
+        // This is the proper way to add content to a document
+        doc.sections[0].children = content;
 
         // Generate and download the document
         const buffer = await Packer.toBlob(doc);
@@ -235,4 +238,3 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
         throw error;
     }
 };
-
