@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf';
 import { Resume } from '@/types/resume';
 
@@ -196,15 +195,7 @@ export const generatePDF = async (resume: Resume, toast: ToastFunction) => {
             y = addHorizontalLine(y);
             y = addWrappedText('PROJECTS', margin, y, pageWidth, fontSizes.heading, 'bold');
             resume.projects.forEach(project => {
-                y = checkPageBreak(y, 20);
-                y = addWrappedText(project.title, margin, y + 2, pageWidth, fontSizes.subheading, 'bold');
-                if (project.date) {
-                    y = addWrappedText(project.date, margin, y + 1, pageWidth, fontSizes.small, 'italic');
-                }
-                if (project.role) {
-                    y = addWrappedText(`Role: ${project.role}`, margin, y + 1, pageWidth, fontSizes.small, 'italic');
-                }
-                y = addWrappedText(`- ${project.description}`, margin + 5, y + 1, pageWidth - 10, fontSizes.normal) + 4;
+                addProject(project);
             });
         }
 
@@ -265,4 +256,16 @@ export const generatePDF = async (resume: Resume, toast: ToastFunction) => {
         });
         throw error;
     }
+};
+
+const addProject = (project) => {
+    y = checkPageBreak(y, 20);
+    y = addWrappedText(project.title, margin, y + 2, pageWidth, fontSizes.subheading, 'bold');
+    if (project.date) {
+        y = addWrappedText(project.date, margin, y + 1, pageWidth, fontSizes.small, 'italic');
+    }
+    if (project.role) {
+        y = addWrappedText(`Role: ${project.role}`, margin, y + 1, pageWidth, fontSizes.small, 'italic');
+    }
+    y = addWrappedText(`- ${project.description}`, margin + 5, y + 1, pageWidth - 10, fontSizes.normal) + 4;
 };

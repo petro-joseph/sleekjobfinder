@@ -1,5 +1,5 @@
 
-import { Resume as BaseResume, WorkExperience as BaseWorkExperience, Education, Project } from '../types/index';
+import { Resume as BaseResume, WorkExperience as BaseWorkExperience, Education } from '../types/index';
 
 // Re-export the types from index.ts
 export type { Education };
@@ -12,8 +12,11 @@ export interface WorkExperience extends BaseWorkExperience {
   }>;
 }
 
-// Extended Project type with role
-export interface Project extends Omit<Project, 'role'> {
+// Define Project interface instead of importing it
+export interface Project {
+  title: string;
+  date: string;
+  description: string;
   role?: string;
 }
 

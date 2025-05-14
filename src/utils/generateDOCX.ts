@@ -1,6 +1,15 @@
-
-import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel, Table, TableRow, TableCell, BorderStyle, WidthType } from 'docx';
-import { saveAs } from 'file-saver';
+import {
+    Document,
+    Paragraph,
+    Table,
+    TableRow,
+    TableCell,
+    WidthType,
+    HeadingLevel,
+    TextRun,
+    AlignmentType,
+} from "docx";
+import { saveAs } from "file-saver";
 import { Resume } from '@/types/resume';
 
 type ToastFunction = (props: {
@@ -11,116 +20,68 @@ type ToastFunction = (props: {
 
 export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
     try {
-        // Helper function to create section headings
-        const createHeading = (text: string) => {
-            return new Paragraph({
-                spacing: { before: 300, after: 120 },
-                heading: HeadingLevel.HEADING_2,
-                children: [
-                    new TextRun({
-                        text: text.toUpperCase(),
-                        bold: true,
-                        size: 24,
-                    }),
-                ],
+        const doc = new Document();
+
+        // Function to add a heading
+        const addHeading = (text: string, level: HeadingLevel) => {
+            doc.addParagraph(new Paragraph({
+                text: text,
+                heading: level,
+            }));
+        };
+
+        // Function to add a paragraph
+        const addParagraph = (text: string, options: any = {}) => {
+            const paragraph = new Paragraph({
+                text: text,
+                ...options,
+            });
+            doc.addParagraph(paragraph);
+        };
+
+        // Function to add bullet points
+        const addBulletPoint = (text: string) => {
+            addParagraph(text, { bullet: { level: 0 } });
+        };
+
+        // Function to create a table for skills
+        const createSkillsTable = (skills: string[]): Table => {
+            const numColumns = 3;
+            const rows: TableRow[] = [];
+            let currentRow: TableRow = new TableRow({ children: [] });
+
+            skills.forEach((skill, index) => {
+                const cell = new TableCell({
+                    children: [new Paragraph(skill)],
+                    width: { size: 100 / numColumns, type: WidthType.PERCENTAGE },
+                });
+
+                currentRow.addChild(cell);
+
+                if ((index + 1) % numColumns === 0 || index === skills.length - 1) {
+                    rows.push(currentRow);
+                    currentRow = new TableRow({ children: [] });
+                }
+            });
+
+            return new Table({
+                rows: rows,
+                width: { size: 100, type: WidthType.PERCENTAGE },
             });
         };
 
-        // Create header with name and contact info
-        const headerParagraphs = [
-            new Paragraph({
-                spacing: { after: 200 },
-                children: [
-                    new TextRun({
-                        text: resume.name,
-                        bold: true,
-                        size: 40,
-                    }),
-                ],
-                alignment: AlignmentType.CENTER,
-            })
-        ];
-
-        // Split contact info if needed for better mobile display
-        const contactParts = [
-            resume.contactInfo.phone,
-            resume.contactInfo.email,
-            resume.contactInfo.linkedin,
-        ].filter(Boolean);
-
-        if (contactParts.join(' | ').length > 65) {
-            // Split into two lines for better readability
-            const midIndex = Math.ceil(contactParts.length / 2);
-            const firstParts = contactParts.slice(0, midIndex);
-            const secondParts = contactParts.slice(midIndex);
-
-            headerParagraphs.push(
-                new Paragraph({
-                    spacing: { after: 120 },
-                    children: [
-                        new TextRun({
-                            text: firstParts.join(' | '),
-                            size: 20,
-                        }),
-                    ],
-                    alignment: AlignmentType.CENTER,
-                }),
-                new Paragraph({
-                    spacing: { after: 400 },
-                    children: [
-                        new TextRun({
-                            text: secondParts.join(' | '),
-                            size: 20,
-                        }),
-                    ],
-                    alignment: AlignmentType.CENTER,
-                })
-            );
-        } else {
-            headerParagraphs.push(
-                new Paragraph({
-                    spacing: { after: 400 },
-                    children: [
-                        new TextRun({
-                            text: contactParts.join(' | '),
-                            size: 20,
-                        }),
-                    ],
-                    alignment: AlignmentType.CENTER,
-                })
-            );
-        }
-
-        // Divider
-        const divider = new Paragraph({
-            children: [
-                new TextRun({
-                    text: '____________________',
-                    size: 24,
-                }),
-            ],
+        // Name and contact information
+        addHeading(resume.name, HeadingLevel.TITLE);
+        addParagraph(`${resume.contactInfo.phone} | ${resume.contactInfo.email} | ${resume.contactInfo.linkedin}`, {
+            alignment: AlignmentType.CENTER,
         });
 
-        // Professional Summary section
-        const summaryParagraphs = [
-            createHeading('Professional Summary'),
-            new Paragraph({
-                spacing: { after: 300 },
-                children: [
-                    new TextRun({
-                        text: resume.summary,
-                        size: 20,
-                    }),
-                ],
-            }),
-            divider
-        ];
+        // Professional Summary
+        addHeading('PROFESSIONAL SUMMARY', HeadingLevel.HEADING_1);
+        addParagraph(resume.summary);
 
         // Skills section
-        const skillParagraphs = [
-            createHeading('Technical and Business Skills')
-        ];
-
+        addHeading('TECHNICAL AND BUSINESS SKILLS', HeadingLevel.HEADING_1);
         const skillCategories = {
             Technical: resume.skills.filter(skill =>
                 ['Hardware maintenance', 'troubleshooting', 'network infrastructure', 'MS Office', 'Google Workspace', 'Data Studio'].includes(skill)
@@ -134,401 +95,125 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
             'Web Technologies': resume.skills.filter(skill =>
                 ['DNS', 'JavaScript', 'jQuery', 'HTTP', 'SSL', 'HTML', 'CSS'].includes(skill)
             ),
-            Languages: resume.skills.filter(skill =>
+            Languages: resume.skills.filter(skill => 
                 ['Proficient in English and Swahili'].includes(skill)
             ),
             Other: resume.skills.filter(skill => 
                 !['Hardware maintenance', 'troubleshooting', 'network infrastructure', 'MS Office', 'Google Workspace', 'Data Studio',
-                'Project Management', 'Process Improvement', 'Process Automation',
-                'PHP', 'C', 'C++', 'Java', 'Python', 'MS SQL', 'SQL', 'Oracle',
-                'DNS', 'JavaScript', 'jQuery', 'HTTP', 'SSL', 'HTML', 'CSS',
-                'Proficient in English and Swahili'].includes(skill)
+                  'Project Management', 'Process Improvement', 'Process Automation',
+                  'PHP', 'C', 'C++', 'Java', 'Python', 'MS SQL', 'SQL', 'Oracle',
+                  'DNS', 'JavaScript', 'jQuery', 'HTTP', 'SSL', 'HTML', 'CSS',
+                  'Proficient in English and Swahili'].includes(skill)
             ),
         };
-
+        
         Object.entries(skillCategories).forEach(([category, skills]) => {
             if (skills.length > 0) {
-                skillParagraphs.push(
-                    new Paragraph({
-                        spacing: { after: 80 },
-                        children: [
-                            new TextRun({
-                                text: `- ${category}: ${skills.join(', ')}`,
-                                size: 20,
-                            }),
-                        ],
-                        indent: { left: 400 },
-                    })
-                );
+                addParagraph(`- ${category}: ${skills.join(', ')}`);
             }
         });
 
-        skillParagraphs.push(divider);
-
-        // Work Experience section
-        const experienceParagraphs = [
-            createHeading('Professional Experiences')
-        ];
-
-        resume.workExperiences.forEach(exp => {
-            // Title
-            experienceParagraphs.push(
-                new Paragraph({
-                    spacing: { before: 200, after: 80 },
-                    children: [
-                        new TextRun({
-                            text: exp.title,
-                            bold: true,
-                            size: 22,
-                        }),
-                    ],
-                })
-            );
-
-            // Company and date
-            experienceParagraphs.push(
-                new Paragraph({
-                    spacing: { after: 100 },
-                    children: [
-                        new TextRun({
-                            text: `${exp.company} - ${exp.location}`,
-                            size: 18,
-                        }),
-                        new TextRun({
-                            text: `\t${exp.startDate} - ${exp.endDate || 'Present'}`,
-                            size: 18,
-                            italics: true,
-                        }),
-                    ],
-                })
-            );
-
-            // Responsibilities
-            exp.responsibilities.forEach((resp, index) => {
-                experienceParagraphs.push(
-                    new Paragraph({
-                        spacing: { after: 80 },
-                        children: [
-                            new TextRun({
-                                text: `${index + 1}. ${resp}`,
-                                size: 20,
-                            }),
-                        ],
-                        indent: { left: 400 },
-                    })
-                );
+        // Work Experience
+        addHeading('PROFESSIONAL EXPERIENCES', HeadingLevel.HEADING_1);
+        resume.workExperiences.forEach(experience => {
+            addParagraph(experience.title, { heading: HeadingLevel.HEADING_2, bold: true });
+            addParagraph(`${experience.company} - ${experience.location}`, { italic: true });
+            addParagraph(`${experience.startDate} - ${experience.endDate || 'Present'}`);
+            experience.responsibilities.forEach(responsibility => {
+                addBulletPoint(responsibility);
             });
 
-            // Sub-sections if any
-            if (exp.subSections && exp.subSections.length > 0) {
-                exp.subSections.forEach(subSection => {
-                    if (subSection.title) {
-                        experienceParagraphs.push(
-                            new Paragraph({
-                                spacing: { before: 100, after: 80 },
-                                children: [
-                                    new TextRun({
-                                        text: subSection.title,
-                                        bold: true,
-                                        size: 20,
-                                    }),
-                                ],
-                                indent: { left: 400 },
-                            })
-                        );
-                    }
-
-                    subSection.details.forEach((detail, detailIndex) => {
-                        experienceParagraphs.push(
-                            new Paragraph({
-                                spacing: { after: 80 },
-                                children: [
-                                    new TextRun({
-                                        text: `• ${detail}`,
-                                        size: 20,
-                                    }),
-                                ],
-                                indent: { left: 500 },
-                            })
-                        );
+            // Subsections
+            if (experience.subSections && experience.subSections.length > 0) {
+                experience.subSections.forEach(subSection => {
+                    addParagraph(subSection.title, { bold: true });
+                    subSection.details.forEach(detail => {
+                        addBulletPoint(detail);
                     });
                 });
             }
         });
 
-        experienceParagraphs.push(divider);
-
-        // Education section
-        const educationParagraphs = [
-            createHeading('Education')
-        ];
-
-        resume.education.forEach(edu => {
-            educationParagraphs.push(
-                new Paragraph({
-                    spacing: { before: 200, after: 80 },
-                    children: [
-                        new TextRun({
-                            text: edu.degree,
-                            bold: true,
-                            size: 22,
-                        }),
-                    ],
-                }),
-                new Paragraph({
-                    spacing: { after: 200 },
-                    children: [
-                        new TextRun({
-                            text: `${edu.institution} (${edu.startDate} - ${edu.endDate})${edu.gpa ? ` - Graduated with a ${edu.gpa} GPA` : ''}`,
-                            italics: true,
-                            size: 18,
-                        }),
-                    ],
-                })
-            );
+        // Education
+        addHeading('EDUCATION', HeadingLevel.HEADING_1);
+        resume.education.forEach(education => {
+            addParagraph(education.degree, { heading: HeadingLevel.HEADING_2, bold: true });
+            addParagraph(`${education.institution} (${education.startDate} - ${education.endDate})${education.gpa ? ` - Graduated with a ${education.gpa} GPA` : ''}`, { italic: true });
         });
 
-        // Build array of sections to include
-        const sections = [...headerParagraphs, ...summaryParagraphs, ...skillParagraphs, ...experienceParagraphs, ...educationParagraphs];
-
-        // Certifications section (if applicable)
+        // Certifications
         if (resume.certifications && resume.certifications.length > 0) {
-            sections.push(divider);
-            sections.push(createHeading('Professional Certifications'));
-            
+            addHeading('PROFESSIONAL CERTIFICATIONS', HeadingLevel.HEADING_1);
             resume.certifications.forEach(cert => {
-                sections.push(
-                    new Paragraph({
-                        spacing: { after: 80 },
-                        children: [
-                            new TextRun({
-                                text: `- ${cert.name} | ${cert.dateRange}`,
-                                size: 20,
-                            }),
-                        ],
-                        indent: { left: 400 },
-                    })
-                );
+                addBulletPoint(`${cert.name} | ${cert.dateRange}`);
             });
         }
 
-        // Projects section (if applicable)
+        // Update the project section to access role property correctly
         if (resume.projects && resume.projects.length > 0) {
-            sections.push(divider);
-            sections.push(createHeading('Projects'));
-            
-            resume.projects.forEach(proj => {
-                sections.push(
-                    new Paragraph({
-                        spacing: { before: 200, after: 80 },
-                        children: [
-                            new TextRun({
-                                text: proj.title,
-                                bold: true,
-                                size: 22,
-                            }),
-                        ],
-                    })
-                );
-                
-                if (proj.date) {
-                    sections.push(
-                        new Paragraph({
-                            spacing: { after: 80 },
-                            children: [
-                                new TextRun({
-                                    text: proj.date,
-                                    italics: true,
-                                    size: 18,
-                                }),
-                            ],
-                        })
-                    );
-                }
-                
-                if (proj.role) {
-                    sections.push(
-                        new Paragraph({
-                            spacing: { after: 80 },
-                            children: [
-                                new TextRun({
-                                    text: `Role: ${proj.role}`,
-                                    italics: true,
-                                    size: 18,
-                                }),
-                            ],
-                        })
-                    );
-                }
-                
-                sections.push(
-                    new Paragraph({
-                        spacing: { after: 200 },
-                        children: [
-                            new TextRun({
-                                text: `- ${proj.description}`,
-                                size: 20,
-                            }),
-                        ],
-                        indent: { left: 400 },
-                    })
-                );
-            });
-        }
-
-        // Additional Skills section (if applicable)
-        if (resume.additionalSkills && resume.additionalSkills.length > 0) {
-            sections.push(divider);
-            sections.push(createHeading('Additional Skills'));
-
-            // Create a table for multi-column layout
-            if (resume.additionalSkills.length > 5) {
-                // Create a 2-column table for skills
-                const rows = [];
-                const midPoint = Math.ceil(resume.additionalSkills.length / 2);
-                
-                for (let i = 0; i < midPoint; i++) {
-                    const row = new TableRow({
-                        children: [
-                            new TableCell({
-                                children: [
-                                    new Paragraph({
-                                        children: [
-                                            new TextRun({
-                                                text: `• ${resume.additionalSkills[i]}`,
-                                                size: 20,
-                                            }),
-                                        ],
-                                    }),
-                                ],
-                                borders: {
-                                    top: { style: BorderStyle.NONE },
-                                    bottom: { style: BorderStyle.NONE },
-                                    left: { style: BorderStyle.NONE },
-                                    right: { style: BorderStyle.NONE },
-                                },
-                            }),
-                            new TableCell({
-                                children: [
-                                    i + midPoint < resume.additionalSkills.length
-                                        ? new Paragraph({
-                                            children: [
-                                                new TextRun({
-                                                    text: `• ${resume.additionalSkills[i + midPoint]}`,
-                                                    size: 20,
-                                                }),
-                                            ],
-                                        })
-                                        : new Paragraph({}),
-                                ],
-                                borders: {
-                                    top: { style: BorderStyle.NONE },
-                                    bottom: { style: BorderStyle.NONE },
-                                    left: { style: BorderStyle.NONE },
-                                    right: { style: BorderStyle.NONE },
-                                },
-                            }),
-                        ],
-                    });
-                    rows.push(row);
-                }
-                
-                sections.push(
-                    new Table({
-                        rows,
-                        width: {
-                            size: 100,
-                            type: WidthType.PERCENTAGE,
-                        },
-                    })
-                );
-            } else {
-                // Just use paragraphs for a small number of skills
-                resume.additionalSkills.forEach(skill => {
-                    sections.push(
-                        new Paragraph({
-                            spacing: { after: 80 },
-                            children: [
-                                new TextRun({
-                                    text: `• ${skill}`,
-                                    size: 20,
-                                }),
-                            ],
-                            indent: { left: 400 },
-                        })
-                    );
+            addHeading('PROJECTS', HeadingLevel.HEADING_1);
+            resume.projects.forEach(project => {
+                addParagraph({
+                    text: project.title,
+                    heading: true,
+                    bold: true
                 });
-            }
-        }
-
-        // Soft Skills section (if applicable)
-        if (resume.softSkills && resume.softSkills.length > 0) {
-            sections.push(divider);
-            sections.push(createHeading('Soft Skills'));
-            
-            resume.softSkills.forEach(skill => {
-                sections.push(
-                    new Paragraph({
-                        spacing: { after: 40 },
-                        children: [
-                            new TextRun({
-                                text: `• ${skill.name}`,
-                                bold: true,
-                                size: 20,
-                            }),
-                        ],
-                        indent: { left: 400 },
-                    })
-                );
                 
-                if (skill.description) {
-                    sections.push(
-                        new Paragraph({
-                            spacing: { after: 100 },
-                            children: [
-                                new TextRun({
-                                    text: skill.description,
-                                    size: 18,
-                                }),
-                            ],
-                            indent: { left: 500 },
-                        })
-                    );
+                if (project.date) {
+                    addParagraph({
+                        text: project.date,
+                        italic: true
+                    });
                 }
+                
+                if (project.role) {
+                    addParagraph({
+                        text: `Role: ${project.role}`,
+                        italic: true
+                    });
+                }
+                
+                addParagraph({
+                    text: project.description,
+                    bullet: true
+                });
             });
         }
 
-        const doc = new Document({
-            sections: [
-                {
-                    properties: {
-                        page: {
-                            margin: {
-                                top: 800,
-                                right: 800,
-                                bottom: 800,
-                                left: 800,
-                            },
-                        },
-                    },
-                    children: sections,
-                },
-            ],
-        });
+        // Additional Skills
+        if (resume.additionalSkills && resume.additionalSkills.length > 0) {
+            addHeading('ADDITIONAL SKILLS', HeadingLevel.HEADING_1);
+            const skillsTable = createSkillsTable(resume.additionalSkills);
+            // Fix the issue with Table not being a valid parameter for addParagraph
+            // Replace:
+            // doc.addParagraph(skillsTable);
+            // With:
+            doc.addTable(skillsTable);
+        }
 
-        const buffer = await Packer.toBlob(doc);
-        const fileName = resume.name.replace(/\s+/g, '_');
-        saveAs(buffer, `${fileName}_Resume.docx`);
-        
+        // Soft Skills
+        if (resume.softSkills && resume.softSkills.length > 0) {
+            addHeading('SOFT SKILLS', HeadingLevel.HEADING_1);
+            resume.softSkills.forEach(skill => {
+                addParagraph(skill.name, { bold: true });
+                addParagraph(skill.description);
+            });
+        }
+
+        // Create the blob and trigger the download
+        const blob = await doc.create();
+        saveAs(blob, `${resume.name.replace(/\s+/g, '_')}_Resume.docx`);
+
         toast({
             title: 'DOCX Downloaded',
             description: 'Your tailored resume DOCX has been downloaded.',
         });
+
     } catch (error) {
-        console.error('Error generating DOCX:', error);
+        console.error("Error generating DOCX:", error);
         toast({
             title: 'Download Failed',
-            description: 'There was an error generating the DOCX file. Please try again.',
+            description: 'There was an error generating the DOCX. Please try again.',
             variant: 'destructive',
         });
         throw error;

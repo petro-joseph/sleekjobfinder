@@ -5,11 +5,11 @@ import { ChevronRight } from 'lucide-react';
 import { Resume } from '@/types/resume';
 import { Separator } from '../../ui/separator';
 import { ResumeSection } from '../preview/ResumeSection';
-import { PersonalInfoCard } from '../preview/PersonalInfoCard';
-import { ExperienceCard } from '../preview/ExperienceCard';
-import { EducationCard } from '../preview/EducationCard';
-import { SkillsDisplay } from '../preview/SkillsDisplay';
-import { SummaryCard } from '../preview/SummaryCard';
+import PersonalInfoCard from '../preview/PersonalInfoCard';
+import ExperienceCard from '../preview/ExperienceCard';
+import EducationCard from '../preview/EducationCard';
+import SkillsDisplay from '../preview/SkillsDisplay';
+import SummaryCard from '../preview/SummaryCard';
 
 interface ResumePreviewStepProps {
   resumeData: Resume;
@@ -35,33 +35,38 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
       </div>
 
       {/* Personal Information */}
-      <ResumeSection title="Personal Information">
+      <div>
+        <h3 className="font-medium text-lg mb-2">Personal Information</h3>
         <PersonalInfoCard resumeData={resumeData} />
-      </ResumeSection>
+      </div>
 
       {/* Work Experience */}
-      <ResumeSection title="Work Experience">
+      <div>
+        <h3 className="font-medium text-lg mb-2">Work Experience</h3>
         {resumeData.workExperiences?.map((exp, index) => (
           <ExperienceCard key={index} experience={exp} />
         ))}
-      </ResumeSection>
+      </div>
 
       {/* Education */}
-      <ResumeSection title="Education">
+      <div>
+        <h3 className="font-medium text-lg mb-2">Education</h3>
         {resumeData.education?.map((edu, index) => (
           <EducationCard key={index} education={edu} />
         ))}
-      </ResumeSection>
+      </div>
 
       {/* Skills */}
-      <ResumeSection title="Skills">
+      <div>
+        <h3 className="font-medium text-lg mb-2">Skills</h3>
         <SkillsDisplay skills={resumeData.skills || []} />
-      </ResumeSection>
+      </div>
 
       {/* Summary */}
-      <ResumeSection title="Professional Summary">
+      <div>
+        <h3 className="font-medium text-lg mb-2">Professional Summary</h3>
         <SummaryCard summary={resumeData.summary} />
-      </ResumeSection>
+      </div>
 
       <Separator className="my-6" />
       

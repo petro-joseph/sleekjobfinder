@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Edit, Save } from 'lucide-react';
 import { Education as EducationType } from '@/types/resume';
 
@@ -7,6 +9,7 @@ interface EducationProps {
     education: EducationType[];
     editing: { section: string | null; index?: number };
     editValues: any;
+    setEditValues: (values: any) => void;
     startEditing: (section: string, index?: number) => void;
     cancelEditing: () => void;
     saveEdits: () => void;
@@ -17,6 +20,7 @@ const Education: React.FC<EducationProps> = ({
     education,
     editing,
     editValues,
+    setEditValues,
     startEditing,
     cancelEditing,
     saveEdits,

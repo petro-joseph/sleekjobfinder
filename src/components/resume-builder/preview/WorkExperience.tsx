@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -61,7 +62,7 @@ const WorkExperience: React.FC<WorkExperienceProps> = ({
                                         <div key={rIndex} className="flex gap-2">
                                             <Textarea
                                                 value={resp}
-                                                onChange={(e) => updateResponsibility(rIndex, e.targetLatin1.value)}
+                                                onChange={(e) => updateResponsibility(rIndex, e.target.value)}
                                                 className="flex-1"
                                                 rows={2}
                                             />
@@ -88,7 +89,7 @@ const WorkExperience: React.FC<WorkExperienceProps> = ({
                                     <Button variant="outline" size="sm" onClick={cancelEditing}>
                                         Cancel
                                     </Button>
-                                    <Button size size="sm" onClick={saveEdits}>
+                                    <Button size="sm" onClick={saveEdits}>
                                         <Save className="mr-1 h-3 w-3" />
                                         Save
                                     </Button>
