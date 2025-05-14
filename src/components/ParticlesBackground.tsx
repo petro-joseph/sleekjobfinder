@@ -1,16 +1,16 @@
 
 import { useCallback } from 'react';
 import Particles from 'react-tsparticles';
-import type { Engine } from '@tsparticles/engine';
-import { loadSlim } from 'tsparticles-slim';
+import { loadFull } from "tsparticles";
 
 interface ParticlesBackgroundProps {
   id?: string;
 }
 
 const ParticlesBackground = ({ id = 'tsparticles' }: ParticlesBackgroundProps) => {
-  const particlesInit = useCallback(async (engine: Engine) => {
-    await loadSlim(engine);
+  const particlesInit = useCallback(async (engine: any) => {
+    // Switch to loadFull which is more compatible with the installed version
+    await loadFull(engine);
   }, []);
 
   return (

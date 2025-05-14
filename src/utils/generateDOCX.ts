@@ -22,35 +22,139 @@ type ToastFunction = (props: {
 
 export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
     try {
-        const doc = new Document();
+        // Create document with sections
+        const doc = new Document({
+            sections: [
+                {
+                    children: [] // We'll add paragraphs to this section
+                }
+            ]
+        });
         
-        // Function to add a heading
+        // Create helper functions to add content
         const addHeading = (text: string, level: HeadingLevel) => {
-            const paragraph = new Paragraph({
+            return new Paragraph({
                 heading: level,
                 children: [new TextRun(text)]
             });
-            doc.addParagraph(paragraph);
         };
 
-        // Function to add a paragraph
         const addParagraph = (text: string, options: any = {}) => {
-            const paragraph = new Paragraph({
+            return new Paragraph({
                 children: [new TextRun({ text, ...options })],
                 alignment: options.alignment,
                 bullet: options.bullet ? { level: 0 } : undefined,
             });
-            doc.addParagraph(paragraph);
         };
 
-        // Function to add bullet points
         const addBulletPoint = (text: string) => {
-            const paragraph = new Paragraph({
+            return new Paragraph({
                 children: [new TextRun(text)],
                 bullet: { level: 0 },
             });
-            doc.addParagraph(paragraph);
         };
+
+        // Array of content to add to the document
+        const content: (Paragraph | Table)[] = [];
+
+        // Name and contact information
+        content.push(addHeading(resume.name, HeadingLevel.TITLE));
+        content.push(addParagraph(`${resume.contactInfo.phone} | ${resume.contactInfo.email} | ${resume.contactInfo.linkedin}`, {
+            alignment: AlignmentType.CENTER,
+        }));
+
+        // Professional Summary
+        content.push(addHeading('PROFESSIONAL SUMMARY', HeadingLevel.HEADING_1));
+        content.push(addParagraph(resume.summary));
+
+        // Skills section
+        content.push(addHeading('TECHNICAL AND BUSINESS SKILLS', HeadingLevel.HEADING_1));
+        const skillCategories = {
+            Technical: resume.skills.filter(skill =>
+                ['Hardware maintenance', 'troubleshooting', 'network infrastructure', 'MS Office', 'Google Workspace', 'Data Studio'].includes(skill)
+            ),
+            Business: resume.skills.filter(skill =>
+                ['Project Management', 'Process Improvement', 'Process Automation'].includes(skill)
+            ),
+            'Programming Languages': resume.skills.filter(skill =>
+                ['PHP', 'C', 'C++', 'Java', 'Python', 'MS SQL', 'SQL', 'Oracle'].includes(skill)
+            ),
+            'Web Technologies': resume.skills.filter(skill =>
+                ['DNS', 'JavaScript', 'jQuery', 'HTTP', 'SSL', 'HTML', 'CSS'].includes(skill)
+            ),
+            Languages: resume.skills.filter(skill => 
+                ['Proficient in English and Swahili'].includes(skill)
+            ),
+            Other: resume.skills.filter(skill => 
+                !['Hardware maintenance', 'troubleshooting', 'network infrastructure', 'MS Office', 'Google Workspace', 'Data Studio',
+                  'Project Management', 'Process Improvement', 'Process Automation',
+                  'PHP', 'C', 'C++', 'Java', 'Python', 'MS SQL', 'SQL', 'Oracle',
+                  'DNS', 'JavaScript', 'jQuery', 'HTTP', 'SSL', 'HTML', 'CSS',
+                  'Proficient in English and Swahili'].includes(skill)
+            ),
+        };
+        
+        Object.entries(skillCategories).forEach(([category, skills]) => {
+            if (skills.length > 0) {
+                content.push(addParagraph(`- ${category}: ${skills.join(', ')}`));
+            }
+        });
+
+        // Work Experience
+        content.push(addHeading('PROFESSIONAL EXPERIENCES', HeadingLevel.HEADING_1));
+        resume.workExperiences.forEach(experience => {
+            content.push(addParagraph(experience.title, { bold: true }));
+            content.push(addParagraph(`${experience.company} - ${experience.location}`, { italic: true }));
+            content.push(addParagraph(`${experience.startDate} - ${experience.endDate || 'Present'}`));
+            
+            experience.responsibilities.forEach(responsibility => {
+                content.push(addBulletPoint(responsibility));
+            });
+
+            // Subsections
+            if (experience.subSections && experience.subSections.length > 0) {
+                experience.subSections.forEach(subSection => {
+                    content.push(addParagraph(subSection.title, { bold: true }));
+                    subSection.details.forEach(detail => {
+                        content.push(addBulletPoint(detail));
+                    });
+                });
+            }
+        });
+
+        // Education
+        content.push(addHeading('EDUCATION', HeadingLevel.HEADING_1));
+        resume.education.forEach(education => {
+            content.push(addParagraph(education.degree, { bold: true }));
+            content.push(addParagraph(`${education.institution} (${education.startDate} - ${education.endDate})${education.gpa ? ` - Graduated with a ${education.gpa} GPA` : ''}`, { italic: true }));
+        });
+
+        // Certifications
+        if (resume.certifications && resume.certifications.length > 0) {
+            content.push(addHeading('PROFESSIONAL CERTIFICATIONS', HeadingLevel.HEADING_1));
+            resume.certifications.forEach(cert => {
+                content.push(addBulletPoint(`${cert.name} | ${cert.dateRange}`));
+            });
+        }
+
+        // Projects
+        if (resume.projects && resume.projects.length > 0) {
+            content.push(addHeading('PROJECTS', HeadingLevel.HEADING_1));
+            resume.projects.forEach(project => {
+                content.push(addParagraph(project.title, { bold: true }));
+                
+                if (project.date) {
+                    content.push(addParagraph(project.date, { italic: true }));
+                }
+                
+                if (project.role) {
+                    content.push(addParagraph(`Role: ${project.role}`, { italic: true }));
+                }
+                
+                // Add the description as a bullet point
+                content.push(addBulletPoint(project.description));
+            });
+        }
 
         // Function to create a table for skills
         const createSkillsTable = (skills: string[]): Table => {
@@ -98,119 +202,26 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
             });
         };
 
-        // Name and contact information
-        addHeading(resume.name, HeadingLevel.TITLE);
-        addParagraph(`${resume.contactInfo.phone} | ${resume.contactInfo.email} | ${resume.contactInfo.linkedin}`, {
-            alignment: AlignmentType.CENTER,
-        });
-
-        // Professional Summary
-        addHeading('PROFESSIONAL SUMMARY', HeadingLevel.HEADING_1);
-        addParagraph(resume.summary);
-
-        // Skills section
-        addHeading('TECHNICAL AND BUSINESS SKILLS', HeadingLevel.HEADING_1);
-        const skillCategories = {
-            Technical: resume.skills.filter(skill =>
-                ['Hardware maintenance', 'troubleshooting', 'network infrastructure', 'MS Office', 'Google Workspace', 'Data Studio'].includes(skill)
-            ),
-            Business: resume.skills.filter(skill =>
-                ['Project Management', 'Process Improvement', 'Process Automation'].includes(skill)
-            ),
-            'Programming Languages': resume.skills.filter(skill =>
-                ['PHP', 'C', 'C++', 'Java', 'Python', 'MS SQL', 'SQL', 'Oracle'].includes(skill)
-            ),
-            'Web Technologies': resume.skills.filter(skill =>
-                ['DNS', 'JavaScript', 'jQuery', 'HTTP', 'SSL', 'HTML', 'CSS'].includes(skill)
-            ),
-            Languages: resume.skills.filter(skill => 
-                ['Proficient in English and Swahili'].includes(skill)
-            ),
-            Other: resume.skills.filter(skill => 
-                !['Hardware maintenance', 'troubleshooting', 'network infrastructure', 'MS Office', 'Google Workspace', 'Data Studio',
-                  'Project Management', 'Process Improvement', 'Process Automation',
-                  'PHP', 'C', 'C++', 'Java', 'Python', 'MS SQL', 'SQL', 'Oracle',
-                  'DNS', 'JavaScript', 'jQuery', 'HTTP', 'SSL', 'HTML', 'CSS',
-                  'Proficient in English and Swahili'].includes(skill)
-            ),
-        };
-        
-        Object.entries(skillCategories).forEach(([category, skills]) => {
-            if (skills.length > 0) {
-                addParagraph(`- ${category}: ${skills.join(', ')}`);
-            }
-        });
-
-        // Work Experience
-        addHeading('PROFESSIONAL EXPERIENCES', HeadingLevel.HEADING_1);
-        resume.workExperiences.forEach(experience => {
-            addParagraph(experience.title, { bold: true });
-            addParagraph(`${experience.company} - ${experience.location}`, { italic: true });
-            addParagraph(`${experience.startDate} - ${experience.endDate || 'Present'}`);
-            experience.responsibilities.forEach(responsibility => {
-                addBulletPoint(responsibility);
-            });
-
-            // Subsections
-            if (experience.subSections && experience.subSections.length > 0) {
-                experience.subSections.forEach(subSection => {
-                    addParagraph(subSection.title, { bold: true });
-                    subSection.details.forEach(detail => {
-                        addBulletPoint(detail);
-                    });
-                });
-            }
-        });
-
-        // Education
-        addHeading('EDUCATION', HeadingLevel.HEADING_1);
-        resume.education.forEach(education => {
-            addParagraph(education.degree, { bold: true });
-            addParagraph(`${education.institution} (${education.startDate} - ${education.endDate})${education.gpa ? ` - Graduated with a ${education.gpa} GPA` : ''}`, { italic: true });
-        });
-
-        // Certifications
-        if (resume.certifications && resume.certifications.length > 0) {
-            addHeading('PROFESSIONAL CERTIFICATIONS', HeadingLevel.HEADING_1);
-            resume.certifications.forEach(cert => {
-                addBulletPoint(`${cert.name} | ${cert.dateRange}`);
-            });
-        }
-
-        // Update the project section to access role property correctly
-        if (resume.projects && resume.projects.length > 0) {
-            addHeading('PROJECTS', HeadingLevel.HEADING_1);
-            resume.projects.forEach(project => {
-                addParagraph(project.title, { bold: true });
-                
-                if (project.date) {
-                    addParagraph(project.date, { italic: true });
-                }
-                
-                if (project.role) {
-                    addParagraph(`Role: ${project.role}`, { italic: true });
-                }
-                
-                // Add the description as a bullet point
-                addBulletPoint(project.description);
-            });
-        }
-
-        // Additional Skills
+        // Additional Skills as a table
         if (resume.additionalSkills && resume.additionalSkills.length > 0) {
-            addHeading('ADDITIONAL SKILLS', HeadingLevel.HEADING_1);
+            content.push(addHeading('ADDITIONAL SKILLS', HeadingLevel.HEADING_1));
             const skillsTable = createSkillsTable(resume.additionalSkills);
-            doc.addTable(skillsTable);
+            content.push(skillsTable);
         }
 
         // Soft Skills
         if (resume.softSkills && resume.softSkills.length > 0) {
-            addHeading('SOFT SKILLS', HeadingLevel.HEADING_1);
+            content.push(addHeading('SOFT SKILLS', HeadingLevel.HEADING_1));
             resume.softSkills.forEach(skill => {
-                addParagraph(skill.name, { bold: true });
-                addParagraph(skill.description);
+                content.push(addParagraph(skill.name, { bold: true }));
+                content.push(addParagraph(skill.description));
             });
         }
+
+        // Add all content to the document's first section
+        doc.addSection({
+            children: content
+        });
 
         // Create the blob and trigger the download
         const blob = await doc.save();

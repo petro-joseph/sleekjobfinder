@@ -9,7 +9,7 @@ interface EducationProps {
     education: EducationType[];
     editing: { section: string | null; index?: number };
     editValues: any;
-    setEditValues: (values: any) => void;
+    setEditValues: (values: any) => void; // Make sure this is required
     startEditing: (section: string, index?: number) => void;
     cancelEditing: () => void;
     saveEdits: () => void;
@@ -20,7 +20,7 @@ const Education: React.FC<EducationProps> = ({
     education,
     editing,
     editValues,
-    setEditValues,
+    setEditValues, // Include this prop
     startEditing,
     cancelEditing,
     saveEdits,

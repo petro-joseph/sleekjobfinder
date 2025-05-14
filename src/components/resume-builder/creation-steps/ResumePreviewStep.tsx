@@ -34,27 +34,27 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
         </p>
       </div>
 
-      <ResumeSection title="Personal Information">
+      <ResumeSection title="Personal Information" section="personalInfo">
         <PersonalInfoCard resumeData={resumeData} />
       </ResumeSection>
 
-      <ResumeSection title="Work Experience">
+      <ResumeSection title="Work Experience" section="workExperience">
         {resumeData.workExperiences?.map((exp, index) => (
           <ExperienceCard key={index} experience={exp} />
         ))}
       </ResumeSection>
 
-      <ResumeSection title="Education">
+      <ResumeSection title="Education" section="education">
         {resumeData.education?.map((edu, index) => (
           <EducationCard key={index} education={edu} />
         ))}
       </ResumeSection>
 
-      <ResumeSection title="Skills">
+      <ResumeSection title="Skills" section="skills">
         <SkillsDisplay skills={resumeData.skills || []} />
       </ResumeSection>
 
-      <ResumeSection title="Professional Summary">
+      <ResumeSection title="Professional Summary" section="summary">
         <SummaryCard summary={resumeData.summary} />
       </ResumeSection>
 
