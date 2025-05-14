@@ -24,7 +24,9 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
     try {
         // Create document with sections
         const doc = new Document({
-            sections: []
+            sections: [{
+                children: [] // We'll populate this later
+            }]
         });
         
         // Create helper functions to add content
@@ -213,10 +215,8 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
             });
         }
 
-        // Create the document with all content
-        doc.addSection({
-            children: content
-        });
+        // Update the document with all content by properly setting the children of the first section
+        doc.sections[0].children = content;
 
         // Generate and download the document
         const buffer = await Packer.toBlob(doc);
