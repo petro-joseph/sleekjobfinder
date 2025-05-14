@@ -97,33 +97,78 @@ function convertParsedDataToResume(parsedData: any): Resume {
   const experiences = parsedData?.experience || [];
   const education = parsedData?.education || [];
   const skills = parsedData?.skills || [];
-  const projects = parsedData?.projects || [];
-  const certifications = parsedData?.certifications || [];
-  const additionalSkills = parsedData?.additional_skills || [];
-  const softSkills = parsedData?.soft_skills || [];
   
-  // Extract Key Projects from experience data if available
-  const extractedProjects: Project[] = [];
-  experiences.forEach(exp => {
-    // Some experiences might have project details embedded
-    if (Array.isArray(exp.achievements)) {
-      exp.achievements.forEach(achievement => {
-        if (typeof achievement === 'object' && achievement.title) {
-          extractedProjects.push({
-            title: achievement.title || 'Unnamed Project',
-            date: achievement.date || exp.start_date || '',
-            description: achievement.description || achievement.impact || '',
-            role: achievement.role || exp.title || 'Contributor',
-            impact: achievement.impact || '',
-            technologies: Array.isArray(achievement.technologies) 
-              ? achievement.technologies 
-              : (typeof achievement.technologies === 'string' 
-                ? [achievement.technologies] 
-                : [])
-          });
-        }
+  // Extract certifications from raw text if available
+  const certifications: Array<{name: string, dateRange: string}> = [];
+  
+  // Look for certifications section in raw text
+  const rawText = parsedData?.raw_text || '';
+  if (rawText) {
+    const certRegex = /([A-Za-z\s]+):\s*([A-Za-z]+\s+\d{4})\s*-\s*([A-Za-z]+\s+\d{4})/g;
+    let match;
+    while ((match = certRegex.exec(rawText)) !== null) {
+      certifications.push({
+        name: match[1].trim(),
+        dateRange: `${match[2]} - ${match[3]}`
       });
     }
+  }
+  
+  // Extract project information
+  const projects: Project[] = [];
+  const projectsSection = rawText.match(/PROJECTS\s*\n\n([\s\S]*?)(?:\n\n|$)/);
+  
+  if (projectsSection && projectsSection[1]) {
+    const projectEntries = projectsSection[1].split('\n\n').filter(entry => entry.trim());
+    
+    projectEntries.forEach(entry => {
+      const titleMatch = entry.match(/^(.+?)(?:\s+([A-Za-z]+\s+\d{4}))?$/m);
+      const descriptionMatch = entry.match(/•\s+(.+)/);
+      
+      if (titleMatch) {
+        projects.push({
+          title: titleMatch[1].trim(),
+          date: titleMatch[2] ? titleMatch[2].trim() : '',
+          description: descriptionMatch ? descriptionMatch[1].trim() : '',
+          role: entry.match(/Role:\s*(.+)/i)?.length > 1 ? entry.match(/Role:\s*(.+)/i)![1].trim() : undefined
+        });
+      }
+    });
+  }
+  
+  // Extract soft skills
+  const softSkills: Array<{name: string, description: string}> = [];
+  skills.forEach(skill => {
+    if (typeof skill === 'string' && 
+        (skill.includes('communication') || 
+         skill.includes('leadership') || 
+         skill.includes('interpersonal') || 
+         skill.includes('organized') || 
+         skill.includes('learning mindset'))) {
+      softSkills.push({
+        name: skill.split(':')[0] || skill,
+        description: skill.split(':')[1] || ''
+      });
+    }
+  });
+  
+  // Extract technical skills as additional skills
+  const additionalSkills = skills.filter(skill => 
+    typeof skill === 'string' && 
+    !softSkills.some(s => s.name === skill)
+  );
+  
+  // Convert parsed experiences to the WorkExperience type
+  const workExperiences = experiences.map((exp) => {
+    return {
+      title: exp.title || '',
+      company: exp.company || '',
+      location: exp.location || '',
+      startDate: exp.start_date || '',
+      endDate: exp.end_date || 'Present',
+      responsibilities: Array.isArray(exp.achievements) ? exp.achievements : [],
+      subSections: []  // Prepare for potential subsections
+    };
   });
   
   // Map the parsed data to the Resume type
@@ -139,86 +184,18 @@ function convertParsedDataToResume(parsedData: any): Resume {
       email: personal.email || '',
       linkedin: personal.linkedin_url || ''
     },
-    workExperiences: experiences.map((exp) => {
-      // Extract Key Projects subsection if it exists
-      const keyProjectsSubSection = {
-        title: 'Key Projects',
-        details: []
-      };
-      
-      // Process achievements to extract embedded project information
-      const normalAchievements: string[] = [];
-      
-      if (Array.isArray(exp.achievements)) {
-        exp.achievements.forEach(achievement => {
-          if (typeof achievement === 'object' && achievement.title) {
-            // This is a project object
-            keyProjectsSubSection.details.push({
-              title: achievement.title,
-              role: achievement.role || exp.title || 'Contributor',
-              impact: achievement.impact || achievement.description || '',
-              technologies: achievement.technologies || []
-            });
-          } else if (typeof achievement === 'string') {
-            // This is a regular achievement string
-            normalAchievements.push(achievement);
-          }
-        });
-      }
-      
-      // Create subsections array
-      const subSections = [];
-      if (keyProjectsSubSection.details.length > 0) {
-        subSections.push(keyProjectsSubSection);
-      }
-      
-      // Add any existing subsections from the parsed data
-      if (Array.isArray(exp.sub_sections)) {
-        exp.sub_sections.forEach(sub => {
-          if (sub.title !== 'Key Projects') { // Avoid duplicating Key Projects
-            subSections.push({
-              title: sub.title,
-              details: sub.details || []
-            });
-          }
-        });
-      }
-      
-      return {
-        title: exp.title || '',
-        company: exp.company || '',
-        location: exp.location || '',
-        startDate: exp.start_date || '',
-        endDate: exp.end_date || 'Present',
-        responsibilities: normalAchievements,
-        subSections: subSections
-      };
-    }),
+    workExperiences: workExperiences,
     education: education.map((edu) => ({
       institution: edu.institution || '',
       degree: edu.degree || '',
       startDate: edu.start_date || '',
       endDate: edu.end_date || '',
-      gpa: edu.gpa || (edu.description && typeof edu.description === 'string' ? edu.description.match(/GPA\s*([\d.]+)/)?.[1] : '') || ''
+      gpa: edu.description ? edu.description.match(/GPA\s*:\s*([\d.]+)/i)?.[1] || '' : ''
     })),
-    // Add projects from both explicit projects and extracted from experience
-    projects: [...extractedProjects, ...(projects.map(proj => ({
-      title: proj.title || '',
-      date: proj.date || '',
-      description: proj.description || '',
-      role: proj.role || 'Contributor',
-      impact: proj.impact || '',
-      technologies: Array.isArray(proj.technologies) ? proj.technologies : []
-    })))],
-    certifications: certifications.map(cert => ({
-      name: cert.name || '',
-      dateRange: cert.date_range || ''
-    })),
-    additionalSkills: additionalSkills,
-    softSkills: softSkills.map(skill => ({
-      name: skill.name || '',
-      description: skill.description || ''
-    }))
+    projects: projects,
+    certifications: certifications.length > 0 ? certifications : undefined,
+    additionalSkills: additionalSkills.length > 0 ? additionalSkills : undefined,
+    softSkills: softSkills.length > 0 ? softSkills : undefined
   };
   
   return result;
@@ -266,12 +243,15 @@ function deriveIndustriesFromExperience(experiences: any[]): string[] {
     if (exp.industry) {
       industries.add(exp.industry);
     }
-    // Add more industry inference logic as needed
+    // Add more industry inference logic
     if (exp.company?.toLowerCase().includes('tech') || exp.summary?.toLowerCase().includes('software')) {
       industries.add('Technology');
     }
     if (exp.company?.toLowerCase().includes('college') || exp.summary?.toLowerCase().includes('education')) {
       industries.add('Education');
+    }
+    if (exp.company?.toLowerCase().includes('health') || exp.summary?.toLowerCase().includes('healthcare')) {
+      industries.add('Healthcare');
     }
   });
   
@@ -392,6 +372,23 @@ async function tailorResume(resume: Resume, jobPosting: JobPosting, selectedSect
       tailoredResume.skills = [...tailoredResume.skills, ...skillsToAdd];
     }
     
+    // Make sure certifications, projects, additionalSkills, and softSkills are kept
+    if (!tailoredResume.certifications && resume.certifications) {
+      tailoredResume.certifications = resume.certifications;
+    }
+    
+    if (!tailoredResume.projects && resume.projects) {
+      tailoredResume.projects = resume.projects;
+    }
+    
+    if (!tailoredResume.additionalSkills && resume.additionalSkills) {
+      tailoredResume.additionalSkills = resume.additionalSkills;
+    }
+    
+    if (!tailoredResume.softSkills && resume.softSkills) {
+      tailoredResume.softSkills = resume.softSkills;
+    }
+    
     return tailoredResume;
   } catch (error) {
     console.error('Error in tailorResume function:', error);
@@ -447,9 +444,20 @@ serve(async (req) => {
       );
     }
     
-    console.log('Converting parsed data');
+    console.log('Converting parsed data to Resume format');
     const resume = convertParsedDataToResume(parsedData);
     resume.name = parsedData.personal?.full_name || resumeData.name; // Use the actual person's name
+    
+    // Log the structure of converted resume to help with debugging
+    console.log('Converted resume structure:', JSON.stringify({
+      hasProjects: !!resume.projects && resume.projects.length > 0,
+      hasCertifications: !!resume.certifications && resume.certifications.length > 0,
+      hasAdditionalSkills: !!resume.additionalSkills && resume.additionalSkills.length > 0,
+      hasSoftSkills: !!resume.softSkills && resume.softSkills.length > 0,
+      name: resume.name,
+      skills: resume.skills.length,
+      experiences: resume.workExperiences.length
+    }));
     
     // Tailor the resume using OpenAI
     console.log('Tailoring resume');

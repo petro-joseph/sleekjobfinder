@@ -1,6 +1,6 @@
 
 import jsPDF from 'jspdf';
-import { Resume } from '@/types/resume';
+import { Resume, ProjectDetail } from '@/types/resume';
 
 type ToastFunction = (props: {
     title: string;
@@ -58,6 +58,23 @@ export const generatePDF = async (resume: Resume, toast: ToastFunction) => {
                 return margin;
             }
             return currentY;
+        };
+
+        // Helper function to safely convert ProjectDetail objects or strings to string
+        const formatDetail = (detail: string | ProjectDetail): string => {
+            if (typeof detail === 'string') {
+                return detail;
+            } 
+            
+            if (detail && typeof detail === 'object') {
+                const { title, role, description } = detail;
+                let formattedText = title || '';
+                if (role) formattedText += ` - ${role}`;
+                if (description && !title && !role) formattedText = description;
+                return formattedText;
+            }
+            
+            return '';
         };
 
         // Add project to the PDF
@@ -171,7 +188,7 @@ export const generatePDF = async (resume: Resume, toast: ToastFunction) => {
                     
                     subSection.details.forEach((detail, detailIndex) => {
                         y = checkPageBreak(y, 10);
-                        const bulletText = `• ${detail}`;
+                        const bulletText = `• ${formatDetail(detail)}`;
                         y = addWrappedText(bulletText, margin + 10, y + 1, pageWidth - 15, fontSizes.normal);
                     });
                 });
