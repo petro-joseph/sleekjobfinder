@@ -9,6 +9,7 @@ import {
     HeadingLevel,
     TextRun,
     AlignmentType,
+    Packer
 } from "docx";
 import { saveAs } from "file-saver";
 import { Resume } from '@/types/resume';
@@ -21,13 +22,13 @@ type ToastFunction = (props: {
 
 export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
     try {
-        // Create document with proper configuration
+        // Create document with sections
         const doc = new Document({
-            sections: [] // Initialize with empty sections array
+            sections: []
         });
         
         // Create helper functions to add content
-        const addHeading = (text: string, level: keyof typeof HeadingLevel) => {
+        const addHeading = (text: string, level: HeadingLevel) => {
             return new Paragraph({
                 heading: level,
                 children: [new TextRun(text)]
@@ -212,14 +213,14 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
             });
         }
 
-        // Add all content to the document by creating a section
+        // Create a new section and add all content to it
         doc.addSection({
             children: content
         });
 
-        // Generate the document blob
-        const blob = await doc.save();
-        saveAs(blob, `${resume.name.replace(/\s+/g, '_')}_Resume.docx`);
+        // Generate and download the document
+        const buffer = await Packer.toBlob(doc);
+        saveAs(buffer, `${resume.name.replace(/\s+/g, '_')}_Resume.docx`);
 
         toast({
             title: 'DOCX Downloaded',
@@ -236,3 +237,4 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
         throw error;
     }
 };
+
