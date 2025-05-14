@@ -1,3 +1,4 @@
+
 import {
     Document,
     Paragraph,
@@ -21,13 +22,8 @@ type ToastFunction = (props: {
 
 export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
     try {
-        // Create document with proper initialization
-        const doc = new Document({
-            sections: [{
-                properties: {},
-                children: []
-            }]
-        });
+        // Create an array to collect all content
+        const content: (Paragraph | Table)[] = [];
         
         // Create helper functions to add content
         const addHeading = (text: string, level: typeof HeadingLevel[keyof typeof HeadingLevel]) => {
@@ -51,9 +47,6 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
                 bullet: { level: 0 },
             });
         };
-
-        // Array of content to add to the document
-        const content: (Paragraph | Table)[] = [];
 
         // Name and contact information
         content.push(addHeading(resume.name, HeadingLevel.TITLE));
@@ -215,9 +208,12 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
             });
         }
 
-        // Add all content to the document by setting the children of the first section
-        // This is the proper way to add content to a document
-        doc.sections[0].children = content;
+        // Create document and add the content properly
+        const doc = new Document({
+            sections: [{
+                children: content
+            }]
+        });
 
         // Generate and download the document
         const buffer = await Packer.toBlob(doc);
