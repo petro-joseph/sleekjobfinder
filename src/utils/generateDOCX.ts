@@ -22,14 +22,8 @@ type ToastFunction = (props: {
 
 export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
     try {
-        // Create document with sections
-        const doc = new Document({
-            sections: [
-                {
-                    children: [] // We'll add paragraphs to this section
-                }
-            ]
-        });
+        // Create document
+        const doc = new Document();
         
         // Create helper functions to add content
         const addHeading = (text: string, level: HeadingLevel) => {
@@ -205,8 +199,7 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
         // Additional Skills as a table
         if (resume.additionalSkills && resume.additionalSkills.length > 0) {
             content.push(addHeading('ADDITIONAL SKILLS', HeadingLevel.HEADING_1));
-            const skillsTable = createSkillsTable(resume.additionalSkills);
-            content.push(skillsTable);
+            content.push(createSkillsTable(resume.additionalSkills));
         }
 
         // Soft Skills
@@ -218,7 +211,7 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
             });
         }
 
-        // Add all content to the document's first section
+        // Add all content to the document
         doc.addSection({
             children: content
         });
