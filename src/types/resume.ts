@@ -4,11 +4,20 @@ import { Education, WorkExperience as BaseWorkExperience } from '../types/index'
 // Re-export the Education type
 export type { Education };
 
+// Project detail type for nested project information
+export interface ProjectDetail {
+  title?: string;
+  role?: string;
+  impact?: string;
+  technologies?: string[];
+  description?: string;
+}
+
 // Extended WorkExperience type with subSections
 export interface WorkExperience extends BaseWorkExperience {
   subSections?: Array<{
     title: string;
-    details: string[];
+    details: Array<string | ProjectDetail>;
   }>;
 }
 

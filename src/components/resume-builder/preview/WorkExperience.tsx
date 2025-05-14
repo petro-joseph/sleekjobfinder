@@ -110,12 +110,12 @@ const WorkExperience: React.FC<WorkExperienceProps> = ({
                                     <div key={subIndex} className="mt-2">
                                         <h4 className="font-medium text-sm">{safeToString(sub.title)}</h4>
                                         <ul className="list-disc list-inside text-sm">
-                                            {Array.isArray(sub.details) && sub.details.map((detail, detailIndex) => (
+                                            {isValidArray(sub.details) && sub.details.map((detail, detailIndex) => (
                                                 <li key={detailIndex}>
                                                     {typeof detail === 'string' 
                                                         ? safeToString(detail)
-                                                        : typeof detail === 'object' 
-                                                            ? `${safeToString(detail.title || '')} - ${safeToString(detail.role || '')}`
+                                                        : typeof detail === 'object' && detail !== null
+                                                            ? `${safeToString(detail.title || '')}${detail.role ? ` - ${safeToString(detail.role)}` : ''}`
                                                             : ''}
                                                 </li>
                                             ))}
