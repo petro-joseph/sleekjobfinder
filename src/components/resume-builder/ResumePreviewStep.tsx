@@ -77,7 +77,7 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
         };
         break;
       case 'education':
-        sectionValues = { education: [...tailoredResume.education] };
+        sectionValues = { education: {...tailoredResume.education[index || 0]} };
         break;
       case 'additionalSkills':
         sectionValues = { additionalSkills: tailoredResume.additionalSkills ? [...tailoredResume.additionalSkills] : [] };
@@ -128,7 +128,9 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
         }
         break;
       case 'education':
-        updatedResume.education = editValues.education;
+        if (editing.index !== undefined) {
+          updatedResume.education[editing.index] = editValues.education;
+        }
         break;
       case 'additionalSkills':
         updatedResume.additionalSkills = editValues.additionalSkills;
@@ -309,6 +311,7 @@ export const ResumePreviewStep: React.FC<ResumePreviewStepProps> = ({
             education={tailoredResume.education}
             editing={editing}
             editValues={editValues}
+            setEditValues={setEditValues}
             startEditing={startEditing}
             cancelEditing={cancelEditing}
             saveEdits={saveEdits}

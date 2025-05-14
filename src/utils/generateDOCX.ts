@@ -1,3 +1,4 @@
+
 import {
     Document,
     Paragraph,
@@ -8,6 +9,7 @@ import {
     HeadingLevel,
     TextRun,
     AlignmentType,
+    ParagraphChild,
 } from "docx";
 import { saveAs } from "file-saver";
 import { Resume } from '@/types/resume';
@@ -21,48 +23,74 @@ type ToastFunction = (props: {
 export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
     try {
         const doc = new Document();
-
+        
         // Function to add a heading
         const addHeading = (text: string, level: HeadingLevel) => {
-            doc.addParagraph(new Paragraph({
-                text: text,
+            const paragraph = new Paragraph({
                 heading: level,
-            }));
+                children: [new TextRun(text)]
+            });
+            doc.addParagraph(paragraph);
         };
 
         // Function to add a paragraph
         const addParagraph = (text: string, options: any = {}) => {
             const paragraph = new Paragraph({
-                text: text,
-                ...options,
+                children: [new TextRun({ text, ...options })],
+                alignment: options.alignment,
+                bullet: options.bullet ? { level: 0 } : undefined,
             });
             doc.addParagraph(paragraph);
         };
 
         // Function to add bullet points
         const addBulletPoint = (text: string) => {
-            addParagraph(text, { bullet: { level: 0 } });
+            const paragraph = new Paragraph({
+                children: [new TextRun(text)],
+                bullet: { level: 0 },
+            });
+            doc.addParagraph(paragraph);
         };
 
         // Function to create a table for skills
         const createSkillsTable = (skills: string[]): Table => {
             const numColumns = 3;
             const rows: TableRow[] = [];
-            let currentRow: TableRow = new TableRow({ children: [] });
-
-            skills.forEach((skill, index) => {
-                const cell = new TableCell({
-                    children: [new Paragraph(skill)],
-                    width: { size: 100 / numColumns, type: WidthType.PERCENTAGE },
-                });
-
-                currentRow.addChild(cell);
-
-                if ((index + 1) % numColumns === 0 || index === skills.length - 1) {
-                    rows.push(currentRow);
-                    currentRow = new TableRow({ children: [] });
+            
+            // Calculate how many rows we need
+            const numRows = Math.ceil(skills.length / numColumns);
+            
+            // Create each row
+            for (let row = 0; row < numRows; row++) {
+                const cells: TableCell[] = [];
+                
+                // Create cells for this row
+                for (let col = 0; col < numColumns; col++) {
+                    const index = row * numColumns + col;
+                    if (index < skills.length) {
+                        cells.push(
+                            new TableCell({
+                                children: [new Paragraph({
+                                    children: [new TextRun(skills[index])]
+                                })],
+                                width: { size: 100 / numColumns, type: WidthType.PERCENTAGE },
+                            })
+                        );
+                    } else {
+                        // Empty cell for padding
+                        cells.push(
+                            new TableCell({
+                                children: [new Paragraph({
+                                    children: [new TextRun("")]
+                                })],
+                                width: { size: 100 / numColumns, type: WidthType.PERCENTAGE },
+                            })
+                        );
+                    }
                 }
-            });
+                
+                rows.push(new TableRow({ children: cells }));
+            }
 
             return new Table({
                 rows: rows,
@@ -116,7 +144,7 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
         // Work Experience
         addHeading('PROFESSIONAL EXPERIENCES', HeadingLevel.HEADING_1);
         resume.workExperiences.forEach(experience => {
-            addParagraph(experience.title, { heading: HeadingLevel.HEADING_2, bold: true });
+            addParagraph(experience.title, { bold: true });
             addParagraph(`${experience.company} - ${experience.location}`, { italic: true });
             addParagraph(`${experience.startDate} - ${experience.endDate || 'Present'}`);
             experience.responsibilities.forEach(responsibility => {
@@ -137,7 +165,7 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
         // Education
         addHeading('EDUCATION', HeadingLevel.HEADING_1);
         resume.education.forEach(education => {
-            addParagraph(education.degree, { heading: HeadingLevel.HEADING_2, bold: true });
+            addParagraph(education.degree, { bold: true });
             addParagraph(`${education.institution} (${education.startDate} - ${education.endDate})${education.gpa ? ` - Graduated with a ${education.gpa} GPA` : ''}`, { italic: true });
         });
 
@@ -153,30 +181,18 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
         if (resume.projects && resume.projects.length > 0) {
             addHeading('PROJECTS', HeadingLevel.HEADING_1);
             resume.projects.forEach(project => {
-                addParagraph({
-                    text: project.title,
-                    heading: true,
-                    bold: true
-                });
+                addParagraph(project.title, { bold: true });
                 
                 if (project.date) {
-                    addParagraph({
-                        text: project.date,
-                        italic: true
-                    });
+                    addParagraph(project.date, { italic: true });
                 }
                 
                 if (project.role) {
-                    addParagraph({
-                        text: `Role: ${project.role}`,
-                        italic: true
-                    });
+                    addParagraph(`Role: ${project.role}`, { italic: true });
                 }
                 
-                addParagraph({
-                    text: project.description,
-                    bullet: true
-                });
+                // Add the description as a bullet point
+                addBulletPoint(project.description);
             });
         }
 
@@ -184,10 +200,6 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
         if (resume.additionalSkills && resume.additionalSkills.length > 0) {
             addHeading('ADDITIONAL SKILLS', HeadingLevel.HEADING_1);
             const skillsTable = createSkillsTable(resume.additionalSkills);
-            // Fix the issue with Table not being a valid parameter for addParagraph
-            // Replace:
-            // doc.addParagraph(skillsTable);
-            // With:
             doc.addTable(skillsTable);
         }
 
@@ -201,7 +213,7 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
         }
 
         // Create the blob and trigger the download
-        const blob = await doc.create();
+        const blob = await doc.save();
         saveAs(blob, `${resume.name.replace(/\s+/g, '_')}_Resume.docx`);
 
         toast({
