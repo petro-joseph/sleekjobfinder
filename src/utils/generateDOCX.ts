@@ -12,7 +12,7 @@ import {
     Packer
 } from "docx";
 import { saveAs } from "file-saver";
-import { Resume } from '@/types/resume';
+import { Resume, ProjectDetail } from '@/types/resume';
 
 type ToastFunction = (props: {
     title: string;
@@ -46,6 +46,23 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
                 children: [new TextRun(text)],
                 bullet: { level: 0 },
             });
+        };
+
+        // Helper function to safely convert ProjectDetail objects or strings to string
+        const formatDetail = (detail: string | ProjectDetail): string => {
+            if (typeof detail === 'string') {
+                return detail;
+            } 
+            
+            if (detail && typeof detail === 'object') {
+                const { title, role, description } = detail;
+                let formattedText = title || '';
+                if (role) formattedText += ` - ${role}`;
+                if (description && !title && !role) formattedText = description;
+                return formattedText;
+            }
+            
+            return '';
         };
 
         // Name and contact information
@@ -107,7 +124,7 @@ export const generateDOCX = async (resume: Resume, toast: ToastFunction) => {
                 experience.subSections.forEach(subSection => {
                     content.push(addParagraph(subSection.title, { bold: true }));
                     subSection.details.forEach(detail => {
-                        content.push(addBulletPoint(detail));
+                        content.push(addBulletPoint(formatDetail(detail)));
                     });
                 });
             }
