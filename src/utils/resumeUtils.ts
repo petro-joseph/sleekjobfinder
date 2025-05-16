@@ -42,7 +42,7 @@ export function convertParsedDataToResume(parsedData: any, resumeName: string, r
       gpa: ''
     })),
     projects: [],
-    // Add required properties from types/index.ts Resume type
+    // Add properties for compatibility with types/index.ts Resume type
     file_path: '',
     isPrimary: false,
     created_at: now.toISOString(),

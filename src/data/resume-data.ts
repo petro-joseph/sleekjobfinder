@@ -50,7 +50,7 @@ export const sampleResume: Resume = {
     {
       institution: "University of Technology",
       degree: "Bachelor of Science",
-      field: "Computer Science",
+      field: "Computer Science", // Now this is valid with our updated type
       gpa: "3.8",
       startDate: "2014-09-01",
       endDate: "2018-05-31"

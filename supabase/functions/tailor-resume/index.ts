@@ -1,4 +1,3 @@
-
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -72,6 +71,7 @@ interface Resume {
     name: string;
     description: string;
   }>;
+  markdownContent?: string; // Add field for markdown content
 }
 
 interface TailorRequest {
@@ -138,6 +138,7 @@ function convertParsedDataToResume(parsedData: any): Resume {
   
   // Extract soft skills
   const softSkills: Array<{name: string, description: string}> = [];
+  const skills = parsedData?.skills || [];
   skills.forEach(skill => {
     if (typeof skill === 'string' && 
         (skill.includes('communication') || 
@@ -192,7 +193,7 @@ function convertParsedDataToResume(parsedData: any): Resume {
       endDate: edu.end_date || '',
       gpa: edu.description ? edu.description.match(/GPA\s*:\s*([\d.]+)/i)?.[1] || '' : ''
     })),
-    projects: projects,
+    projects: projects.length > 0 ? projects : undefined,
     certifications: certifications.length > 0 ? certifications : undefined,
     additionalSkills: additionalSkills.length > 0 ? additionalSkills : undefined,
     softSkills: softSkills.length > 0 ? softSkills : undefined
@@ -258,6 +259,130 @@ function deriveIndustriesFromExperience(experiences: any[]): string[] {
   return Array.from(industries);
 }
 
+// Generate markdown from resume data
+function generateMarkdownContent(resume: Resume, jobPosting: JobPosting): string {
+  let markdown = '';
+  
+  // Header with contact info
+  markdown += `# ${resume.name}\n\n`;
+  
+  const contactDetails = [];
+  if (resume.contactInfo.email) contactDetails.push(`${resume.contactInfo.email}`);
+  if (resume.contactInfo.phone) contactDetails.push(`${resume.contactInfo.phone}`);
+  if (resume.contactInfo.linkedin) contactDetails.push(`${resume.contactInfo.linkedin}`);
+  
+  markdown += `${contactDetails.join(' | ')}\n\n`;
+  
+  // Summary
+  if (resume.summary) {
+    markdown += `## PROFESSIONAL SUMMARY\n\n${resume.summary}\n\n`;
+  }
+  
+  // Skills
+  if (resume.skills && resume.skills.length > 0) {
+    markdown += `## TECHNICAL AND BUSINESS SKILLS\n\n`;
+    markdown += resume.skills.map(skill => `- ${skill}`).join('\n');
+    markdown += '\n\n';
+  }
+  
+  // Work Experience
+  if (resume.workExperiences && resume.workExperiences.length > 0) {
+    markdown += `## WORK EXPERIENCE\n\n`;
+    
+    resume.workExperiences.forEach(exp => {
+      markdown += `### ${exp.title}\n`;
+      markdown += `*${exp.company} | ${exp.location} | ${exp.startDate} - ${exp.endDate || 'Present'}*\n\n`;
+      
+      if (exp.responsibilities && exp.responsibilities.length > 0) {
+        exp.responsibilities.forEach(resp => {
+          markdown += `- ${resp}\n`;
+        });
+        markdown += '\n';
+      }
+      
+      // Handle subsections if they exist
+      if (exp.subSections && exp.subSections.length > 0) {
+        exp.subSections.forEach(sub => {
+          markdown += `#### ${sub.title}\n\n`;
+          
+          if (Array.isArray(sub.details)) {
+            sub.details.forEach(detail => {
+              if (typeof detail === 'string') {
+                markdown += `- ${detail}\n`;
+              } else {
+                // It's a Project
+                markdown += `- **${detail.title}** ${detail.date ? `(${detail.date})` : ''}\n`;
+                if (detail.role) markdown += `  - Role: ${detail.role}\n`;
+                if (detail.description) markdown += `  - ${detail.description}\n`;
+                if (detail.technologies && detail.technologies.length > 0) {
+                  markdown += `  - Technologies: ${detail.technologies.join(', ')}\n`;
+                }
+              }
+            });
+          }
+          markdown += '\n';
+        });
+      }
+    });
+  }
+  
+  // Education
+  if (resume.education && resume.education.length > 0) {
+    markdown += `## EDUCATION\n\n`;
+    
+    resume.education.forEach(edu => {
+      markdown += `### ${edu.degree}\n`;
+      markdown += `*${edu.institution} | ${edu.startDate} - ${edu.endDate || 'Present'}*`;
+      if (edu.gpa) markdown += ` | GPA: ${edu.gpa}`;
+      markdown += '\n\n';
+    });
+  }
+  
+  // Projects
+  if (resume.projects && resume.projects.length > 0) {
+    markdown += `## PROJECTS\n\n`;
+    
+    resume.projects.forEach(project => {
+      markdown += `### ${project.title} ${project.date ? `| ${project.date}` : ''}\n`;
+      if (project.role) markdown += `*${project.role}*\n\n`;
+      if (project.description) markdown += `${project.description}\n\n`;
+      if (project.technologies && project.technologies.length > 0) {
+        markdown += `*Technologies: ${project.technologies.join(', ')}*\n\n`;
+      }
+    });
+  }
+  
+  // Certifications
+  if (resume.certifications && resume.certifications.length > 0) {
+    markdown += `## PROFESSIONAL CERTIFICATIONS\n\n`;
+    
+    resume.certifications.forEach(cert => {
+      markdown += `- **${cert.name}**${cert.dateRange ? ` | ${cert.dateRange}` : ''}\n`;
+    });
+    markdown += '\n';
+  }
+  
+  // Additional Skills
+  if (resume.additionalSkills && resume.additionalSkills.length > 0) {
+    markdown += `## ADDITIONAL SKILLS\n\n`;
+    markdown += resume.additionalSkills.map(skill => `- ${skill}`).join('\n');
+    markdown += '\n\n';
+  }
+  
+  // Soft Skills
+  if (resume.softSkills && resume.softSkills.length > 0) {
+    markdown += `## SOFT SKILLS\n\n`;
+    
+    resume.softSkills.forEach(skill => {
+      markdown += `### ${skill.name}\n`;
+      if (skill.description) markdown += `${skill.description}\n`;
+      markdown += '\n';
+    });
+  }
+  
+  return markdown;
+}
+
 // Use OpenAI to tailor the resume
 async function tailorResume(resume: Resume, jobPosting: JobPosting, selectedSections: any, selectedSkills: string[]): Promise<Resume> {
   const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -272,31 +397,52 @@ async function tailorResume(resume: Resume, jobPosting: JobPosting, selectedSect
   try {
     // Prepare the prompt for OpenAI
     const prompt = `
-    I need to tailor a resume for a job. Here's the job posting:
+    You are a professional resume tailoring expert. I need you to customize a resume for a specific job posting.
     
+    JOB POSTING:
     Title: ${jobPosting.title}
     Company: ${jobPosting.company}
     Required Skills: ${jobPosting.requiredSkills.join(', ')}
     Description: ${jobPosting.description}
     
-    Here's the current resume summary:
+    CURRENT RESUME SUMMARY:
     "${resume.summary}"
     
-    Here's the current work experience (for the most recent role):
+    MOST RECENT ROLE:
     Title: ${resume.workExperiences[0]?.title || 'N/A'}
     Company: ${resume.workExperiences[0]?.company || 'N/A'}
     Responsibilities:
     ${resume.workExperiences[0]?.responsibilities.join('\n') || 'N/A'}
     
-    Please provide the following ${selectedSections.summary ? 'including an improved summary' : 'without changing the summary'}
-    ${selectedSections.experience ? ', including improved work experience descriptions' : ', without changing work experience'}:
+    Please create a tailored version of this resume focusing on ${selectedSections.summary ? 'an improved summary' : ''} 
+    ${selectedSections.skills ? (selectedSections.summary ? 'and relevant skills' : 'relevant skills') : ''}
+    ${selectedSections.experience ? (selectedSections.summary || selectedSections.skills ? 'and improved work experiences' : 'improved work experiences') : ''}.
     
-    1. ${selectedSections.summary ? 'An improved professional summary that highlights relevant skills and experience for this job. Make it ATS-friendly by incorporating key terms from the job posting while keeping it readable for humans.' : ''}
-    2. ${selectedSections.experience ? 'Improved bullet points for work experience that emphasize achievements and skills relevant to this job. Format as clear, action-oriented statements that quantify impact where possible.' : ''}
+    Return your response as Markdown format following this structure:
     
-    Format your response as a JSON object with these keys:
-    ${selectedSections.summary ? '"summary": "improved summary text",' : ''}
-    ${selectedSections.experience ? '"workExperience": [{"responsibilities": ["bullet1", "bullet2", ...]}]' : ''}
+    # [Full Name]
+    [Contact Info separated by | symbols]
+    
+    ## PROFESSIONAL SUMMARY
+    [Tailored summary highlighting relevant skills and experience]
+    
+    ## TECHNICAL AND BUSINESS SKILLS
+    - [Skill 1]
+    - [Skill 2]
+    ...
+    
+    ## WORK EXPERIENCE
+    
+    ### [Job Title]
+    *[Company] | [Location] | [Start Date] - [End Date]*
+    
+    - [Tailored responsibility focusing on achievements]
+    - [Another tailored responsibility]
+    ...
+    
+    [Continue with all other sections of the resume]
+    
+    Note: Make sure to include ${selectedSkills.join(', ')} in the skills section, and tailor the entire resume to emphasize qualifications relevant to ${jobPosting.title} at ${jobPosting.company}.
     `;
 
     // Call OpenAI API
@@ -311,7 +457,7 @@ async function tailorResume(resume: Resume, jobPosting: JobPosting, selectedSect
         messages: [
           {
             role: 'system',
-            content: 'You are a professional resume writer who helps tailor resumes to specific job descriptions. Create ATS-optimized content while keeping it readable for humans.'
+            content: 'You are a professional resume writer who creates ATS-optimized resumes in Markdown format. Generate content that is both machine-readable for ATS systems and compelling for human recruiters.'
           },
           {
             role: 'user',
@@ -329,64 +475,66 @@ async function tailorResume(resume: Resume, jobPosting: JobPosting, selectedSect
       throw new Error('Failed to get a valid response from OpenAI');
     }
     
+    // Get the markdown response
+    const markdownContent = data.choices[0].message.content;
+    tailoredResume.markdownContent = markdownContent;
+    
+    // We'll still update the structured resume data as before for compatibility
     try {
-      // Parse the OpenAI response
-      const content = data.choices[0].message.content;
-      // Extract the JSON part from the response
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      // Parse the OpenAI response to extract structured information
+      if (selectedSections.summary) {
+        const summaryMatch = markdownContent.match(/## PROFESSIONAL SUMMARY\s*\n\n([^#]*)/i);
+        if (summaryMatch && summaryMatch[1]) {
+          tailoredResume.summary = summaryMatch[1].trim();
+        }
+      }
       
-      if (jsonMatch) {
-        const tailoredContent = JSON.parse(jsonMatch[0]);
-        
-        // Update the resume with the tailored content
-        if (selectedSections.summary && tailoredContent.summary) {
-          tailoredResume.summary = tailoredContent.summary;
+      if (selectedSections.skills) {
+        const skillsMatch = markdownContent.match(/## TECHNICAL AND BUSINESS SKILLS\s*\n\n([^#]*)/i);
+        if (skillsMatch && skillsMatch[1]) {
+          const skillLines = skillsMatch[1].trim().split('\n');
+          const extractedSkills = skillLines
+            .map(line => line.replace(/^-\s*/, '').trim())
+            .filter(skill => skill.length > 0);
+          
+          if (extractedSkills.length > 0) {
+            tailoredResume.skills = extractedSkills;
+          }
         }
         
-        if (selectedSections.experience && tailoredContent.workExperience) {
-          // Update work experience based on the mode (quick or full)
-          const numExperiencesToEnhance = selectedSections.editMode === 'quick' 
-            ? Math.min(2, tailoredResume.workExperiences.length) 
-            : tailoredResume.workExperiences.length;
-            
-          for (let i = 0; i < numExperiencesToEnhance; i++) {
-            if (tailoredResume.workExperiences[i] && tailoredContent.workExperience[i]) {
-              tailoredResume.workExperiences[i].responsibilities = 
-                tailoredContent.workExperience[i].responsibilities || tailoredResume.workExperiences[i].responsibilities;
+        // Make sure selected skills are included
+        const currentSkillsLower = tailoredResume.skills.map(s => s.toLowerCase());
+        const skillsToAdd = selectedSkills.filter(s => !currentSkillsLower.includes(s.toLowerCase()));
+        tailoredResume.skills = [...tailoredResume.skills, ...skillsToAdd];
+      }
+      
+      if (selectedSections.experience) {
+        const experienceMatch = markdownContent.match(/## WORK EXPERIENCE\s*\n\n([^#]*)/i);
+        if (experienceMatch && experienceMatch[1]) {
+          // This is complex parsing, so we'll only attempt to extract responsibilities
+          const experienceText = experienceMatch[1];
+          const jobBlocks = experienceText.split(/###\s+/).filter(block => block.trim().length > 0);
+          
+          // Update responsibilities for matching job titles
+          jobBlocks.forEach((block, index) => {
+            if (index < tailoredResume.workExperiences.length) {
+              const responsibilityMatches = block.match(/- ([^\n]+)/g);
+              if (responsibilityMatches) {
+                const responsibilities = responsibilityMatches.map(line => 
+                  line.replace(/^-\s*/, '').trim()
+                );
+                
+                if (responsibilities.length > 0) {
+                  tailoredResume.workExperiences[index].responsibilities = responsibilities;
+                }
+              }
             }
-          }
+          });
         }
       }
     } catch (parseError) {
       console.error('Error parsing OpenAI response:', parseError);
-      // If parsing fails, apply some basic tailoring instead
-      if (selectedSections.summary) {
-        tailoredResume.summary = `Experienced ${resume.jobTitle} with ${resume.yearsOfExperience} years of expertise in ${resume.industries.join(', ')}. Proven track record of delivering results in ${jobPosting.requiredSkills[0] || 'relevant areas'}. Seeking to leverage my skills in ${jobPosting.requiredSkills.slice(0, 3).join(', ')} to drive innovation at ${jobPosting.company}.`;
-      }
-    }
-    
-    // Add selected skills regardless of OpenAI response
-    if (selectedSections.skills) {
-      const currentSkillsLower = tailoredResume.skills.map(s => s.toLowerCase());
-      const skillsToAdd = selectedSkills.filter(s => !currentSkillsLower.includes(s.toLowerCase()));
-      tailoredResume.skills = [...tailoredResume.skills, ...skillsToAdd];
-    }
-    
-    // Make sure certifications, projects, additionalSkills, and softSkills are kept
-    if (!tailoredResume.certifications && resume.certifications) {
-      tailoredResume.certifications = resume.certifications;
-    }
-    
-    if (!tailoredResume.projects && resume.projects) {
-      tailoredResume.projects = resume.projects;
-    }
-    
-    if (!tailoredResume.additionalSkills && resume.additionalSkills) {
-      tailoredResume.additionalSkills = resume.additionalSkills;
-    }
-    
-    if (!tailoredResume.softSkills && resume.softSkills) {
-      tailoredResume.softSkills = resume.softSkills;
+      // If parsing fails, we still have the markdown content
     }
     
     return tailoredResume;
