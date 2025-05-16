@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Resume, MatchData } from '@/types/resume';
 import { generatePDF } from '@/utils/generatePDF';
