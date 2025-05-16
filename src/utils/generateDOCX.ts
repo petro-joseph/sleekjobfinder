@@ -31,11 +31,8 @@ export async function generateDOCX(resumeData: Resume, toast: any) {
     if (resumeData.contactInfo?.phone) {
       contactInfo.push(resumeData.contactInfo.phone);
     }
-    // Use location from contactInfo if it exists
-    if (resumeData.contactInfo?.location) {
-      contactInfo.push(resumeData.contactInfo.location);
-    }
-    // Use website/linkedin from contactInfo if it exists
+    
+    // Use location directly from the resume data if it exists
     if (resumeData.contactInfo?.linkedin) {
       contactInfo.push(resumeData.contactInfo.linkedin);
     }
