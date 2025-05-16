@@ -14,7 +14,7 @@ export async function generateDOCX(resumeData: Resume, toast: any) {
       new Paragraph({
         children: [
           new TextRun({
-            text: `${resumeData.firstName || ''} ${resumeData.lastName || ''}`,
+            text: resumeData.name || '',
             size: 28,
             bold: true,
           }),
@@ -25,17 +25,19 @@ export async function generateDOCX(resumeData: Resume, toast: any) {
     
     // Contact information
     const contactInfo = [];
-    if (resumeData.email) {
-      contactInfo.push(resumeData.email);
+    if (resumeData.contactInfo?.email) {
+      contactInfo.push(resumeData.contactInfo.email);
     }
-    if (resumeData.phone) {
-      contactInfo.push(resumeData.phone);
+    if (resumeData.contactInfo?.phone) {
+      contactInfo.push(resumeData.contactInfo.phone);
     }
-    if (resumeData.location) {
-      contactInfo.push(resumeData.location);
+    // Use location from contactInfo if it exists
+    if (resumeData.contactInfo?.location) {
+      contactInfo.push(resumeData.contactInfo.location);
     }
-    if (resumeData.website) {
-      contactInfo.push(resumeData.website);
+    // Use website/linkedin from contactInfo if it exists
+    if (resumeData.contactInfo?.linkedin) {
+      contactInfo.push(resumeData.contactInfo.linkedin);
     }
     
     sections.push(
@@ -397,7 +399,9 @@ export async function generateDOCX(resumeData: Resume, toast: any) {
     
     // Generate and save file
     const buffer = await Packer.toBlob(doc);
-    const filename = `${resumeData.firstName || 'Resume'}_${resumeData.lastName || ''}_${new Date().toISOString().split('T')[0]}.docx`;
+    // Use name parts from the resume data for the filename
+    const nameParts = resumeData.name ? resumeData.name.split(' ') : ['Resume'];
+    const filename = `${nameParts[0] || 'Resume'}_${nameParts[1] || ''}_${new Date().toISOString().split('T')[0]}.docx`;
     saveAs(buffer, filename);
     
     toast({
