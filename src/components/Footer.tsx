@@ -10,14 +10,14 @@ const Footer = () => {
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center space-x-2">
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                SleekJobs
+                KaziHub
               </span>
             </Link>
             <p className="mt-4 text-muted-foreground max-w-md">
               Connecting talented professionals with their dream careers through our AI-powered job platform.
             </p>
             <p className="mt-6 text-sm text-muted-foreground">
-              © {new Date().getFullYear()} SleekJobs. All rights reserved.
+              © {new Date().getFullYear()} KaziHub. All rights reserved.
             </p>
           </div>
 
@@ -63,8 +63,8 @@ const Footer = () => {
 const FooterLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
   return (
     <li>
-      <Link 
-        to={href} 
+      <Link
+        to={href}
         className="text-muted-foreground hover:text-foreground transition-colors link-hover inline-block"
       >
         {children}

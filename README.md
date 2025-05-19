@@ -1,9 +1,9 @@
 
-# SleekJobs - Mobile-First Job Search App
+# KaziHub - Mobile-First Job Search App
 
 ## Overview
 
-SleekJobs is a modern, mobile-first job search web application built with React, Tailwind CSS, and Shadcn/UI. This application prioritizes the mobile user experience with a sleek bottom navigation bar inspired by popular apps like X (Twitter) and LinkedIn.
+KaziHub is a modern, mobile-first job search web application built with React, Tailwind CSS, and Shadcn/UI. This application prioritizes the mobile user experience with a sleek bottom navigation bar inspired by popular apps like X (Twitter) and LinkedIn.
 
 ## Key Mobile Features
 

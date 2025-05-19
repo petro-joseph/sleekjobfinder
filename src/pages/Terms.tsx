@@ -26,10 +26,10 @@ const Terms = () => {
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold mb-4">1. Introduction</h2>
               <p className="text-muted-foreground mb-4">
-                Welcome to SleekJobs. These Terms of Service ("Terms") govern your access to and use of the SleekJobs website, mobile applications, and services (collectively, the "Services"). By accessing or using our Services, you agree to be bound by these Terms. If you do not agree to these Terms, you may not access or use the Services.
+                Welcome to KaziHub. These Terms of Service ("Terms") govern your access to and use of the KaziHub website, mobile applications, and services (collectively, the "Services"). By accessing or using our Services, you agree to be bound by these Terms. If you do not agree to these Terms, you may not access or use the Services.
               </p>
               <p className="text-muted-foreground mb-4">
-                These Terms constitute a legally binding agreement between you and SleekJobs. Please read them carefully.
+                These Terms constitute a legally binding agreement between you and KaziHub. Please read them carefully.
               </p>
 
               <Separator className="my-8" />
@@ -67,8 +67,8 @@ const Terms = () => {
               <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-6">
                 <li>In any way that violates any applicable federal, state, local, or international law or regulation</li>
                 <li>To transmit, or procure the sending of, any advertising or promotional material, including any "junk mail," "chain letter," "spam," or any other similar solicitation</li>
-                <li>To impersonate or attempt to impersonate SleekJobs, a SleekJobs employee, another user, or any other person or entity</li>
-                <li>To engage in any other conduct that restricts or inhibits anyone's use or enjoyment of the Services, or which may harm SleekJobs or users of the Services or expose them to liability</li>
+                <li>To impersonate or attempt to impersonate KaziHub, a KaziHub employee, another user, or any other person or entity</li>
+                <li>To engage in any other conduct that restricts or inhibits anyone's use or enjoyment of the Services, or which may harm KaziHub or users of the Services or expose them to liability</li>
                 <li>To use any robot, spider, or other automatic device, process, or means to access the Services for any purpose, including monitoring or copying any of the material on the Services</li>
                 <li>To use any manual process to monitor or copy any of the material on the Services or for any other unauthorized purpose without our prior written consent</li>
                 <li>To use any device, software, or routine that interferes with the proper working of the Services</li>
@@ -85,7 +85,7 @@ const Terms = () => {
                 The Services may allow you to upload, submit, store, send, or receive content, including but not limited to text, photos, resumes, and other materials (collectively, "User Content"). You retain ownership of any intellectual property rights that you hold in that User Content.
               </p>
               <p className="text-muted-foreground mb-4">
-                By submitting User Content to the Services, you grant SleekJobs a worldwide, non-exclusive, royalty-free license (with the right to sublicense) to use, copy, reproduce, process, adapt, modify, publish, transmit, display, and distribute such User Content in any and all media or distribution methods now known or later developed, for the purpose of providing and improving the Services.
+                By submitting User Content to the Services, you grant KaziHub a worldwide, non-exclusive, royalty-free license (with the right to sublicense) to use, copy, reproduce, process, adapt, modify, publish, transmit, display, and distribute such User Content in any and all media or distribution methods now known or later developed, for the purpose of providing and improving the Services.
               </p>
               <p className="text-muted-foreground mb-4">
                 You represent and warrant that:
@@ -103,10 +103,10 @@ const Terms = () => {
 
               <h2 className="text-2xl font-bold mb-4">6. Intellectual Property</h2>
               <p className="text-muted-foreground mb-4">
-                The Services and their entire contents, features, and functionality (including but not limited to all information, software, text, displays, images, video, and audio, and the design, selection, and arrangement thereof), are owned by SleekJobs, its licensors, or other providers of such material and are protected by United States and international copyright, trademark, patent, trade secret, and other intellectual property or proprietary rights laws.
+                The Services and their entire contents, features, and functionality (including but not limited to all information, software, text, displays, images, video, and audio, and the design, selection, and arrangement thereof), are owned by KaziHub, its licensors, or other providers of such material and are protected by United States and international copyright, trademark, patent, trade secret, and other intellectual property or proprietary rights laws.
               </p>
               <p className="text-muted-foreground mb-4">
-                These Terms do not grant you any rights to use the SleekJobs name, logo, or other trademarks, service marks, and brand features.
+                These Terms do not grant you any rights to use the KaziHub name, logo, or other trademarks, service marks, and brand features.
               </p>
 
               <Separator className="my-8" />
@@ -129,24 +129,24 @@ const Terms = () => {
 
               <h2 className="text-2xl font-bold mb-4">8. Disclaimer of Warranties</h2>
               <p className="text-muted-foreground mb-4">
-                THE SERVICES ARE PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED. WITHOUT LIMITING THE FOREGOING, SLEEKJOBS EXPLICITLY DISCLAIMS ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT, OR NON-INFRINGEMENT, AND ANY WARRANTIES ARISING OUT OF COURSE OF DEALING OR USAGE OF TRADE.
+                THE SERVICES ARE PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED. WITHOUT LIMITING THE FOREGOING, KaziHub EXPLICITLY DISCLAIMS ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT, OR NON-INFRINGEMENT, AND ANY WARRANTIES ARISING OUT OF COURSE OF DEALING OR USAGE OF TRADE.
               </p>
               <p className="text-muted-foreground mb-4">
-                SLEEKJOBS MAKES NO WARRANTY THAT THE SERVICES WILL MEET YOUR REQUIREMENTS OR BE AVAILABLE ON AN UNINTERRUPTED, SECURE, OR ERROR-FREE BASIS. SLEEKJOBS MAKES NO WARRANTY REGARDING THE QUALITY, ACCURACY, TIMELINESS, TRUTHFULNESS, COMPLETENESS, OR RELIABILITY OF ANY INFORMATION OR CONTENT ON THE SERVICES.
+                KaziHub MAKES NO WARRANTY THAT THE SERVICES WILL MEET YOUR REQUIREMENTS OR BE AVAILABLE ON AN UNINTERRUPTED, SECURE, OR ERROR-FREE BASIS. KaziHub MAKES NO WARRANTY REGARDING THE QUALITY, ACCURACY, TIMELINESS, TRUTHFULNESS, COMPLETENESS, OR RELIABILITY OF ANY INFORMATION OR CONTENT ON THE SERVICES.
               </p>
 
               <Separator className="my-8" />
 
               <h2 className="text-2xl font-bold mb-4">9. Limitation of Liability</h2>
               <p className="text-muted-foreground mb-4">
-                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, SLEEKJOBS AND ITS AFFILIATES, OFFICERS, EMPLOYEES, AGENTS, PARTNERS, AND LICENSORS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM:
+                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, KaziHub AND ITS AFFILIATES, OFFICERS, EMPLOYEES, AGENTS, PARTNERS, AND LICENSORS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM:
               </p>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-6">
                 <li>YOUR ACCESS TO OR USE OF OR INABILITY TO ACCESS OR USE THE SERVICES</li>
                 <li>ANY CONDUCT OR CONTENT OF ANY THIRD PARTY ON THE SERVICES</li>
                 <li>ANY CONTENT OBTAINED FROM THE SERVICES</li>
                 <li>UNAUTHORIZED ACCESS, USE, OR ALTERATION OF YOUR TRANSMISSIONS OR CONTENT</li>
-                <li>WHETHER BASED ON WARRANTY, CONTRACT, TORT (INCLUDING NEGLIGENCE), PRODUCT LIABILITY, OR ANY OTHER LEGAL THEORY, AND WHETHER OR NOT SLEEKJOBS HAS BEEN INFORMED OF THE POSSIBILITY OF SUCH DAMAGE</li>
+                <li>WHETHER BASED ON WARRANTY, CONTRACT, TORT (INCLUDING NEGLIGENCE), PRODUCT LIABILITY, OR ANY OTHER LEGAL THEORY, AND WHETHER OR NOT KaziHub HAS BEEN INFORMED OF THE POSSIBILITY OF SUCH DAMAGE</li>
               </ul>
               <p className="text-muted-foreground mb-4">
                 THE FOREGOING LIMITATION OF LIABILITY SHALL APPLY TO THE FULLEST EXTENT PERMITTED BY LAW IN THE APPLICABLE JURISDICTION.
@@ -156,7 +156,7 @@ const Terms = () => {
 
               <h2 className="text-2xl font-bold mb-4">10. Indemnification</h2>
               <p className="text-muted-foreground mb-6">
-                You agree to defend, indemnify, and hold harmless SleekJobs and its affiliates, officers, directors, employees, and agents from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney's fees) arising from: (i) your use of and access to the Services; (ii) your violation of any term of these Terms; (iii) your violation of any third-party right, including without limitation any copyright, property, or privacy right; or (iv) any claim that your User Content caused damage to a third party. This defense and indemnification obligation will survive these Terms and your use of the Services.
+                You agree to defend, indemnify, and hold harmless KaziHub and its affiliates, officers, directors, employees, and agents from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney's fees) arising from: (i) your use of and access to the Services; (ii) your violation of any term of these Terms; (iii) your violation of any third-party right, including without limitation any copyright, property, or privacy right; or (iv) any claim that your User Content caused damage to a third party. This defense and indemnification obligation will survive these Terms and your use of the Services.
               </p>
 
               <h2 className="text-2xl font-bold mb-4">11. Changes to Terms</h2>
@@ -171,7 +171,7 @@ const Terms = () => {
 
               <h2 className="text-2xl font-bold mb-4">13. Miscellaneous</h2>
               <p className="text-muted-foreground mb-4">
-                These Terms constitute the entire agreement between you and SleekJobs regarding your use of the Services and supersede all prior and contemporaneous written or oral agreements between you and SleekJobs.
+                These Terms constitute the entire agreement between you and KaziHub regarding your use of the Services and supersede all prior and contemporaneous written or oral agreements between you and KaziHub.
               </p>
               <p className="text-muted-foreground mb-4">
                 If any provision of these Terms is held to be invalid or unenforceable, such provision shall be struck and the remaining provisions shall be enforced.
@@ -188,7 +188,7 @@ const Terms = () => {
                 If you have any questions about these Terms, please contact us at:
               </p>
               <div className="p-4 bg-secondary/20 rounded-md mb-6">
-                <p className="mb-1"><strong>Email:</strong> legal@sleekjobs.com</p>
+                <p className="mb-1"><strong>Email:</strong> legal@KaziHub.com</p>
                 <p className="mb-1"><strong>Address:</strong> 123 Innovation Way, San Francisco, CA 94103, USA</p>
                 <p><strong>Phone:</strong> +1 (800) 123-4567</p>
               </div>

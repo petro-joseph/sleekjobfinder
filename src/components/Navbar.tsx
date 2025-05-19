@@ -26,16 +26,16 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     if (isLoggingOut) return; // Prevent multiple logout attempts
-    
+
     try {
       setIsLoggingOut(true);
-      
+
       // Call logout from store - this now updates state BEFORE calling Supabase
       await logout();
-      
+
       // Show success message
       toast.success("Logged out successfully");
-      
+
       // Navigate to home page after logout
       navigate('/');
     } catch (error) {
@@ -49,18 +49,16 @@ const Navbar = () => {
   const hideNavbarOnMobile = isAuthenticated;
 
   return (
-    <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        hideNavbarOnMobile ? 'md:block hidden' : ''
-      } ${
-        isScrolled ? 'glassmorphism py-3' : 'bg-transparent py-5'
-      }`}
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${hideNavbarOnMobile ? 'md:block hidden' : ''
+        } ${isScrolled ? 'glassmorphism py-3' : 'bg-transparent py-5'
+        }`}
     >
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between">
           <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center space-x-2 group">
             <span className="text-xl font-bold text-gradient font-display">
-              SleekJobs
+              KaziHub
             </span>
           </Link>
 
@@ -77,17 +75,17 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
-                <Button 
-                  asChild 
-                  variant="ghost" 
+                <Button
+                  asChild
+                  variant="ghost"
                   className="font-medium flex items-center gap-2 p-0"
                 >
                   <Link to="/profile">
                     <UserAvatar className="h-8 w-8" />
                   </Link>
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="font-medium flex items-center gap-2"
                   onClick={handleLogout}
                   disabled={isLoggingOut}
@@ -137,28 +135,28 @@ const Navbar = () => {
         <div className="md:hidden glassmorphism animate-in slide-in">
           <div className="container mx-auto px-6 py-4 space-y-4">
             <nav className="flex flex-col space-y-4">
-              <MobileNavLink 
-                href="/jobs" 
+              <MobileNavLink
+                href="/jobs"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Find Jobs
               </MobileNavLink>
-              <MobileNavLink 
-                href="/resume-builder" 
+              <MobileNavLink
+                href="/resume-builder"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Resume Builder
               </MobileNavLink>
               {!isAuthenticated && (
                 <>
-                  <MobileNavLink 
-                    href="/pricing" 
+                  <MobileNavLink
+                    href="/pricing"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Pricing
                   </MobileNavLink>
-                  <MobileNavLink 
-                    href="/blog" 
+                  <MobileNavLink
+                    href="/blog"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Resources
@@ -167,26 +165,26 @@ const Navbar = () => {
               )}
               {isAuthenticated && (
                 <>
-                  <MobileNavLink 
-                    href="/dashboard" 
+                  <MobileNavLink
+                    href="/dashboard"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Dashboard
                   </MobileNavLink>
-                  <MobileNavLink 
-                    href="/saved-jobs" 
+                  <MobileNavLink
+                    href="/saved-jobs"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Saved Jobs
                   </MobileNavLink>
-                  <MobileNavLink 
-                    href="/progress" 
+                  <MobileNavLink
+                    href="/progress"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Applications
                   </MobileNavLink>
-                  <MobileNavLink 
-                    href="/profile" 
+                  <MobileNavLink
+                    href="/profile"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Profile
@@ -196,8 +194,8 @@ const Navbar = () => {
             </nav>
             <div className="flex flex-col space-y-2 pt-4 border-t">
               {isAuthenticated ? (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full justify-center touch-button"
                   onClick={() => {
                     handleLogout();
@@ -228,8 +226,8 @@ const Navbar = () => {
 
 const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
   return (
-    <Link 
-      to={href} 
+    <Link
+      to={href}
       className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors link-hover"
     >
       {children}
@@ -237,18 +235,18 @@ const NavLink = ({ href, children }: { href: string; children: React.ReactNode }
   );
 };
 
-const MobileNavLink = ({ 
-  href, 
-  onClick, 
-  children 
-}: { 
-  href: string; 
+const MobileNavLink = ({
+  href,
+  onClick,
+  children
+}: {
+  href: string;
   onClick: () => void;
-  children: React.ReactNode 
+  children: React.ReactNode
 }) => {
   return (
-    <Link 
-      to={href} 
+    <Link
+      to={href}
       className="text-base font-medium py-2 transition-colors duration-200 hover:text-primary touch-button flex"
       onClick={onClick}
     >

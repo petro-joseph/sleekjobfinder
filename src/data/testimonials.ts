@@ -11,7 +11,7 @@ export interface Testimonial {
 export const testimonials: Testimonial[] = [
   {
     id: 1,
-    quote: "SleekJobs completely transformed my job search. The AI resume tailoring helped me land interviews at top tech companies within days.",
+    quote: "KaziHub completely transformed my job search. The AI resume tailoring helped me land interviews at top tech companies within days.",
     author: "Sarah Johnson",
     role: "Software Engineer",
     company: "Google",
@@ -25,14 +25,14 @@ export const testimonials: Testimonial[] = [
   },
   {
     id: 3,
-    quote: "After struggling for months to find remote work, SleekJobs helped me land my dream job in just two weeks. The personalized job matches were spot on.",
+    quote: "After struggling for months to find remote work, KaziHub helped me land my dream job in just two weeks. The personalized job matches were spot on.",
     author: "Emily Rodriguez",
     role: "UX Designer",
     company: "Figma",
   },
   {
     id: 4,
-    quote: "As a career changer, I was worried about breaking into tech. SleekJobs not only found me relevant positions but helped optimize my resume to highlight transferable skills.",
+    quote: "As a career changer, I was worried about breaking into tech. KaziHub not only found me relevant positions but helped optimize my resume to highlight transferable skills.",
     author: "David Kim",
     role: "Data Analyst",
     company: "Airbnb",

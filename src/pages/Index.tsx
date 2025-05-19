@@ -14,28 +14,28 @@ import { fetchJobs } from '@/api/jobs';
 
 const Index = () => {
   const isMobile = useIsMobile();
-  
+
   // Fetch featured jobs from Supabase
   const { data: featuredJobsResponse } = useQuery({
     queryKey: ['featuredJobs'],
     queryFn: async () => {
       const response = await fetchJobs({
-        jobTypes: [], 
-        experienceLevels: [], 
-        salaryRange: [50, 150], 
-        searchTerm: '', 
-        industry: '', 
-        location: '', 
-        sortBy: 'newest', 
+        jobTypes: [],
+        experienceLevels: [],
+        salaryRange: [50, 150],
+        searchTerm: '',
+        industry: '',
+        location: '',
+        sortBy: 'newest',
         datePosted: '',
         featured: true
       });
       return response;
     },
   });
-  
+
   const featuredJobs = featuredJobsResponse?.jobs || [];
-  
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -47,15 +47,15 @@ const Index = () => {
               <Sparkles className="w-4 h-4 mr-2" />
               <span>AI-Powered Job Search Platform</span>
             </div>
-            
+
             <h1 className="heading-xl mb-6 animate-fade-in">
               Find Your Dream Job with the Power of AI
             </h1>
-            
+
             <p className="paragraph text-lg mb-8 max-w-xl mx-auto animate-fade-in">
-              SleekJobs uses advanced AI to find perfect job matches, optimize your resume, and automate applications so you can focus on landing interviews.
+              KaziHub uses advanced AI to find perfect job matches, optimize your resume, and automate applications so you can focus on landing interviews.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in">
               <Button asChild size="lg" className="rounded-full touch-button">
                 <Link to="/signup">Get Started for Free</Link>
@@ -68,7 +68,7 @@ const Index = () => {
               </Button>
             </div>
           </div>
-          
+
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto mt-16 animate-fade-in">
             <div className="text-center p-4">
@@ -95,7 +95,7 @@ const Index = () => {
             subtitle="Explore our latest opportunities handpicked for you"
             centered
           />
-          
+
           <div className="mt-8">
             <Carousel
               opts={{
@@ -117,7 +117,7 @@ const Index = () => {
               <CarouselNext className={isMobile ? "right-2" : "-right-12"} />
             </Carousel>
           </div>
-          
+
           <div className="mt-8 text-center">
             <Button asChild size="lg" className="rounded-full touch-button">
               <Link to="/jobs">
@@ -137,7 +137,7 @@ const Index = () => {
             subtitle="Our AI-powered platform streamlines every aspect of your job hunt, from finding the right opportunities to landing interviews."
             centered
           />
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <FeatureCard
               icon={<Target className="w-6 h-6" />}
@@ -170,7 +170,7 @@ const Index = () => {
               description="Never lose track of your applications with our automated tracking and follow-up reminders."
             />
           </div>
-          
+
           <div className="mt-10 text-center">
             <Button asChild size="lg" className="rounded-full touch-button">
               <Link to="/resume-builder">
@@ -186,11 +186,11 @@ const Index = () => {
       <section className="py-20 bg-secondary">
         <div className="container mx-auto px-6">
           <SectionHeading
-            title="How SleekJobs Works"
+            title="How KaziHub Works"
             subtitle="Our streamlined process helps you land your dream job faster than traditional methods."
             centered
           />
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <div className="text-center">
               <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-primary font-bold">1</div>
@@ -208,7 +208,7 @@ const Index = () => {
               <p className="text-muted-foreground">Apply with optimized materials or use our auto-apply feature to maximize your chances.</p>
             </div>
           </div>
-          
+
           <div className="mt-12 text-center">
             <Button asChild size="lg" className="rounded-full touch-button">
               <Link to="/signup">Get Started</Link>
@@ -222,10 +222,10 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <SectionHeading
             title="Success Stories"
-            subtitle="Hear from job seekers who have transformed their careers with SleekJobs."
+            subtitle="Hear from job seekers who have transformed their careers with KaziHub."
             centered
           />
-          
+
           <div className="mt-8">
             <Carousel
               opts={{
@@ -262,7 +262,7 @@ const Index = () => {
         <div className="container mx-auto px-6 text-center">
           <h2 className="heading-lg mb-6 max-w-2xl mx-auto">Ready to Transform Your Job Search?</h2>
           <p className="text-white/80 mb-8 max-w-xl mx-auto">
-            Join thousands of job seekers who have found their dream jobs faster with SleekJobs.
+            Join thousands of job seekers who have found their dream jobs faster with KaziHub.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" variant="secondary" className="rounded-full touch-button">
